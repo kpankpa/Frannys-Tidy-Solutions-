@@ -12,7 +12,7 @@ export default function AdminCustomersPage() {
         {customers.map((c) => (
           <div
             key={c.phone}
-            className="rounded-[20px] border border-border bg-surface p-5 shadow-sm"
+            className="rounded-[10px] border border-border bg-surface p-5 shadow-sm"
           >
             <p className="font-bold text-foreground">{c.name}</p>
             <p className="mt-1 text-sm text-muted">{c.phone}</p>

@@ -7,13 +7,13 @@ export default function AdminReportsPage() {
           (title) => (
             <div
               key={title}
-              className="rounded-[20px] border border-border bg-surface p-6 shadow-sm"
+              className="rounded-[10px] border border-border bg-surface p-6 shadow-sm"
             >
               <h2 className="font-bold">{title}</h2>
               <p className="mt-2 text-sm text-muted">
                 Chart placeholder. Connect analytics later.
               </p>
-              <div className="mt-6 h-32 rounded-[16px] bg-gradient-to-r from-primary/10 via-secondary/20 to-highlight/20" />
+              <div className="mt-6 h-32 rounded-[8px] bg-gradient-to-r from-primary/10 via-secondary/20 to-highlight/20" />
             </div>
           ),
         )}

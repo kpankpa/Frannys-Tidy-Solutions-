@@ -1,15 +1,16 @@
 import { demoOrders } from "@/lib/services";
-import { products } from "@/lib/products";
+import { countProducts } from "@/lib/db/products";
 import { formatPrice } from "@/lib/products";
 
-const stats = [
-  { label: "Total Sales", value: "GH₵ 24,680" },
-  { label: "Orders", value: "186" },
-  { label: "Customers", value: "142" },
-  { label: "Products", value: String(products.length) },
-];
+export default async function AdminOverviewPage() {
+  const productCount = await countProducts();
 
-export default function AdminOverviewPage() {
+  const stats = [
+    { label: "Total Sales", value: "GH₵ 24,680" },
+    { label: "Orders", value: "186" },
+    { label: "Customers", value: "142" },
+    { label: "Products", value: String(productCount) },
+  ];
   return (
     <div className="space-y-8">
       <div>
@@ -23,7 +24,7 @@ export default function AdminOverviewPage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-[20px] border border-border bg-surface p-5 shadow-sm"
+            className="rounded-[10px] border border-border bg-surface p-5 shadow-sm"
           >
             <p className="text-sm text-muted">{stat.label}</p>
             <p className="mt-2 text-2xl font-extrabold text-primary">
@@ -34,7 +35,7 @@ export default function AdminOverviewPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-        <div className="rounded-[20px] border border-border bg-surface p-5 shadow-sm">
+        <div className="rounded-[10px] border border-border bg-surface p-5 shadow-sm">
           <h2 className="font-bold text-foreground">Recent Orders</h2>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full min-w-[520px] text-left text-sm">
@@ -66,7 +67,7 @@ export default function AdminOverviewPage() {
           </div>
         </div>
 
-        <div className="rounded-[20px] border border-border bg-surface p-5 shadow-sm">
+        <div className="rounded-[10px] border border-border bg-surface p-5 shadow-sm">
           <h2 className="font-bold text-foreground">Sales Trend</h2>
           <div className="mt-6 flex h-48 items-end gap-2">
             {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (

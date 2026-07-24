@@ -8,7 +8,7 @@ export default function AdminOrdersPage() {
         <h1 className="text-2xl font-bold">Orders</h1>
         <p className="mt-1 text-sm text-muted">Track fulfilment status.</p>
       </div>
-      <div className="overflow-hidden rounded-[20px] border border-border bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="bg-surface-muted text-muted">
             <tr>

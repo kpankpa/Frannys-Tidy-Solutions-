@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { NAV_LINKS, SITE, SOCIAL } from "@/lib/constants";
+import { Mail, MapPin, Phone } from "lucide-react";
+import { SITE, SOCIAL } from "@/lib/constants";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -23,36 +25,94 @@ function TikTokIcon({ className }: { className?: string }) {
 
 export function Footer() {
   return (
-    <footer className="mt-auto bg-primary-dark text-white">
-      <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
+    <footer className="mt-auto overflow-hidden rounded-t-2xl bg-primary-dark text-white sm:rounded-t-3xl">
+      <div className="container-page grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:py-12">
         <div>
-          <p className="text-xl font-extrabold text-highlight">{SITE.shortName}</p>
+          <Link href="/" className="inline-block" aria-label={SITE.name}>
+            <Image
+              src="/frannystidy.png"
+              alt={SITE.name}
+              width={72}
+              height={72}
+              className="h-14 w-14 rounded-lg object-contain"
+            />
+          </Link>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/70">
-            Premium cleaning detergents and professional services for healthier
-            homes and businesses across Ghana.
+            Redefining cleanliness with clinical precision and premium service
+            across Ghana.
           </p>
-          <div className="mt-5 flex gap-3">
-            <a href={SOCIAL.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-secondary">
-              <InstagramIcon className="h-5 w-5" />
+          <div className="mt-4 flex gap-2.5">
+            <a
+              href={SOCIAL.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-secondary"
+            >
+              <InstagramIcon className="h-4 w-4" />
             </a>
-            <a href={SOCIAL.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 transition hover:bg-secondary">
-              <TikTokIcon className="h-5 w-5" />
+            <a
+              href={SOCIAL.tiktok}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 transition hover:bg-secondary"
+            >
+              <TikTokIcon className="h-4 w-4" />
             </a>
           </div>
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-highlight">Quick Links</h3>
-          <ul className="mt-4 space-y-2">
-            {NAV_LINKS.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className="text-sm text-white/75 hover:text-white">
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white">
+            Services
+          </h3>
+          <ul className="mt-4 space-y-2 text-sm text-white/75">
             <li>
-              <Link href="/admin" className="text-sm text-white/50 hover:text-white">
+              <Link href="/services" className="hover:text-white">
+                Home Cleaning
+              </Link>
+            </li>
+            <li>
+              <Link href="/services" className="hover:text-white">
+                Office Sanitization
+              </Link>
+            </li>
+            <li>
+              <Link href="/services" className="hover:text-white">
+                Deep Cleaning
+              </Link>
+            </li>
+            <li>
+              <Link href="/shop" className="hover:text-white">
+                Cleaning Products
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white">
+            Company
+          </h3>
+          <ul className="mt-4 space-y-2 text-sm text-white/75">
+            <li>
+              <Link href="/about" className="hover:text-white">
+                About
+              </Link>
+            </li>
+            <li>
+              <Link href="/contact" className="hover:text-white">
+                Contact Us
+              </Link>
+            </li>
+            <li>
+              <Link href="/track-order" className="hover:text-white">
+                Track Order
+              </Link>
+            </li>
+            <li>
+              <Link href="/admin" className="hover:text-white/90">
                 Admin
               </Link>
             </li>
@@ -60,63 +120,33 @@ export function Footer() {
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold text-highlight">Contact</h3>
-          <ul className="mt-4 space-y-2 text-sm text-white/75">
-            <li>{SITE.address}</li>
-            <li>
+          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white">
+            Contact
+          </h3>
+          <ul className="mt-4 space-y-3 text-sm text-white/75">
+            <li className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-highlight" />
               <a href={`tel:${SITE.phone}`} className="hover:text-white">
                 {SITE.phoneDisplay}
               </a>
             </li>
-            <li>
+            <li className="flex items-center gap-2">
+              <Mail className="h-4 w-4 text-highlight" />
               <a href={`mailto:${SITE.email}`} className="hover:text-white">
                 {SITE.email}
               </a>
             </li>
-            <li>{SITE.hoursShort}</li>
+            <li className="flex items-start gap-2">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-highlight" />
+              <span>{SITE.address}</span>
+            </li>
           </ul>
-        </div>
-
-        <div>
-          <h3 className="text-sm font-semibold text-highlight">Newsletter</h3>
-          <p className="mt-4 text-sm text-white/70">
-            Get freshness tips and product drops.
-          </p>
-          <form
-            className="mt-4 flex gap-2"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <input
-              type="email"
-              required
-              placeholder="Email address"
-              className="h-11 w-full rounded-[16px] border-0 bg-white/10 px-4 text-sm text-white outline-none placeholder:text-white/40 focus:ring-2 focus:ring-secondary"
-            />
-            <button
-              type="submit"
-              className="h-11 shrink-0 rounded-[16px] bg-highlight px-4 text-sm font-bold text-primary-dark"
-            >
-              Join
-            </button>
-          </form>
-          <div className="mt-6 overflow-hidden rounded-[16px] border border-white/10">
-            <iframe
-              title="East Legon Hills map"
-              src="https://maps.google.com/maps?q=East%20Legon%20Hills%2C%20Accra%2C%20Ghana&t=&z=14&ie=UTF8&iwloc=&output=embed"
-              className="h-28 w-full border-0 grayscale"
-              loading="lazy"
-            />
-          </div>
-          <p className="mt-4 text-xs text-white/45">
-            Policies, Privacy, Terms
-          </p>
         </div>
       </div>
 
       <div className="border-t border-white/10">
-        <div className="container-page flex flex-col gap-2 py-5 text-sm text-white/55 sm:flex-row sm:justify-between">
-          <p>© 2026 {SITE.name}. All rights reserved.</p>
-          <p>{SITE.tagline}</p>
+        <div className="container-page py-5 text-center text-sm text-white/55">
+          © 2026 {SITE.name}. {SITE.tagline}
         </div>
       </div>
     </footer>

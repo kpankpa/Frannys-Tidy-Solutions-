@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
+import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
 import {
   buildWhatsAppUrl,
@@ -12,7 +12,7 @@ import {
 import { formatPrice } from "@/lib/products";
 
 const field =
-  "mt-1.5 w-full rounded-[16px] border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
+  "mt-1.5 w-full rounded-[8px] border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -67,7 +67,7 @@ export default function CheckoutPage() {
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <form
           onSubmit={handleSubmit}
-          className="rounded-[20px] border border-border bg-surface p-6 shadow-sm sm:p-8"
+          className="rounded-[10px] border border-border bg-surface p-6 shadow-sm sm:p-8"
         >
           <h2 className="text-lg font-bold text-foreground">
             Customer Information
@@ -114,12 +114,12 @@ export default function CheckoutPage() {
             </label>
           </div>
           <Button type="submit" variant="whatsapp" size="lg" className="mt-6 w-full">
-            <MessageCircle className="h-5 w-5" />
+            <WhatsAppIcon className="h-5 w-5" />
             Complete Order on WhatsApp
           </Button>
         </form>
 
-        <aside className="h-fit rounded-[20px] border border-border bg-surface p-6 shadow-sm">
+        <aside className="h-fit rounded-[10px] border border-border bg-surface p-6 shadow-sm">
           <h2 className="text-lg font-bold">Summary</h2>
           <ul className="mt-4 space-y-3">
             {lines.map(({ product, quantity, lineTotal }) => (

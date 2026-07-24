@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frannys Tidy Solutions
 
-## Getting Started
+Premium cleaning products and professional cleaning services website for a Ghanaian brand based in East Legon Hills, Accra.
 
-First, run the development server:
+## Stack
+
+- Next.js (App Router) + TypeScript + Tailwind CSS
+- PostgreSQL + Drizzle ORM (planned / in progress by phase)
+- WhatsApp checkout and booking confirmation
+
+## Docs for builders and agents
+
+**Start here:** [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md)
+
+That document is the source of truth for:
+
+- Phased end-to-end delivery (UI -> database -> auth -> orders -> admin -> deploy)
+- Coding standards (simple, human-readable code)
+- Schema sketch and acceptance checks
+
+## Local development
 
 ```bash
+npm install
+cp .env.example .env.local
+npm run db:up
+npm run db:migrate
+npm run db:seed
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Admin login: [http://localhost:3000/admin/login](http://localhost:3000/admin/login)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Default seeded admin (change in `.env.local` before seeding in production):
 
-## Learn More
+- Email: `admin@frannys.com`
+- Password: `changeme123`
 
-To learn more about Next.js, take a look at the following resources:
+Postgres runs in Docker on **localhost:5433** (see `docker-compose.yml`).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Database scripts
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Script | Purpose |
+|--------|---------|
+| `npm run db:up` | Start Postgres container |
+| `npm run db:generate` | Create SQL migrations from schema |
+| `npm run db:migrate` | Apply migrations |
+| `npm run db:seed` | Seed admin, categories, products, settings |
+| `npm run db:studio` | Open Drizzle Studio |
 
-## Deploy on Vercel
+Build plan: [docs/BUILD_PLAN.md](docs/BUILD_PLAN.md) (Phases 0 to 2 done).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Current routes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Path | Description |
+|------|-------------|
+| `/` | Home |
+| `/shop` | Product catalogue |
+| `/shop/[id]` | Product detail |
+| `/cart` | Cart |
+| `/checkout` | WhatsApp checkout |
+| `/services` | Cleaning services + booking |
+| `/about` | Company story |
+| `/contact` | Contact |
+| `/track-order` | Order tracking |
+| `/admin` | Admin dashboard (UI demo until Phase 7) |
+
+## Project conventions
+
+- Prefer small, clear modules over clever abstractions.
+- Keep business logic in `lib/` (and later `lib/db/`), not deep inside JSX.
+- Do not commit `.env.local` or secrets.
+- Update `docs/BUILD_PLAN.md` when you finish a phase.

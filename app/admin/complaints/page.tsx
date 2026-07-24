@@ -21,7 +21,7 @@ export default function AdminComplaintsPage() {
         {complaints.map((c) => (
           <div
             key={c.id}
-            className="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border border-border bg-surface p-5 shadow-sm"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-border bg-surface p-5 shadow-sm"
           >
             <div>
               <p className="font-bold">

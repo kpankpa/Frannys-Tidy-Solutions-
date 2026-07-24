@@ -6,13 +6,13 @@
   --secondary: #1ed3c6;
   --highlight: #d7f12a;
   --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  --surface-soft: #f1f5f9;
-  --text: #1e293b;
+  --surface-muted: #f7fafc;
+  --surface-soft: #eef4f7;
+  --text: #0f2f3d;
   --text-muted: #64748b;
-  --border: #e2e8f0;
-  --background: #f8fafc;
-  --foreground: #1e293b;
+  --border: #e6eef2;
+  --background: #ffffff;
+  --foreground: #0f2f3d;
   --success: #10b981;
   --danger: #ef4444;
 }
@@ -32,7 +32,7 @@
   --color-success: var(--success);
   --color-danger: var(--danger);
   --font-sans: var(--font-manrope);
-  --radius-card: 1.125rem;
+  --radius-card: 1.5rem;
 }
 
 html {
@@ -52,7 +52,7 @@ body {
 
 .container-page {
   width: 100%;
-  max-width: 75rem;
+  max-width: 72rem;
   margin-inline: auto;
   padding-inline: 1.25rem;
 }
@@ -63,6 +63,10 @@ body {
   }
 }
 
+.soft-shadow {
+  box-shadow: 0 6px 20px rgba(15, 47, 61, 0.05);
+}
+
 .card-lift {
   transition:
     transform 0.25s ease,
@@ -70,14 +74,22 @@ body {
 }
 
 .card-lift:hover {
-  transform: translateY(-4px);
-  box-shadow:
-    0 16px 40px -12px rgb(15 93 127 / 0.18);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px rgba(15, 47, 61, 0.08);
 }
 
 .droplet-bg {
   background-image:
-    radial-gradient(circle at 20% 30%, rgb(30 211 198 / 0.12) 0, transparent 40%),
-    radial-gradient(circle at 80% 20%, rgb(215 241 42 / 0.1) 0, transparent 35%),
-    radial-gradient(circle at 70% 80%, rgb(15 93 127 / 0.08) 0, transparent 45%);
+    radial-gradient(circle at 12% 20%, rgb(30 211 198 / 0.14) 0, transparent 42%),
+    radial-gradient(circle at 88% 18%, rgb(215 241 42 / 0.12) 0, transparent 38%),
+    radial-gradient(circle at 70% 85%, rgb(15 93 127 / 0.08) 0, transparent 45%);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

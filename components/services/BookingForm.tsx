@@ -8,7 +8,7 @@ import { bookingMessage, buildWhatsAppUrl, SITE } from "@/lib/constants";
 import { cleaningServices } from "@/lib/services";
 
 const field =
-  "mt-1.5 w-full rounded-[16px] border border-border bg-white px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
+  "mt-1.5 w-full rounded-[8px] border border-border bg-white px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
 
 export function BookingForm() {
   const searchParams = useSearchParams();
@@ -34,7 +34,7 @@ export function BookingForm() {
   return (
     <form
       onSubmit={onSubmit}
-      className="rounded-[20px] border border-border bg-white p-6 shadow-sm sm:p-8"
+      className="rounded-[10px] border border-border bg-white p-6 shadow-sm sm:p-8"
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">

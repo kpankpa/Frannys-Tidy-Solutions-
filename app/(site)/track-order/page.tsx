@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, type FormEvent } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -47,14 +48,14 @@ export default function TrackOrderPage() {
 
       <form
         onSubmit={onSubmit}
-        className="mx-auto mt-10 max-w-lg space-y-4 rounded-[20px] border border-border bg-surface p-6 shadow-sm"
+        className="mx-auto mt-10 max-w-lg space-y-4 rounded-[10px] border border-border bg-surface p-6 shadow-sm"
       >
         <label className="block text-left">
           <span className="text-sm font-medium">Order Number</span>
           <input
             required
             placeholder="FTS-1042"
-            className="mt-1.5 w-full rounded-[16px] border border-border px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+            className="mt-1.5 w-full rounded-[8px] border border-border px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
           />
@@ -65,7 +66,7 @@ export default function TrackOrderPage() {
             required
             type="tel"
             placeholder="0200928400"
-            className="mt-1.5 w-full rounded-[16px] border border-border px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+            className="mt-1.5 w-full rounded-[8px] border border-border px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
           />
@@ -77,7 +78,7 @@ export default function TrackOrderPage() {
       </form>
 
       {result ? (
-        <div className="mx-auto mt-10 max-w-2xl rounded-[20px] border border-border bg-surface p-6 shadow-sm sm:p-8">
+        <div className="mx-auto mt-10 max-w-2xl rounded-[10px] border border-border bg-surface p-6 shadow-sm sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm text-muted">Order {result.orderNumber}</p>
@@ -87,7 +88,34 @@ export default function TrackOrderPage() {
               {result.status}
             </span>
           </div>
-          <p className="mt-2 text-sm text-muted">{result.items}</p>
+
+          <ul className="mt-5 -mx-1 flex gap-3 overflow-x-auto px-1 pb-2 snap-x snap-mandatory">
+            {result.lineItems.map((item) => (
+              <li
+                key={`${result.orderNumber}-${item.productId}`}
+                className="w-40 shrink-0 snap-start overflow-hidden rounded-[8px] border border-border bg-surface-muted sm:w-44"
+              >
+                <div className="relative aspect-square w-full bg-surface">
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover"
+                    sizes="176px"
+                  />
+                  <span className="absolute right-2 top-2 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-primary shadow-sm">
+                    x{item.quantity}
+                  </span>
+                </div>
+                <div className="p-3">
+                  <p className="line-clamp-2 text-sm font-semibold text-foreground">
+                    {item.name}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">{item.category}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
 
           <ol className="mt-8 space-y-0">
             {orderStatuses.map((status, i) => {

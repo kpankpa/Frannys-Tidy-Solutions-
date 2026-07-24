@@ -2,12 +2,13 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
-import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { bookingMessage, buildWhatsAppUrl, SITE, SOCIAL } from "@/lib/constants";
 
 const field =
-  "mt-1.5 w-full rounded-[16px] border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
+  "mt-1.5 w-full rounded-[8px] border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
 
 function ContactInner() {
   const params = useSearchParams();
@@ -42,7 +43,7 @@ function ContactInner() {
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
         <form
           onSubmit={onSubmit}
-          className="rounded-[20px] border border-border bg-surface p-6 shadow-sm sm:p-8"
+          className="rounded-[10px] border border-border bg-surface p-6 shadow-sm sm:p-8"
         >
           <h2 className="text-lg font-bold">Send a Message</h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -108,9 +109,9 @@ function ContactInner() {
           ].map((item) => (
             <div
               key={item.label}
-              className="flex gap-3 rounded-[20px] border border-border bg-surface p-5 shadow-sm"
+              className="flex gap-3 rounded-[10px] border border-border bg-surface p-5 shadow-sm"
             >
-              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[14px] bg-secondary/15 text-primary">
+              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-secondary/15 text-primary">
                 <item.icon className="h-5 w-5" />
               </span>
               <div>
@@ -134,11 +135,11 @@ function ContactInner() {
             size="lg"
             className="w-full"
           >
-            <MessageCircle className="h-5 w-5" />
+            <WhatsAppIcon className="h-5 w-5" />
             Chat on WhatsApp
           </Button>
 
-          <div className="overflow-hidden rounded-[20px] border border-border">
+          <div className="overflow-hidden rounded-[10px] border border-border">
             <iframe
               title="Map"
               src="https://maps.google.com/maps?q=East%20Legon%20Hills%2C%20Accra%2C%20Ghana&t=&z=14&ie=UTF8&iwloc=&output=embed"

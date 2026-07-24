@@ -41,11 +41,11 @@ export default function CartPage() {
           {lines.map(({ product, quantity, lineTotal }) => (
             <div
               key={product.id}
-              className="flex gap-4 rounded-[20px] border border-border bg-surface p-4 shadow-sm"
+              className="flex gap-4 rounded-[10px] border border-border bg-surface p-4 shadow-sm"
             >
               <Link
                 href={`/shop/${product.id}`}
-                className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[16px]"
+                className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px]"
               >
                 <Image
                   src={product.image}
@@ -76,7 +76,7 @@ export default function CartPage() {
                   </button>
                 </div>
                 <div className="mt-auto flex items-center justify-between pt-3">
-                  <div className="inline-flex items-center rounded-[14px] border border-border">
+                  <div className="inline-flex items-center rounded-[8px] border border-border">
                     <button
                       type="button"
                       className="px-2.5 py-2"
@@ -102,7 +102,7 @@ export default function CartPage() {
           ))}
         </div>
 
-        <aside className="h-fit rounded-[20px] border border-border bg-surface p-6 shadow-sm">
+        <aside className="h-fit rounded-[10px] border border-border bg-surface p-6 shadow-sm">
           <h2 className="text-lg font-bold text-foreground">Order Summary</h2>
           <dl className="mt-5 space-y-3 text-sm">
             <div className="flex justify-between">

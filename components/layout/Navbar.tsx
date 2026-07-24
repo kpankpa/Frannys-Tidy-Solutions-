@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, MessageCircle, ShoppingBag, X } from "lucide-react";
+import { Menu, ShoppingBag, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { useCart } from "@/lib/cart";
-import { buildWhatsAppUrl, NAV_LINKS, SITE } from "@/lib/constants";
+import { NAV_LINKS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
@@ -42,14 +43,8 @@ export function Navbar() {
           : "border-transparent bg-white/80 backdrop-blur-sm",
       )}
     >
-      <div className="container-page flex h-16 items-center justify-between gap-4 md:h-[4.25rem]">
-        <Link href="/" className="text-lg font-extrabold tracking-tight text-primary sm:text-xl">
-          {SITE.shortName}
-          <span className="hidden font-semibold text-muted sm:inline">
-            {" "}
-            Tidy Solutions
-          </span>
-        </Link>
+      <div className="container-page flex h-14 items-center justify-between gap-4 md:h-16">
+        <BrandLogo href="/" size="md" priority className="h-11 w-11 sm:h-12 sm:w-12" />
 
         <nav className="hidden items-center gap-6 xl:flex" aria-label="Primary">
           {NAV_LINKS.map((link) => {
@@ -85,18 +80,8 @@ export function Navbar() {
               </span>
             ) : null}
           </Link>
-          <Button
-            href={buildWhatsAppUrl(
-              `Hello ${SITE.name}! I'd like to place an order / book a cleaning.`,
-            )}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="whatsapp"
-            size="sm"
-            className="hidden sm:inline-flex"
-          >
-            <MessageCircle className="h-4 w-4" />
-            WhatsApp
+          <Button href="/contact" size="sm" className="hidden sm:inline-flex">
+            Contact Us
           </Button>
           <button
             type="button"
@@ -121,12 +106,15 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-[16px] px-3 py-3 text-base font-medium text-foreground hover:bg-surface-muted"
+              className="rounded-[8px] px-3 py-3 text-base font-medium text-foreground hover:bg-surface-muted"
             >
               {link.label}
             </Link>
           ))}
-          <Button href="/cart" className="mt-2 w-full">
+          <Button href="/contact" className="mt-2 w-full" size="sm">
+            Contact Us
+          </Button>
+          <Button href="/cart" variant="outline" className="w-full" size="sm">
             View Cart ({count})
           </Button>
         </nav>

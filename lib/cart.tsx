@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 import { SITE } from "@/lib/constants";
-import { getProduct, type Product } from "@/lib/products";
+import type { Product } from "@/lib/products";
 
 export type CartItem = {
   productId: string;
@@ -22,6 +22,7 @@ type CartContextValue = {
   subtotal: number;
   delivery: number;
   total: number;
+  catalogReady: boolean;
   addItem: (productId: string, quantity?: number) => void;
   removeItem: (productId: string) => void;
   setQuantity: (productId: string, quantity: number) => void;
@@ -38,7 +39,9 @@ const STORAGE_KEY = "frannys-cart-v1";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [catalog, setCatalog] = useState<Product[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [catalogReady, setCatalogReady] = useState(false);
 
   useEffect(() => {
     try {
@@ -51,9 +54,32 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    fetch("/api/products")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: Product[]) => {
+        if (!cancelled) {
+          setCatalog(Array.isArray(data) ? data : []);
+          setCatalogReady(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setCatalogReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!hydrated) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }, [items, hydrated]);
+
+  const findProduct = useCallback(
+    (productId: string) => catalog.find((p) => p.id === productId),
+    [catalog],
+  );
 
   const addItem = useCallback((productId: string, quantity = 1) => {
     setItems((prev) => {
@@ -88,7 +114,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const getLineItems = useCallback(() => {
     return items
       .map((item) => {
-        const product = getProduct(item.productId);
+        const product = findProduct(item.productId);
         if (!product) return null;
         return {
           product,
@@ -101,15 +127,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       quantity: number;
       lineTotal: number;
     }>;
-  }, [items]);
+  }, [items, findProduct]);
 
   const subtotal = useMemo(
     () =>
       items.reduce((sum, item) => {
-        const product = getProduct(item.productId);
+        const product = findProduct(item.productId);
         return sum + (product ? product.price * item.quantity : 0);
       }, 0),
-    [items],
+    [items, findProduct],
   );
 
   const count = useMemo(
@@ -127,6 +153,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       subtotal,
       delivery,
       total,
+      catalogReady,
       addItem,
       removeItem,
       setQuantity,
@@ -139,6 +166,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       subtotal,
       delivery,
       total,
+      catalogReady,
       addItem,
       removeItem,
       setQuantity,

@@ -33,7 +33,7 @@ export default function ServicesPage() {
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <div className="relative aspect-[5/4] overflow-hidden rounded-[24px] shadow-xl">
+            <div className="relative aspect-[5/4] overflow-hidden rounded-[12px] shadow-xl">
               <Image
                 src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80"
                 alt="Bright modern living space ready for professional cleaning"
@@ -56,7 +56,7 @@ export default function ServicesPage() {
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {cleaningServices.map((service, i) => (
               <FadeIn key={service.id} delay={i * 0.05} as="article">
-                <div className="card-lift flex h-full flex-col overflow-hidden rounded-[20px] border border-border bg-surface shadow-sm">
+                <div className="card-lift flex h-full flex-col overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
                   <div className="relative aspect-[16/10]">
                     <Image
                       src={service.image}
@@ -91,7 +91,7 @@ export default function ServicesPage() {
           <div className="mx-auto mt-10 max-w-2xl">
             <Suspense
               fallback={
-                <div className="rounded-[20px] border border-border bg-white p-8 text-center text-muted">
+                <div className="rounded-[10px] border border-border bg-white p-8 text-center text-muted">
                   Loading booking form...
                 </div>
               }

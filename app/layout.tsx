@@ -23,12 +23,17 @@ export const metadata: Metadata = {
     "detergents Ghana",
     "WhatsApp checkout",
   ],
+  icons: {
+    icon: "/frannystidy.png",
+    apple: "/frannystidy.png",
+  },
   openGraph: {
     title: `${SITE.name} | Cleaning Made Easy`,
     description: SITE.description,
     locale: "en_GH",
     type: "website",
     siteName: SITE.name,
+    images: [{ url: "/frannystidy.png", alt: SITE.name }],
   },
 };
 

@@ -1,0 +1,139 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { Minus, Plus, ShoppingCart, Star } from "lucide-react";
+import { useState } from "react";
+import { ProductCard } from "@/components/shop/ProductCard";
+import { Button } from "@/components/ui/Button";
+import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
+import { useCart } from "@/lib/cart";
+import { buildWhatsAppUrl, productOrderMessage } from "@/lib/constants";
+import { formatPrice, type Product } from "@/lib/products";
+
+type ProductDetailProps = {
+  product: Product;
+  related: Product[];
+};
+
+export function ProductDetail({ product, related }: ProductDetailProps) {
+  const { addItem } = useCart();
+  const [qty, setQty] = useState(1);
+  const [activeImage, setActiveImage] = useState(0);
+
+  return (
+    <div className="container-page py-10 sm:py-14">
+      <div className="grid gap-10 lg:grid-cols-2">
+        <div>
+          <div className="relative aspect-square overflow-hidden rounded-[12px] border border-border bg-surface shadow-sm">
+            <Image
+              src={product.images[activeImage] ?? product.image}
+              alt={product.imageAlt}
+              fill
+              className="object-cover transition duration-300 hover:scale-105"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              priority
+            />
+          </div>
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {product.images.map((img) => (
+              <button
+                key={img}
+                type="button"
+                onClick={() => setActiveImage(product.images.indexOf(img))}
+                className={`relative aspect-square overflow-hidden rounded-[8px] border-2 ${
+                  product.images[activeImage] === img
+                    ? "border-primary"
+                    : "border-transparent"
+                }`}
+              >
+                <Image src={img} alt="" fill className="object-cover" sizes="120px" />
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <p className="text-sm font-medium text-secondary">{product.category}</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            {product.name}
+          </h1>
+          <div className="mt-3 flex items-center gap-2 text-sm text-muted">
+            <Star className="h-4 w-4 fill-highlight text-highlight" />
+            <span className="font-semibold text-foreground">{product.rating}</span>
+            <span>({product.reviews} reviews)</span>
+          </div>
+          <p className="mt-5 text-3xl font-bold text-primary">
+            {formatPrice(product.price)}
+          </p>
+          <p className="mt-5 leading-relaxed text-muted">{product.longDescription}</p>
+
+          <ul className="mt-6 space-y-2">
+            {product.features.map((f) => (
+              <li key={f} className="flex items-center gap-2 text-sm text-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
+                {f}
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <div className="inline-flex items-center rounded-[8px] border border-border bg-surface">
+              <button
+                type="button"
+                aria-label="Decrease quantity"
+                className="px-3 py-3 text-foreground"
+                onClick={() => setQty((q) => Math.max(1, q - 1))}
+              >
+                <Minus className="h-4 w-4" />
+              </button>
+              <span className="min-w-10 text-center font-semibold">{qty}</span>
+              <button
+                type="button"
+                aria-label="Increase quantity"
+                className="px-3 py-3 text-foreground"
+                onClick={() => setQty((q) => q + 1)}
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            <Button type="button" size="lg" onClick={() => addItem(product.id, qty)}>
+              <ShoppingCart className="h-4 w-4" />
+              Add to Cart
+            </Button>
+          </div>
+
+          <Button
+            href={buildWhatsAppUrl(productOrderMessage(product.name, qty))}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="whatsapp"
+            size="lg"
+            className="mt-3 w-full sm:w-auto"
+          >
+            <WhatsAppIcon className="h-4 w-4" />
+            Order
+          </Button>
+
+          <p className="mt-4 text-sm text-muted">
+            Looking for something else?{" "}
+            <Link href="/shop" className="font-semibold text-primary hover:underline">
+              Browse all products
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      {related.length > 0 ? (
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold text-foreground">Related Products</h2>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {related.map((p) => (
+              <ProductCard key={p.id} product={p} />
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}

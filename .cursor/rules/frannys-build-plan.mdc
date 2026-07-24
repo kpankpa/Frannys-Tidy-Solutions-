@@ -1,0 +1,21 @@
+---
+description: Frannys Tidy Solutions build plan, phases, and simple-code standards
+alwaysApply: true
+---
+
+# Frannys build guidance
+
+Before implementing features, read and follow:
+
+**[docs/BUILD_PLAN.md](docs/BUILD_PLAN.md)**
+
+## Rules
+
+1. Work the lowest unfinished phase in `docs/BUILD_PLAN.md`. Do not skip phases unless the user asks.
+2. Stack target: Next.js App Router, TypeScript, Tailwind, PostgreSQL, Drizzle ORM, WhatsApp checkout.
+3. Write **simple, human-readable code**. Clear names. Small files. No clever abstractions.
+4. Keep UI brand consistent with the existing site. Prefer wiring data over redesigning.
+5. Never commit secrets. Use `.env.local` and document keys in `.env.example`.
+6. When a phase is finished or architecture changes, update the phase status / notes in `docs/BUILD_PLAN.md`.
+7. Site copy: no em dashes or en dashes. Use normal punctuation.
+8. DB access stays on the server. Do not expose `DATABASE_URL` to the client.
