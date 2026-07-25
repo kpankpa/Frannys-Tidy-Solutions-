@@ -13,12 +13,12 @@ import { FadeIn } from "@/components/ui/FadeIn";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Button } from "@/components/ui/Button";
+import { AccentCircles } from "@/components/ui/AccentCircles";
 import type { Product } from "@/lib/products";
 import {
-  cleaningServices,
   howItWorks,
   testimonials,
-  whyChooseUs,
+  type Service,
 } from "@/lib/services";
 import { cn } from "@/lib/utils";
 
@@ -37,16 +37,21 @@ const stepColors = [
   "bg-highlight text-primary-dark",
 ];
 
-export function WhyChoose() {
+export function WhyChoose({
+  title,
+  description,
+  items,
+}: {
+  title: string;
+  description: string;
+  items: { title: string; description: string }[];
+}) {
   return (
     <section className="bg-surface-muted/70 py-14 sm:py-16">
       <div className="container-page">
-        <SectionHeading
-          title="Why Choose Frannys?"
-          description="The clinical premium standard for Ghanaian homes."
-        />
+        <SectionHeading title={title} description={description} />
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {whyChooseUs.map((item, i) => {
+          {items.map((item, i) => {
             const Icon = whyIcons[i] ?? Truck;
             return (
               <FadeIn key={item.title} delay={i * 0.06} as="article">
@@ -113,16 +118,21 @@ export function FeaturedProducts({ products }: { products: Product[] }) {
   );
 }
 
-export function HomeServices() {
+export function HomeServices({
+  title,
+  description,
+  services,
+}: {
+  title: string;
+  description: string;
+  services: Service[];
+}) {
   return (
     <section className="bg-surface-muted/70 py-14 sm:py-16">
       <div className="container-page">
-        <SectionHeading
-          title="Onsite Cleaning Services"
-          description="Homes, offices, hotels, schools, churches, and commercial spaces across Ghana."
-        />
+        <SectionHeading title={title} description={description} />
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {cleaningServices.slice(0, 3).map((service, i) => (
+          {services.slice(0, 3).map((service, i) => (
             <FadeIn key={service.id} delay={i * 0.05} as="article">
               <div className="card-lift flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-surface soft-shadow">
                 <div className="relative m-1 mb-0 aspect-[16/10] overflow-hidden rounded-[10px]">
@@ -223,7 +233,7 @@ export function Testimonials() {
                   ))}
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-foreground">
-                  “{t.quote}”
+                  "{t.quote}"
                 </p>
                 <div className="mt-5 flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary/15 text-xs font-bold text-primary">
@@ -252,8 +262,7 @@ export function HomeCTA() {
       <div className="container-page">
         <FadeIn>
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-dark px-6 py-10 text-center text-white soft-shadow sm:rounded-3xl sm:px-10 sm:py-12">
-            <div className="pointer-events-none absolute -left-16 -top-16 h-48 w-48 rounded-full bg-white/5" />
-            <div className="pointer-events-none absolute -bottom-20 -right-10 h-56 w-56 rounded-full bg-highlight/10" />
+            <AccentCircles />
             <h2 className="relative text-2xl font-bold tracking-tight sm:text-3xl">
               Ready for a Cleaner Space?
             </h2>

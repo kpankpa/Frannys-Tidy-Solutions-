@@ -1,6 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { SITE } from "@/lib/constants";
+import { useSiteConfig } from "@/components/providers/SiteConfigProvider";
 import { cn } from "@/lib/utils";
 
 type BrandLogoProps = {
@@ -23,12 +25,13 @@ export function BrandLogo({
   size = "sm",
   priority = false,
 }: BrandLogoProps) {
+  const site = useSiteConfig();
   const dim = sizes[size];
 
   const image = (
     <Image
       src="/frannystidy.png"
-      alt={SITE.name}
+      alt={site.name}
       width={dim.width}
       height={dim.height}
       priority={priority}
@@ -48,7 +51,7 @@ export function BrandLogo({
     <Link
       href={href}
       className="inline-flex shrink-0 items-center"
-      aria-label={SITE.name}
+      aria-label={site.name}
     >
       {image}
     </Link>

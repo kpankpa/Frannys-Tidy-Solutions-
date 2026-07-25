@@ -2,8 +2,6 @@ import "./load-env";
 import { hash } from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { seedCatalog } from "./seed-catalog";
-import { SITE } from "../constants";
-import { cedisToPesewas } from "../money";
 import { db } from "./index";
 import {
   categories,
@@ -12,6 +10,8 @@ import {
   settings,
   users,
 } from "./schema";
+import { SETTINGS_DEFAULTS } from "./settings";
+import { cedisToPesewas } from "../money";
 
 const categoryNames = [
   "Detergents",
@@ -32,7 +32,25 @@ async function seedAdmin() {
     .toLowerCase()
     .trim();
   const password = process.env.ADMIN_PASSWORD ?? "changeme123";
-  const passwordHash = await hash(password, 10);
+  const isProd = process.env.NODE_ENV === "production";
+
+  if (isProd && (!process.env.ADMIN_PASSWORD || password === "changeme123")) {
+    throw new Error(
+      "Refusing to seed: set a strong ADMIN_PASSWORD before seeding in production.",
+    );
+  }
+
+  if (isProd && (!process.env.AUTH_SECRET || process.env.AUTH_SECRET.length < 32)) {
+    throw new Error(
+      "Refusing to seed: set AUTH_SECRET (32+ chars) before seeding in production.",
+    );
+  }
+
+  if (password.length < 10) {
+    throw new Error("ADMIN_PASSWORD must be at least 10 characters.");
+  }
+
+  const passwordHash = await hash(password, 12);
 
   const existing = await db.query.users.findFirst({
     where: eq(users.email, email),
@@ -120,13 +138,12 @@ async function seedProducts(categoryRows: typeof categories.$inferSelect[]) {
 }
 
 async function seedSettings() {
-  const defaults = [
-    { key: "delivery_fee_pesewas", value: String(cedisToPesewas(SITE.deliveryFee)) },
-    { key: "whatsapp_number", value: SITE.whatsapp },
-    { key: "business_hours", value: SITE.hours },
-    { key: "business_address", value: SITE.address },
-  ];
+  const defaults = Object.entries(SETTINGS_DEFAULTS).map(([key, value]) => ({
+    key,
+    value,
+  }));
 
+  // Insert-only: never overwrite live CMS values on re-seed.
   for (const row of defaults) {
     const existing = await db.query.settings.findFirst({
       where: eq(settings.key, row.key),

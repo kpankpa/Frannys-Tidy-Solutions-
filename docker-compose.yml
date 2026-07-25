@@ -9,6 +9,9 @@ services:
       POSTGRES_USER: frannys
       POSTGRES_PASSWORD: frannys
       POSTGRES_DB: frannys
+      # Avoid local build/dev connection exhaustion
+      POSTGRES_INITDB_ARGS: "--max_connections=200"
+    command: ["postgres", "-c", "max_connections=200"]
     volumes:
       - frannys_pg_data:/var/lib/postgresql/data
 

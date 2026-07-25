@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { getProductByDbId, listCategories } from "@/lib/db/products";
+import { ensureAdminPage } from "@/lib/auth/admin-page";
 
 type PageProps = {
   params: Promise<{ id: string }>;
 };
 
 export default async function EditProductPage({ params }: PageProps) {
+  await ensureAdminPage();
   const { id } = await params;
   const [product, categories] = await Promise.all([
     getProductByDbId(id),

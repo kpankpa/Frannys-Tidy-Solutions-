@@ -12,6 +12,7 @@ import { SITE } from "@/lib/constants";
 import type { Product } from "@/lib/products";
 
 export type CartItem = {
+  /** Product UUID (dbId), not the URL slug. */
   productId: string;
   quantity: number;
 };
@@ -23,9 +24,9 @@ type CartContextValue = {
   delivery: number;
   total: number;
   catalogReady: boolean;
-  addItem: (productId: string, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  setQuantity: (productId: string, quantity: number) => void;
+  addItem: (productDbId: string, quantity?: number) => void;
+  removeItem: (productDbId: string) => void;
+  setQuantity: (productDbId: string, quantity: number) => void;
   clear: () => void;
   getLineItems: () => Array<{
     product: Product;
@@ -35,37 +36,73 @@ type CartContextValue = {
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
-const STORAGE_KEY = "frannys-cart-v1";
+/** v2 keys cart rows by product UUID (dbId). */
+const STORAGE_KEY = "frannys-cart-v2";
+
+function readStoredCart(): CartItem[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as CartItem[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [catalog, setCatalog] = useState<Product[]>([]);
+  const [deliveryFee, setDeliveryFee] = useState<number>(SITE.deliveryFee);
   const [hydrated, setHydrated] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw) as CartItem[]);
-    } catch {
-      /* ignore */
-    }
+    // Client-only hydration from localStorage (must match SSR empty start).
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional hydrate
+    setItems(readStoredCart());
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     let cancelled = false;
+
     fetch("/api/products")
-      .then((res) => (res.ok ? res.json() : []))
+      .then((res) => {
+        if (!res.ok) throw new Error("catalog fetch failed");
+        return res.json();
+      })
       .then((data: Product[]) => {
+        if (cancelled) return;
+        const list = Array.isArray(data) ? data : [];
+        setCatalog(list);
+        setCatalogReady(true);
+        // Only prune stale lines after a successful catalogue load.
+        setItems((prev) => {
+          const next = prev.filter((item) =>
+            list.some((p) => p.dbId === item.productId),
+          );
+          return next.length === prev.length ? prev : next;
+        });
+      })
+      .catch(() => {
         if (!cancelled) {
-          setCatalog(Array.isArray(data) ? data : []);
+          // Keep existing cart lines if the catalogue request fails.
           setCatalogReady(true);
+        }
+      });
+
+    fetch("/api/site-config")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { deliveryFee?: number } | null) => {
+        if (!cancelled && data && typeof data.deliveryFee === "number") {
+          setDeliveryFee(data.deliveryFee);
         }
       })
       .catch(() => {
-        if (!cancelled) setCatalogReady(true);
+        /* keep default */
       });
+
     return () => {
       cancelled = true;
     };
@@ -77,35 +114,37 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, hydrated]);
 
   const findProduct = useCallback(
-    (productId: string) => catalog.find((p) => p.id === productId),
+    (productDbId: string) => catalog.find((p) => p.dbId === productDbId),
     [catalog],
   );
 
-  const addItem = useCallback((productId: string, quantity = 1) => {
+  const addItem = useCallback((productDbId: string, quantity = 1) => {
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === productId);
+      const existing = prev.find((i) => i.productId === productDbId);
       if (existing) {
         return prev.map((i) =>
-          i.productId === productId
+          i.productId === productDbId
             ? { ...i, quantity: i.quantity + quantity }
             : i,
         );
       }
-      return [...prev, { productId, quantity }];
+      return [...prev, { productId: productDbId, quantity }];
     });
   }, []);
 
-  const removeItem = useCallback((productId: string) => {
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
+  const removeItem = useCallback((productDbId: string) => {
+    setItems((prev) => prev.filter((i) => i.productId !== productDbId));
   }, []);
 
-  const setQuantity = useCallback((productId: string, quantity: number) => {
+  const setQuantity = useCallback((productDbId: string, quantity: number) => {
     if (quantity <= 0) {
-      setItems((prev) => prev.filter((i) => i.productId !== productId));
+      setItems((prev) => prev.filter((i) => i.productId !== productDbId));
       return;
     }
     setItems((prev) =>
-      prev.map((i) => (i.productId === productId ? { ...i, quantity } : i)),
+      prev.map((i) =>
+        i.productId === productDbId ? { ...i, quantity } : i,
+      ),
     );
   }, []);
 
@@ -143,7 +182,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [items],
   );
 
-  const delivery = items.length > 0 ? SITE.deliveryFee : 0;
+  const delivery = items.length > 0 ? deliveryFee : 0;
   const total = subtotal + delivery;
 
   const value = useMemo(

@@ -1,63 +1,87 @@
-import { Suspense } from "react";
 import Image from "next/image";
+import { Suspense } from "react";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Button } from "@/components/ui/Button";
+import { HeroOverlay } from "@/components/ui/HeroOverlay";
+import { AnimatedImage } from "@/components/ui/AnimatedImage";
+import { AccentCircles } from "@/components/ui/AccentCircles";
+import { SectionSpinner } from "@/components/ui/PageSpinner";
 import { BookingForm } from "@/components/services/BookingForm";
-import { cleaningServices } from "@/lib/services";
+import { WhyBook } from "@/components/services/WhyBook";
+import { resolveCleaningServices } from "@/lib/services";
+import {
+  SERVICE_PROCESS,
+  SERVICE_SPACES,
+} from "@/lib/services-page";
+import { getSiteConfig } from "@/lib/db/settings";
+import { FLYERS } from "@/lib/flyers";
 
 export const metadata = {
   title: "Cleaning Services",
+  description:
+    "Book professional residential and commercial cleaning with Frannys Tidy Solutions across Accra and Ghana.",
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const site = await getSiteConfig();
+  const services = resolveCleaningServices(site.serviceItems);
+
   return (
     <>
-      <section className="droplet-bg border-b border-border py-14 sm:py-20">
-        <div className="container-page grid items-center gap-10 lg:grid-cols-2">
-          <FadeIn>
-            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
-              Professional Care for Every Space
-            </h1>
-            <p className="mt-4 max-w-xl text-muted sm:text-lg">
-              Clinical-grade hygiene with premium hospitality standards for
-              homes, offices, hotels, schools, churches, and businesses.
+      {/* 1. Hero */}
+      <section className="relative isolate overflow-hidden bg-primary-dark text-white">
+        <AnimatedImage
+          src={FLYERS.brandProducts.src}
+          alt={FLYERS.brandProducts.alt}
+          priority
+          sizes="100vw"
+          className="object-[center_18%]"
+          drift="in"
+        />
+        <HeroOverlay />
+        <div className="container-page relative py-20 sm:py-28">
+          <FadeIn className="max-w-2xl">
+            <p className="text-2xl font-extrabold tracking-tight sm:text-4xl">
+              {site.name}
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button href="#book" size="lg">
-                Explore All Services
+            <h1 className="mt-4 text-xl font-semibold leading-snug text-white/95 sm:text-3xl">
+              {site.servicesHeroHeadline}
+            </h1>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
+              {site.servicesHeroSubcopy}
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button href="#book" variant="light" size="md">
+                Book a Cleaning
               </Button>
-              <Button href="/contact" variant="outline" size="lg">
-                Free Estimate
-              </Button>
-            </div>
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <div className="relative aspect-[5/4] overflow-hidden rounded-[12px] shadow-xl">
-              <Image
-                src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1200&q=80"
-                alt="Bright modern living space ready for professional cleaning"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                priority
-              />
+              <a
+                href="#services"
+                className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 px-5 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
+              >
+                View Services
+              </a>
             </div>
           </FadeIn>
         </div>
       </section>
 
-      <section className="py-16">
+      {/* 2. Service catalogue */}
+      <section id="services" className="bg-surface py-16 sm:py-20">
         <div className="container-page">
-          <SectionHeading
-            title="Our Cleaning Services"
-            description="Select the service that fits your space, then book via WhatsApp."
-          />
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {cleaningServices.map((service, i) => (
-              <FadeIn key={service.id} delay={i * 0.05} as="article">
-                <div className="card-lift flex h-full flex-col overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
-                  <div className="relative aspect-[16/10]">
+          <FadeIn className="max-w-2xl">
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              {site.servicesSectionHeadline}
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-muted">
+              {site.servicesSectionSubcopy}
+            </p>
+          </FadeIn>
+
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {services.map((service, i) => (
+              <FadeIn key={service.id} delay={i * 0.04} as="article">
+                <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border/80 bg-surface soft-shadow">
+                  <div className="relative m-1.5 aspect-[16/10] overflow-hidden rounded-[14px]">
                     <Image
                       src={service.image}
                       alt={service.title}
@@ -66,12 +90,18 @@ export default function ServicesPage() {
                       sizes="(max-width: 1024px) 50vw, 33vw"
                     />
                   </div>
-                  <div className="flex flex-1 flex-col p-6">
-                    <h3 className="text-lg font-bold">{service.title}</h3>
-                    <p className="mt-2 flex-1 text-sm text-muted">
+                  <div className="flex flex-1 flex-col px-5 pb-5 pt-3">
+                    <h3 className="text-lg font-bold text-foreground">
+                      {service.title}
+                    </h3>
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">
                       {service.description}
                     </p>
-                    <Button href={service.href} className="mt-5 w-full" size="sm">
+                    <Button
+                      href={`?service=${encodeURIComponent(service.title)}#book`}
+                      className="mt-5 w-full"
+                      size="sm"
+                    >
                       Select Service
                     </Button>
                   </div>
@@ -82,23 +112,115 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      <section id="book" className="bg-surface py-16">
+      {/* 3. How it works */}
+      <section className="droplet-bg border-y border-border py-16 sm:py-20">
         <div className="container-page">
-          <SectionHeading
-            title="Book a Cleaning Service"
-            description="Tell us what you need. We confirm everything on WhatsApp."
-          />
+          <FadeIn className="max-w-2xl">
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              How it works
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-muted">
+              A simple path from request to fresh space.
+            </p>
+          </FadeIn>
+
+          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            {SERVICE_PROCESS.map((item, i) => (
+              <FadeIn key={item.step} delay={i * 0.06}>
+                <p className="text-3xl font-extrabold text-secondary/45">
+                  {item.step}
+                </p>
+                <h3 className="mt-3 text-lg font-bold text-foreground">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">
+                  {item.body}
+                </p>
+              </FadeIn>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Spaces we serve */}
+      <section className="bg-surface py-16 sm:py-20">
+        <div className="container-page grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <FadeIn>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl soft-shadow">
+              <Image
+                src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80"
+                alt="Clean modern office workspace"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
+            </div>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              Homes, workplaces, and community spaces
+            </h2>
+            <ul className="mt-8 space-y-5">
+              {SERVICE_SPACES.map((space) => (
+                <li key={space.title} className="border-l-2 border-secondary/40 pl-4">
+                  <h3 className="font-bold text-foreground">{space.title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted">
+                    {space.body}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </FadeIn>
+        </div>
+      </section>
+
+      <WhyBook
+        shortName={site.shortName}
+        subcopy={site.whyBookSubcopy}
+        promises={site.servicePromises}
+      />
+
+      {/* 6. Booking */}
+      <section id="book" className="bg-surface-muted py-16 sm:py-20">
+        <div className="container-page">
+          <FadeIn className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              Request a cleaning visit
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-muted">
+              Tell us what you need. We save your request, then open WhatsApp so
+              you can confirm with the {site.shortName} team.
+            </p>
+          </FadeIn>
           <div className="mx-auto mt-10 max-w-2xl">
-            <Suspense
-              fallback={
-                <div className="rounded-[10px] border border-border bg-white p-8 text-center text-muted">
-                  Loading booking form...
-                </div>
-              }
-            >
+            <Suspense fallback={<SectionSpinner label="Loading booking form..." />}>
               <BookingForm />
             </Suspense>
           </div>
+        </div>
+      </section>
+
+      {/* 7. Closing CTA */}
+      <section className="bg-surface py-14 sm:py-16">
+        <div className="container-page">
+          <FadeIn>
+            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-dark px-6 py-10 text-white soft-shadow sm:rounded-3xl sm:px-10 sm:py-12">
+              <AccentCircles />
+              <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+                <div>
+                  <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                    Prefer to talk first?
+                  </h2>
+                  <p className="mt-2 max-w-xl text-sm text-white/75">
+                    Reach us any day of the week. We are based in {site.address}.
+                  </p>
+                </div>
+                <Button href="/contact" variant="light" size="md">
+                  Contact Us
+                </Button>
+              </div>
+            </div>
+          </FadeIn>
         </div>
       </section>
     </>

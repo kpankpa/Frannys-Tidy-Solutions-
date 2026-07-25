@@ -1,34 +1,76 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { bookingMessage, buildWhatsAppUrl, SITE } from "@/lib/constants";
-import { cleaningServices } from "@/lib/services";
+import { Spinner } from "@/components/ui/PageSpinner";
+import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
+import { placeBookingAction } from "@/server/bookings";
 
 const field =
   "mt-1.5 w-full rounded-[8px] border border-border bg-white px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
 
 export function BookingForm() {
   const searchParams = useSearchParams();
-  const preset = searchParams.get("service") ?? cleaningServices[0].title;
+  const { buildWhatsAppUrl, site } = useWhatsAppHelpers();
+  const serviceOptions = site.serviceItems;
+  const serviceParam = searchParams.get("service");
   const [form, setForm] = useState({
     name: "",
     phone: "",
-    serviceType: preset,
+    serviceType: serviceParam ?? serviceOptions[0]?.title ?? "Professional Cleaning",
     location: "",
     preferredDate: "",
     message: "",
+    website: "",
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [saved, setSaved] = useState(false);
 
-  function onSubmit(e: FormEvent) {
+  useEffect(() => {
+    if (!serviceParam) return;
+    // Sync when "Select Service" updates the query string without remounting.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync URL → form
+    setForm((prev) =>
+      prev.serviceType === serviceParam
+        ? prev
+        : { ...prev, serviceType: serviceParam },
+    );
+  }, [serviceParam]);
+
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    const result = await placeBookingAction({
+      ...form,
+      source: "booking",
+    });
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
     window.open(
-      buildWhatsAppUrl(bookingMessage(form)),
+      buildWhatsAppUrl(result.whatsappMessage),
       "_blank",
       "noopener,noreferrer",
     );
+    setSaved(true);
+    setForm({
+      name: "",
+      phone: "",
+      serviceType: serviceParam ?? serviceOptions[0]?.title ?? "Professional Cleaning",
+      location: "",
+      preferredDate: "",
+      message: "",
+      website: "",
+    });
   }
 
   return (
@@ -63,7 +105,7 @@ export function BookingForm() {
             value={form.serviceType}
             onChange={(e) => setForm({ ...form, serviceType: e.target.value })}
           >
-            {cleaningServices.map((s) => (
+            {serviceOptions.map((s) => (
               <option key={s.id} value={s.title}>
                 {s.title}
               </option>
@@ -100,13 +142,37 @@ export function BookingForm() {
             onChange={(e) => setForm({ ...form, message: e.target.value })}
           />
         </label>
+        <label
+          className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden"
+          aria-hidden
+        >
+          <span>Website</span>
+          <input
+            tabIndex={-1}
+            autoComplete="off"
+            value={form.website}
+            onChange={(e) => setForm({ ...form, website: e.target.value })}
+          />
+        </label>
       </div>
-      <Button type="submit" size="lg" className="mt-6 w-full">
-        Request Cleaning
-        <Send className="h-4 w-4" />
+
+      {error ? <p className="mt-4 text-sm text-danger">{error}</p> : null}
+      {saved ? (
+        <p className="mt-4 text-sm text-success">
+          Request saved. WhatsApp should open so you can confirm with Frannys.
+        </p>
+      ) : null}
+
+      <Button type="submit" size="lg" className="mt-6 w-full" disabled={submitting}>
+        {submitting ? "Saving..." : "Request Cleaning"}
+        {submitting ? (
+          <Spinner size="sm" className="border-white/30 border-t-white" />
+        ) : (
+          <Send className="h-4 w-4" />
+        )}
       </Button>
       <p className="mt-3 text-center text-xs text-muted">
-        Available {SITE.hoursShort}. Opens WhatsApp with your request.
+        Available {site.hoursShort}. We save your request, then open WhatsApp.
       </p>
     </form>
   );

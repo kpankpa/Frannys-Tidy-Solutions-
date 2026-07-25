@@ -5,10 +5,12 @@ import { authConfig } from "@/lib/auth/config";
 const { auth } = NextAuth(authConfig);
 
 export default auth((request) => {
-  const isLoggedIn = Boolean(request.auth);
   const isLoginPage = request.nextUrl.pathname === "/admin/login";
+  const isAdmin =
+    request.auth?.user?.role === "admin" && Boolean(request.auth?.user);
 
-  if (isLoggedIn && isLoginPage) {
+  // Only bounce real admins away from the login screen (avoids role loops).
+  if (isAdmin && isLoginPage) {
     return NextResponse.redirect(new URL("/admin", request.nextUrl));
   }
 

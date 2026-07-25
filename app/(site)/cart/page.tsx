@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { PageSpinner } from "@/components/ui/PageSpinner";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 
@@ -16,8 +17,13 @@ export default function CartPage() {
     delivery,
     total,
     count,
+    catalogReady,
   } = useCart();
   const lines = getLineItems();
+
+  if (!catalogReady) {
+    return <PageSpinner label="Loading your cart..." />;
+  }
 
   if (count === 0) {
     return (
@@ -40,7 +46,7 @@ export default function CartPage() {
         <div className="space-y-4">
           {lines.map(({ product, quantity, lineTotal }) => (
             <div
-              key={product.id}
+              key={product.dbId}
               className="flex gap-4 rounded-[10px] border border-border bg-surface p-4 shadow-sm"
             >
               <Link
@@ -69,7 +75,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     aria-label="Remove item"
-                    onClick={() => removeItem(product.id)}
+                    onClick={() => removeItem(product.dbId)}
                     className="text-muted hover:text-danger"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -80,7 +86,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       className="px-2.5 py-2"
-                      onClick={() => setQuantity(product.id, quantity - 1)}
+                      onClick={() => setQuantity(product.dbId, quantity - 1)}
                     >
                       <Minus className="h-3.5 w-3.5" />
                     </button>
@@ -90,7 +96,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       className="px-2.5 py-2"
-                      onClick={() => setQuantity(product.id, quantity + 1)}
+                      onClick={() => setQuantity(product.dbId, quantity + 1)}
                     >
                       <Plus className="h-3.5 w-3.5" />
                     </button>
@@ -119,7 +125,7 @@ export default function CartPage() {
             </div>
           </dl>
           <Button href="/checkout" size="lg" className="mt-6 w-full">
-            Proceed to WhatsApp Checkout
+            Proceed to Checkout
           </Button>
           <Button href="/shop" variant="outline" className="mt-3 w-full">
             Continue Shopping

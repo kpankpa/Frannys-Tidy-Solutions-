@@ -2,16 +2,17 @@
 
 import { usePathname } from "next/navigation";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
-import { buildWhatsAppUrl, SITE } from "@/lib/constants";
+import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
 
 export function WhatsAppFloat() {
   const pathname = usePathname();
+  const { buildWhatsAppUrl, site } = useWhatsAppHelpers();
   if (pathname.startsWith("/admin")) return null;
 
   return (
     <a
       href={buildWhatsAppUrl(
-        `Hello ${SITE.name}! I'd like to learn more about your products and services.`,
+        `Hello ${site.name}! I'd like to learn more about your products and services.`,
       )}
       target="_blank"
       rel="noopener noreferrer"

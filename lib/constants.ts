@@ -11,7 +11,7 @@ export const SITE = {
   phoneDisplay: "020 092 8400",
   whatsapp: "0200928400",
   whatsappE164: "233200928400",
-  email: "francis12sosu@gmail.com",
+  email: "frannystidysolutions@gmail.com",
   hours: "Monday to Sunday, 8:00 AM to 8:00 PM",
   hoursShort: "Mon to Sun, 8:00 AM to 8:00 PM",
   deliveryFee: 20,
@@ -38,24 +38,34 @@ export const MOBILE_NAV = [
   { label: "More", href: "/about" },
 ] as const;
 
-export function buildWhatsAppUrl(message: string): string {
-  return `https://wa.me/${SITE.whatsappE164}?text=${encodeURIComponent(message)}`;
+export function buildWhatsAppUrl(
+  message: string,
+  whatsappE164: string = SITE.whatsappE164,
+): string {
+  return `https://wa.me/${whatsappE164}?text=${encodeURIComponent(message)}`;
 }
 
-export function productOrderMessage(productName: string, qty = 1): string {
-  return `Hello ${SITE.name}!\nI'd like to order:\n• ${productName} x ${qty}\nPlease confirm availability and delivery.`;
+export function productOrderMessage(
+  productName: string,
+  qty = 1,
+  businessName: string = SITE.name,
+): string {
+  return `Hello ${businessName}!\nI'd like to order:\n• ${productName} x ${qty}\nPlease confirm availability and delivery.`;
 }
 
-export function bookingMessage(data: {
-  name: string;
-  phone: string;
-  serviceType: string;
-  location: string;
-  preferredDate: string;
-  message: string;
-}): string {
+export function bookingMessage(
+  data: {
+    name: string;
+    phone: string;
+    serviceType: string;
+    location: string;
+    preferredDate: string;
+    message: string;
+  },
+  businessName: string = SITE.name,
+): string {
   return [
-    `Hello ${SITE.name}! I'd like to request a cleaning service.`,
+    `Hello ${businessName}! I'd like to request a cleaning service.`,
     "",
     `Name: ${data.name}`,
     `Phone: ${data.phone}`,
@@ -79,12 +89,15 @@ export type CheckoutPayload = {
   total: number;
 };
 
-export function checkoutWhatsAppMessage(data: CheckoutPayload): string {
+export function checkoutWhatsAppMessage(
+  data: CheckoutPayload,
+  businessName: string = SITE.name,
+): string {
   const lines = data.items.map(
     (item) => `• ${item.name} x ${item.qty}: GH₵ ${(item.price * item.qty).toFixed(2)}`,
   );
   return [
-    `Hello ${SITE.name}! I'd like to place an order.`,
+    `Hello ${businessName}! I'd like to place an order.`,
     "",
     `Name: ${data.name}`,
     `Phone: ${data.phone}`,

@@ -189,36 +189,38 @@ export async function createProduct(input: ProductInput) {
 export async function updateProduct(dbId: string, input: ProductInput) {
   const slug = input.slug.trim() || slugify(input.name);
 
-  await db
-    .update(products)
-    .set({
-      slug,
-      name: input.name.trim(),
-      description: input.description.trim(),
-      longDescription: input.longDescription.trim(),
-      features: input.features,
-      pricePesewas: cedisToPesewas(input.priceCedis),
-      categoryId: input.categoryId,
-      rating: String(input.rating ?? 0),
-      reviewsCount: input.reviewsCount ?? 0,
-      inStock: input.inStock,
-      badge: input.badge || null,
-      imageAlt: input.imageAlt.trim() || input.name.trim(),
-      updatedAt: new Date(),
-    })
-    .where(eq(products.id, dbId));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(products)
+      .set({
+        slug,
+        name: input.name.trim(),
+        description: input.description.trim(),
+        longDescription: input.longDescription.trim(),
+        features: input.features,
+        pricePesewas: cedisToPesewas(input.priceCedis),
+        categoryId: input.categoryId,
+        rating: String(input.rating ?? 0),
+        reviewsCount: input.reviewsCount ?? 0,
+        inStock: input.inStock,
+        badge: input.badge || null,
+        imageAlt: input.imageAlt.trim() || input.name.trim(),
+        updatedAt: new Date(),
+      })
+      .where(eq(products.id, dbId));
 
-  await db.delete(productImages).where(eq(productImages.productId, dbId));
+    await tx.delete(productImages).where(eq(productImages.productId, dbId));
 
-  if (input.imageUrls.length > 0) {
-    await db.insert(productImages).values(
-      input.imageUrls.map((url, index) => ({
-        productId: dbId,
-        url,
-        sortOrder: index,
-      })),
-    );
-  }
+    if (input.imageUrls.length > 0) {
+      await tx.insert(productImages).values(
+        input.imageUrls.map((url, index) => ({
+          productId: dbId,
+          url,
+          sortOrder: index,
+        })),
+      );
+    }
+  });
 
   return getProductByDbId(dbId);
 }

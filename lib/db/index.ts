@@ -10,6 +10,22 @@ if (!connectionString) {
   );
 }
 
-const client = postgres(connectionString, { prepare: false });
+const globalForDb = globalThis as unknown as {
+  frannysSql?: ReturnType<typeof postgres>;
+};
+
+// Keep the pool small so Next build workers do not exhaust Postgres.
+const client =
+  globalForDb.frannysSql ??
+  postgres(connectionString, {
+    prepare: false,
+    max: 3,
+    idle_timeout: 20,
+    connect_timeout: 10,
+  });
+
+if (process.env.NODE_ENV !== "production") {
+  globalForDb.frannysSql = client;
+}
 
 export const db = drizzle(client, { schema });

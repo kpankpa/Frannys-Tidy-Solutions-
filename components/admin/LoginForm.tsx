@@ -1,7 +1,33 @@
+"use client";
+
+import { useFormStatus } from "react-dom";
+import { Spinner } from "@/components/ui/PageSpinner";
+
 type LoginFormProps = {
   action: (formData: FormData) => Promise<void>;
   callbackUrl: string;
 };
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-[8px] bg-primary text-sm font-semibold text-white transition hover:bg-primary-dark disabled:pointer-events-none disabled:opacity-60"
+    >
+      {pending ? (
+        <>
+          <Spinner size="sm" className="border-white/30 border-t-white" />
+          Signing in...
+        </>
+      ) : (
+        "Sign in"
+      )}
+    </button>
+  );
+}
 
 export function LoginForm({ action, callbackUrl }: LoginFormProps) {
   return (
@@ -15,7 +41,8 @@ export function LoginForm({ action, callbackUrl }: LoginFormProps) {
           type="email"
           required
           autoComplete="username"
-          defaultValue="admin@frannys.com"
+          defaultValue=""
+          placeholder="admin@example.com"
           className="mt-1.5 w-full rounded-[8px] border border-border px-4 py-3 outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
         />
       </label>
@@ -31,12 +58,7 @@ export function LoginForm({ action, callbackUrl }: LoginFormProps) {
         />
       </label>
 
-      <button
-        type="submit"
-        className="inline-flex h-11 w-full items-center justify-center rounded-[8px] bg-primary text-sm font-semibold text-white transition hover:bg-primary-dark"
-      >
-        Sign in
-      </button>
+      <SubmitButton />
     </form>
   );
 }

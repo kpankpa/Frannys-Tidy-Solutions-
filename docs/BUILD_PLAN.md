@@ -27,11 +27,11 @@ WhatsApp remains the checkout / booking confirmation channel for v1 (no online c
 | Next.js App Router + TypeScript + Tailwind | Done | Next 16 |
 | Marketing + shop UI | Done | Products from Postgres (Phase 3) |
 | Cart (localStorage) | Done | `lib/cart.tsx` (resolves via `/api/products`) |
-| WhatsApp deep links | Done | `lib/constants.ts` |
-| Admin UI shells | Done | Products CRUD live; other modules still demo |
+| WhatsApp deep links | Done | Driven by admin Settings via `getSiteConfig` |
+| Admin business hub | Done | Live ops, CMS settings/content, reports |
 | Auth | Done | Admin credentials login |
 | PostgreSQL + Drizzle | Done | Docker on port 5433, migrated + seeded |
-| Real orders / bookings | Not started | |
+| Real orders / bookings | Done | Checkout, bookings, and track-order use Postgres |
 
 ---
 
@@ -43,12 +43,12 @@ WhatsApp remains the checkout / booking confirmation channel for v1 (no online c
 | 1 | Database + Drizzle foundation | Done |
 | 2 | Auth (admin first) | Done |
 | 3 | Products from database | Done |
-| 4 | Orders + WhatsApp checkout persistence | Not started |
-| 5 | Service bookings | Not started |
-| 6 | Track order (real data) | Not started |
-| 7 | Admin dashboard (live data) | Not started |
-| 8 | Customers, complaints, reports | Not started |
-| 9 | Media, polish, deploy | Not started |
+| 4 | Orders + WhatsApp checkout persistence | Done |
+| 5 | Service bookings | Done |
+| 6 | Track order (real data) | Done |
+| 7 | Admin dashboard (live data) | Done |
+| 8 | Customers, complaints, reports | Done |
+| 9 | Media, polish, deploy | Done |
 
 Update status to: `Not started` | `In progress` | `Done`.
 
@@ -313,9 +313,9 @@ Do not keep two sources of truth.
 
 ### Acceptance
 
-- [ ] Submitting checkout inserts rows in Postgres.
-- [ ] WhatsApp message includes order number and line items.
-- [ ] Cart clears only after successful save.
+- [x] Submitting checkout inserts rows in Postgres.
+- [x] WhatsApp message includes order number and line items.
+- [x] Cart clears only after successful save.
 
 ---
 
@@ -331,8 +331,8 @@ Do not keep two sources of truth.
 
 ### Acceptance
 
-- [ ] Booking appears in DB with status `requested`.
-- [ ] WhatsApp still opens with the same details.
+- [x] Booking appears in DB with status `requested`.
+- [x] WhatsApp still opens with the same details.
 
 ---
 
@@ -348,9 +348,9 @@ Do not keep two sources of truth.
 
 ### Acceptance
 
-- [ ] Real order from Phase 4 can be tracked.
-- [ ] Wrong phone/number shows a clear error.
-- [ ] No demo credentials required.
+- [x] Real order from Phase 4 can be tracked.
+- [x] Wrong phone/number shows a clear error.
+- [x] No demo credentials required.
 
 ---
 
@@ -368,9 +368,19 @@ Do not keep two sources of truth.
 
 ### Acceptance
 
-- [ ] Admin numbers match database.
-- [ ] Changing order status updates track-order timeline.
-- [ ] Delivery fee used at checkout comes from settings.
+- [x] Admin numbers match database.
+- [x] Changing order status updates track-order timeline.
+- [x] Delivery fee used at checkout comes from settings.
+
+### Also delivered in Phase 7 (business hub)
+
+- Action-oriented overview with attention queue (pending orders, bookings, complaints, stock).
+- Live bookings status updates.
+- Customers CRM list + detail with order history.
+- Complaints create / resolve.
+- Reports: revenue, 7-day orders, top products, bookings by status.
+- Site content editor (hero, tagline, about blurb).
+- Business settings editor (contact, hours, social, delivery fee).
 
 ---
 
@@ -386,9 +396,11 @@ Do not keep two sources of truth.
 
 ### Acceptance
 
-- [ ] Admin can open a customer and see their orders.
-- [ ] Complaint can be marked open/resolved.
-- [ ] Reports show real aggregates, not placeholders.
+- [x] Admin can open a customer and see their orders.
+- [x] Complaint can be marked open/resolved.
+- [x] Reports show real aggregates, not placeholders.
+
+> Note: Phase 8 acceptance was completed as part of the Phase 7 business hub expansion.
 
 ---
 
@@ -409,9 +421,17 @@ Do not keep two sources of truth.
 
 ### Acceptance
 
-- [ ] Production URL works with real DB.
+- [x] Admin can upload product images to `public/uploads` (or paste URLs).
+- [x] Loading / error / not-found states exist for site and admin.
+- [x] SEO: `metadataBase`, page titles, product OG, `robots.ts`, `sitemap.ts`.
+- [x] README covers env checklist, deploy steps, and backups.
+- [ ] Production URL works with real DB. *(Owner must deploy with Neon/Vercel credentials.)*
 - [ ] Admin login works in production.
 - [ ] Checkout creates orders in production DB.
+
+### Notes
+
+Local disk uploads persist on VPS/Docker. On serverless (Vercel), paste external image URLs or add object storage later.
 
 ---
 
@@ -528,3 +548,10 @@ Write a short note under the phase:
 | 2026-07-24 | Phase 1 Done: Drizzle schema, Docker Postgres (5433), migrate, seed. |
 | 2026-07-24 | Phase 2 Done: Auth.js admin login, middleware protection, logout. |
 | 2026-07-24 | Phase 3 Done: shop/home/admin products read-write Postgres; static catalogue only for seed. |
+| 2026-07-24 | Phase 4 Done: checkout creates orders/customers/events, WhatsApp includes order number, cart clears after save. |
+| 2026-07-24 | Phase 5 Done: services/contact bookings persist as `requested`; admin bookings list; WhatsApp still opens. |
+| 2026-07-24 | Phase 6 Done: track-order looks up real orders by number + phone; demo FTS-1042 removed. |
+| 2026-07-24 | Phase 7+8 Done: business ops admin hub, live stats, order/booking status, settings + site content CMS, customers/complaints/reports. |
+| 2026-07-24 | Wired public site to admin Settings/Content: WhatsApp, contact, about, hero, metadata, login brand name. |
+| 2026-07-24 | Phase 9 Done: local image uploads, loading/error/empty polish, SEO sitemap/robots, deploy + backup docs. Production host still needs owner credentials. |
+| 2026-07-24 | Hardening pass: rate limits, role-aware admin auth, phone normalize, safer track payload, upload magic bytes, URL allowlists, security headers, seed prod guards. |

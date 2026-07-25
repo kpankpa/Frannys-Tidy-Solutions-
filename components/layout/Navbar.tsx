@@ -24,16 +24,15 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
   }, [open]);
 
+  function closeMenu() {
+    setOpen(false);
+  }
   return (
     <header
       className={cn(
@@ -106,15 +105,16 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
+              onClick={closeMenu}
               className="rounded-[8px] px-3 py-3 text-base font-medium text-foreground hover:bg-surface-muted"
             >
               {link.label}
             </Link>
           ))}
-          <Button href="/contact" className="mt-2 w-full" size="sm">
+          <Button href="/contact" className="mt-2 w-full" size="sm" onClick={closeMenu}>
             Contact Us
           </Button>
-          <Button href="/cart" variant="outline" className="w-full" size="sm">
+          <Button href="/cart" variant="outline" className="w-full" size="sm" onClick={closeMenu}>
             View Cart ({count})
           </Button>
         </nav>

@@ -4,36 +4,37 @@ import Image from "next/image";
 import { useState, type FormEvent } from "react";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { demoOrders, orderStatuses, type OrderStatus } from "@/lib/services";
+import { Spinner } from "@/components/ui/PageSpinner";
+import { formatPrice } from "@/lib/products";
+import { ORDER_PIPELINE } from "@/lib/order-status";
+import { trackOrderAction, type TrackedOrderView } from "@/server/orders";
 import { cn } from "@/lib/utils";
 
 export default function TrackOrderPage() {
   const [orderNumber, setOrderNumber] = useState("");
   const [phone, setPhone] = useState("");
-  const [result, setResult] = useState<(typeof demoOrders)[number] | null>(null);
+  const [result, setResult] = useState<TrackedOrderView | null>(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    const found = demoOrders.find(
-      (o) =>
-        o.orderNumber.toLowerCase() === orderNumber.trim().toLowerCase() &&
-        o.phone.replace(/\s/g, "") === phone.replace(/\s/g, ""),
-    );
-    if (!found) {
-      setResult(null);
-      setError(
-        "Order not found. Try demo: FTS-1042 with phone 0200928400",
-      );
+    setLoading(true);
+    setError("");
+    setResult(null);
+
+    const response = await trackOrderAction({ orderNumber, phone });
+    setLoading(false);
+
+    if (!response.ok) {
+      setError(response.error);
       return;
     }
-    setError("");
-    setResult(found);
+
+    setResult(response.order);
   }
 
-  const currentIndex = result
-    ? orderStatuses.indexOf(result.status as OrderStatus)
-    : -1;
+  const currentIndex = result?.statusIndex ?? -1;
 
   return (
     <div className="container-page py-12 sm:py-16">
@@ -42,7 +43,7 @@ export default function TrackOrderPage() {
           Track Order
         </h1>
         <p className="mt-3 text-muted">
-          Enter your order number and phone to see live progress.
+          Enter your order number and the phone used at checkout.
         </p>
       </div>
 
@@ -54,7 +55,7 @@ export default function TrackOrderPage() {
           <span className="text-sm font-medium">Order Number</span>
           <input
             required
-            placeholder="FTS-1042"
+            placeholder="FTS-A1B2C3D4"
             className="mt-1.5 w-full rounded-[8px] border border-border px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
             value={orderNumber}
             onChange={(e) => setOrderNumber(e.target.value)}
@@ -71,8 +72,15 @@ export default function TrackOrderPage() {
             onChange={(e) => setPhone(e.target.value)}
           />
         </label>
-        <Button type="submit" className="w-full" size="lg">
-          Track Order
+        <Button type="submit" className="w-full" size="lg" disabled={loading}>
+          {loading ? (
+            <>
+              <Spinner size="sm" className="border-white/30 border-t-white" />
+              Looking up...
+            </>
+          ) : (
+            "Track Order"
+          )}
         </Button>
         {error ? <p className="text-center text-sm text-danger">{error}</p> : null}
       </form>
@@ -83,16 +91,19 @@ export default function TrackOrderPage() {
             <div>
               <p className="text-sm text-muted">Order {result.orderNumber}</p>
               <p className="text-lg font-bold text-foreground">{result.customer}</p>
+              <p className="mt-1 text-sm text-muted">
+                Total {formatPrice(result.totalCedis)}
+              </p>
             </div>
             <span className="rounded-full bg-secondary/20 px-3 py-1 text-xs font-bold text-primary">
-              {result.status}
+              {result.statusLabel}
             </span>
           </div>
 
           <ul className="mt-5 -mx-1 flex gap-3 overflow-x-auto px-1 pb-2 snap-x snap-mandatory">
             {result.lineItems.map((item) => (
               <li
-                key={`${result.orderNumber}-${item.productId}`}
+                key={`${result.orderNumber}-${item.productId ?? item.name}-${item.quantity}`}
                 className="w-40 shrink-0 snap-start overflow-hidden rounded-[8px] border border-border bg-surface-muted sm:w-44"
               >
                 <div className="relative aspect-square w-full bg-surface">
@@ -118,10 +129,13 @@ export default function TrackOrderPage() {
           </ul>
 
           <ol className="mt-8 space-y-0">
-            {orderStatuses.map((status, i) => {
+            {ORDER_PIPELINE.map((step, i) => {
               const done = i <= currentIndex;
+              const event = result.events.find(
+                (e) => e.status.toLowerCase().replace(/[\s-]+/g, "_") === step.key,
+              );
               return (
-                <li key={status} className="flex gap-4">
+                <li key={step.key} className="flex gap-4">
                   <div className="flex flex-col items-center">
                     <span
                       className={cn(
@@ -133,7 +147,7 @@ export default function TrackOrderPage() {
                     >
                       {done ? <Check className="h-4 w-4" /> : i + 1}
                     </span>
-                    {i < orderStatuses.length - 1 ? (
+                    {i < ORDER_PIPELINE.length - 1 ? (
                       <span
                         className={cn(
                           "my-1 w-0.5 flex-1 min-h-6",
@@ -149,8 +163,17 @@ export default function TrackOrderPage() {
                         done ? "text-foreground" : "text-muted",
                       )}
                     >
-                      {status}
+                      {step.label}
                     </p>
+                    {event ? (
+                      <p className="mt-1 text-xs text-muted">
+                        Updated{" "}
+                        {new Intl.DateTimeFormat("en-GB", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(event.createdAt))}
+                      </p>
+                    ) : null}
                   </div>
                 </li>
               );

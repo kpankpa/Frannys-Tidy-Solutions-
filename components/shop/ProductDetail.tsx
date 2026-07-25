@@ -8,7 +8,7 @@ import { ProductCard } from "@/components/shop/ProductCard";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
-import { buildWhatsAppUrl, productOrderMessage } from "@/lib/constants";
+import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
 import { formatPrice, type Product } from "@/lib/products";
 
 type ProductDetailProps = {
@@ -18,6 +18,7 @@ type ProductDetailProps = {
 
 export function ProductDetail({ product, related }: ProductDetailProps) {
   const { addItem } = useCart();
+  const { buildWhatsAppUrl, productOrderMessage } = useWhatsAppHelpers();
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
 
@@ -97,9 +98,9 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
                 <Plus className="h-4 w-4" />
               </button>
             </div>
-            <Button type="button" size="lg" onClick={() => addItem(product.id, qty)}>
+            <Button type="button" size="lg" onClick={() => addItem(product.dbId, qty)} disabled={!product.inStock}>
               <ShoppingCart className="h-4 w-4" />
-              Add to Cart
+              {product.inStock ? "Add to Cart" : "Out of Stock"}
             </Button>
           </div>
 

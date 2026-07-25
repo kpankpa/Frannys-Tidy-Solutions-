@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { FadeIn } from "@/components/ui/FadeIn";
+import { AccentCircles } from "@/components/ui/AccentCircles";
 import type { Product } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -99,9 +100,10 @@ export function ShopCatalog({ products, categories }: ShopCatalogProps) {
         </div>
       </div>
 
-      <div className="rounded-[8px] bg-primary p-4 text-white">
-        <p className="text-sm font-bold">Save on your first bundle</p>
-        <p className="mt-1 text-xs text-white/75">
+      <div className="rounded-[8px] relative overflow-hidden bg-primary p-4 text-white">
+        <AccentCircles />
+        <p className="relative text-sm font-bold">Save on your first bundle</p>
+        <p className="relative mt-1 text-xs text-white/75">
           Ask about detergent subscription packs when you order.
         </p>
       </div>
@@ -155,9 +157,18 @@ export function ShopCatalog({ products, categories }: ShopCatalogProps) {
             </FadeIn>
           ))}
           {filtered.length === 0 ? (
-            <p className="col-span-full rounded-[10px] border border-dashed border-border p-10 text-center text-muted">
-              No products match your filters.
-            </p>
+            <div className="col-span-full rounded-[10px] border border-dashed border-border p-10 text-center">
+              <p className="font-semibold text-foreground">
+                {products.length === 0
+                  ? "No products in the shop yet"
+                  : "No products match your filters"}
+              </p>
+              <p className="mt-2 text-sm text-muted">
+                {products.length === 0
+                  ? "Check back soon, or contact us on WhatsApp for availability."
+                  : "Try clearing search or widening the price range."}
+              </p>
+            </div>
           ) : null}
         </div>
       </div>

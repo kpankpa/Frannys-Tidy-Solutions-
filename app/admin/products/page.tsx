@@ -7,8 +7,10 @@ import {
   deleteProductAction,
   toggleStockAction,
 } from "@/server/products";
+import { ensureAdminPage } from "@/lib/auth/admin-page";
 
 export default async function AdminProductsPage() {
+  await ensureAdminPage();
   const [products, categories, total] = await Promise.all([
     listProducts(),
     listCategories(),
@@ -117,7 +119,7 @@ export default async function AdminProductsPage() {
 
       <p className="text-xs text-muted">
         Categories in use: {categories.map((c) => c.name).join(", ") || "none"}.
-        Image uploads come in a later phase; paste image URLs for now.
+        Upload images in the product form, or paste image URLs.
       </p>
     </div>
   );

@@ -23,7 +23,7 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   passwordHash: text("password_hash").notNull(),
-  role: text("role").notNull().default("admin"),
+  role: text("role").notNull().default("user"),
   ...timestamps,
 });
 
@@ -91,7 +91,9 @@ export const orderItems = pgTable("order_items", {
   orderId: uuid("order_id")
     .notNull()
     .references(() => orders.id, { onDelete: "cascade" }),
-  productId: uuid("product_id").references(() => products.id),
+  productId: uuid("product_id").references(() => products.id, {
+    onDelete: "set null",
+  }),
   productName: text("product_name").notNull(),
   unitPricePesewas: integer("unit_price_pesewas").notNull(),
   quantity: integer("quantity").notNull(),
@@ -119,6 +121,8 @@ export const bookings = pgTable("bookings", {
   preferredDate: text("preferred_date"),
   message: text("message").notNull().default(""),
   status: text("status").notNull().default("requested"),
+  /** "booking" = service request, "contact" = general enquiry */
+  source: text("source").notNull().default("booking"),
   ...timestamps,
 });
 

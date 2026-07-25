@@ -63,6 +63,24 @@ export const cleaningServices: Service[] = [
   },
 ];
 
+/** Merge CMS title/description overrides onto the coded service catalogue. */
+export function resolveCleaningServices(
+  overrides: { id: string; title: string; description: string }[],
+): Service[] {
+  const byId = new Map(overrides.map((item) => [item.id, item]));
+  return cleaningServices.map((service) => {
+    const override = byId.get(service.id);
+    if (!override) return service;
+    const title = override.title.trim() || service.title;
+    return {
+      ...service,
+      title,
+      description: override.description.trim() || service.description,
+      href: `/contact?service=${encodeURIComponent(title)}`,
+    };
+  });
+}
+
 export const whyChooseUs = [
   {
     title: "Quality Products",
@@ -132,111 +150,3 @@ export const testimonials = [
     rating: 5,
   },
 ] as const;
-
-export const orderStatuses = [
-  "Pending",
-  "Confirmed",
-  "Awaiting Payment",
-  "Packaging",
-  "Out for Delivery",
-  "Delivered",
-] as const;
-
-export type OrderStatus = (typeof orderStatuses)[number];
-
-export type DemoOrderItem = {
-  productId: string;
-  name: string;
-  image: string;
-  category: string;
-  quantity: number;
-};
-
-export const demoOrders: Array<{
-  orderNumber: string;
-  phone: string;
-  status: OrderStatus;
-  customer: string;
-  total: number;
-  items: string;
-  lineItems: DemoOrderItem[];
-}> = [
-  {
-    orderNumber: "FTS-1042",
-    phone: "0200928400",
-    status: "Out for Delivery",
-    customer: "Ama Mensah",
-    total: 165,
-    items: "Multi-Surface x2, Glass Sparkle x1",
-    lineItems: [
-      {
-        productId: "multi-surface",
-        name: "Multi-Surface Cleaner",
-        image:
-          "https://images.unsplash.com/photo-1585421514738-17ce1bc2d45d?auto=format&fit=crop&w=900&q=80",
-        category: "Detergents",
-        quantity: 2,
-      },
-      {
-        productId: "glass-sparkle",
-        name: "Glass Sparkle",
-        image:
-          "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=900&q=80",
-        category: "Specialty",
-        quantity: 1,
-      },
-    ],
-  },
-  {
-    orderNumber: "FTS-1038",
-    phone: "0244111222",
-    status: "Packaging",
-    customer: "Kwame Boateng",
-    total: 120,
-    items: "Laundry Fresh x1, Dish Power x2",
-    lineItems: [
-      {
-        productId: "laundry-fresh",
-        name: "Laundry Fresh",
-        image:
-          "https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?auto=format&fit=crop&w=900&q=80",
-        category: "Detergents",
-        quantity: 1,
-      },
-      {
-        productId: "dish-power",
-        name: "Dish Power",
-        image:
-          "https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=900&q=80",
-        category: "Detergents",
-        quantity: 2,
-      },
-    ],
-  },
-  {
-    orderNumber: "FTS-1031",
-    phone: "0277333444",
-    status: "Delivered",
-    customer: "Efua Addo",
-    total: 210,
-    items: "Floor Shine x2, Disinfectant x1",
-    lineItems: [
-      {
-        productId: "floor-shine",
-        name: "Floor Shine Detergent",
-        image:
-          "https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=900&q=80",
-        category: "Detergents",
-        quantity: 2,
-      },
-      {
-        productId: "disinfectant",
-        name: "Home Disinfectant",
-        image:
-          "https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=900&q=80",
-        category: "Disinfectants",
-        quantity: 1,
-      },
-    ],
-  },
-];

@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/Button";
+import { Spinner } from "@/components/ui/PageSpinner";
 import { saveProductAction } from "@/server/products";
 
 type CategoryOption = {
@@ -32,18 +34,63 @@ type ProductFormProps = {
   product?: ProductFormValues;
 };
 
+const fieldClass =
+  "mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
+
 export function ProductForm({ categories, product }: ProductFormProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
+  const [imageUrlsText, setImageUrlsText] = useState(
+    product?.imageUrls.join("\n") ?? "",
+  );
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
 
   const defaultCategoryId =
     categories.find((c) => c.name === product?.categoryName)?.id ??
     categories[0]?.id ??
     "";
 
+  const previewUrl =
+    imageUrlsText
+      .split("\n")
+      .map((line) => line.trim())
+      .find(Boolean) ?? "";
+
+  async function onUpload(fileList: FileList | null) {
+    const file = fileList?.[0];
+    if (!file) return;
+
+    setUploadMessage("");
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/uploads", {
+        method: "POST",
+        body,
+      });
+      const data = (await response.json()) as { url?: string; error?: string };
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || "Upload failed.");
+      }
+      setImageUrlsText((prev) =>
+        prev.trim() ? `${data.url}\n${prev.trim()}` : data.url!,
+      );
+      setUploadMessage("Image uploaded. It is listed first below.");
+    } catch (err) {
+      setUploadMessage(
+        err instanceof Error ? err.message : "Upload failed.",
+      );
+    } finally {
+      setUploading(false);
+    }
+  }
+
   function onSubmit(formData: FormData) {
     setError("");
+    formData.set("imageUrls", imageUrlsText);
     startTransition(async () => {
       const result = await saveProductAction(formData);
       if (!result.ok) {
@@ -67,7 +114,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           name="name"
           required
           defaultValue={product?.name}
-          className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+          className={fieldClass}
         />
       </label>
 
@@ -77,7 +124,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           name="slug"
           defaultValue={product?.slug}
           placeholder="auto-from-name-if-empty"
-          className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+          className={fieldClass}
         />
       </label>
 
@@ -91,7 +138,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             min="0"
             required
             defaultValue={product?.priceCedis ?? 45}
-            className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+            className={fieldClass}
           />
         </label>
 
@@ -101,7 +148,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             name="categoryId"
             required
             defaultValue={defaultCategoryId}
-            className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+            className={fieldClass}
           >
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -119,7 +166,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           required
           rows={2}
           defaultValue={product?.description}
-          className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+          className={fieldClass}
         />
       </label>
 
@@ -130,7 +177,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           required
           rows={4}
           defaultValue={product?.longDescription}
-          className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+          className={fieldClass}
         />
       </label>
 
@@ -140,27 +187,72 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           name="features"
           rows={4}
           defaultValue={product?.features.join("\n")}
-          className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+          className={fieldClass}
         />
       </label>
 
-      <label className="block">
-        <span className="text-sm font-medium">Image URLs (one per line)</span>
-        <textarea
-          name="imageUrls"
-          rows={3}
-          defaultValue={product?.imageUrls.join("\n")}
-          placeholder="https://..."
-          className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
-        />
-      </label>
+      <div className="space-y-3 rounded-[8px] border border-border bg-surface-muted/40 p-4">
+        <p className="text-sm font-medium">Product images</p>
+        <label className="block text-sm">
+          <span className="text-muted">Upload from device</span>
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            disabled={uploading || pending}
+            onChange={(e) => {
+              void onUpload(e.target.files);
+              e.target.value = "";
+            }}
+            className="mt-1.5 block w-full text-sm file:mr-3 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white"
+          />
+        </label>
+        {uploading ? (
+          <p className="flex items-center gap-2 text-xs text-muted">
+            <Spinner size="sm" />
+            Uploading...
+          </p>
+        ) : uploadMessage ? (
+          <p
+            className={`text-xs ${
+              uploadMessage.includes("uploaded") ? "text-success" : "text-danger"
+            }`}
+          >
+            {uploadMessage}
+          </p>
+        ) : null}
+
+        <label className="block">
+          <span className="text-sm font-medium">Image URLs (one per line)</span>
+          <textarea
+            name="imageUrls"
+            rows={3}
+            value={imageUrlsText}
+            onChange={(e) => setImageUrlsText(e.target.value)}
+            placeholder="/uploads/... or https://..."
+            className={fieldClass}
+          />
+        </label>
+
+        {previewUrl ? (
+          <div className="relative h-28 w-28 overflow-hidden rounded-[8px] border border-border bg-surface">
+            <Image
+              src={previewUrl}
+              alt="Product preview"
+              fill
+              className="object-cover"
+              sizes="112px"
+              unoptimized={previewUrl.startsWith("/uploads/")}
+            />
+          </div>
+        ) : null}
+      </div>
 
       <label className="block">
         <span className="text-sm font-medium">Image alt text</span>
         <input
           name="imageAlt"
           defaultValue={product?.imageAlt}
-          className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+          className={fieldClass}
         />
       </label>
 
@@ -171,7 +263,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             name="badge"
             defaultValue={product?.badge}
             placeholder="Best Seller"
-            className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+            className={fieldClass}
           />
         </label>
         <label className="block">
@@ -183,7 +275,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             min="0"
             max="5"
             defaultValue={product?.rating ?? 4.8}
-            className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+            className={fieldClass}
           />
         </label>
         <label className="block">
@@ -193,7 +285,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             type="number"
             min="0"
             defaultValue={product?.reviewsCount ?? 0}
-            className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10"
+            className={fieldClass}
           />
         </label>
       </div>
@@ -210,8 +302,17 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 
       {error ? <p className="text-sm text-danger">{error}</p> : null}
 
-      <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-        {pending ? "Saving..." : product ? "Save changes" : "Create product"}
+      <Button type="submit" disabled={pending || uploading} className="w-full sm:w-auto">
+        {pending ? (
+          <>
+            <Spinner size="sm" className="border-white/30 border-t-white" />
+            Saving...
+          </>
+        ) : product ? (
+          "Save changes"
+        ) : (
+          "Create product"
+        )}
       </Button>
     </form>
   );

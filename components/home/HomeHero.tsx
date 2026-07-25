@@ -1,48 +1,54 @@
-import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { FadeIn } from "@/components/ui/FadeIn";
-import { SITE } from "@/lib/constants";
+import { AnimatedImage } from "@/components/ui/AnimatedImage";
+import { HeroOverlay } from "@/components/ui/HeroOverlay";
+import {
+  getDefaultSiteConfig,
+  getSiteConfig,
+} from "@/lib/db/settings";
 
-export function HomeHero() {
+export async function HomeHero() {
+  const site = await getSiteConfig().catch(() => getDefaultSiteConfig());
+  const headlineLines = site.heroHeadline.split("\n").filter(Boolean);
+
   return (
-    <section className="droplet-bg relative overflow-hidden">
-      <div className="container-page grid items-center gap-10 py-12 lg:grid-cols-2 lg:gap-12 lg:py-16">
-        <FadeIn>
-          <span className="inline-flex items-center rounded-full bg-secondary/15 px-3 py-1 text-[11px] font-semibold tracking-wide text-primary">
-            {SITE.tagline}
-          </span>
-          <h1 className="mt-4 text-3xl font-bold leading-[1.12] tracking-tight text-primary sm:text-4xl lg:text-[2.75rem]">
-            Cleaning Made Easy,
-            <br />
-            Freshness Guaranteed.
-          </h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-muted sm:text-[15px]">
-            Premium detergents and professional cleaning for Ghanaian homes and
-            businesses, delivered with clinical care and hospitality standards.
+    <section className="relative isolate overflow-hidden bg-primary-dark text-white">
+      <AnimatedImage
+        src="/hero-home.png"
+        alt={`${site.name} cleaning products and brand`}
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+        drift="in"
+      />
+      <HeroOverlay />
+      <div className="container-page relative py-20 sm:py-28">
+        <FadeIn className="max-w-2xl">
+          <p className="text-2xl font-extrabold tracking-tight sm:text-4xl">
+            {site.name}
           </p>
-          <div className="mt-6 flex flex-col gap-2.5 sm:flex-row">
-            <Button href="/shop" size="md">
+          <h1 className="mt-4 text-xl font-semibold leading-snug text-white/95 sm:text-3xl">
+            {headlineLines.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+          </h1>
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
+            {site.heroSubcopy || site.tagline}
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button href="/shop" variant="light" size="md">
               Explore Products
               <ArrowRight className="h-4 w-4" />
             </Button>
-            <Button href="/services" variant="outline" size="md">
+            <a
+              href="/services"
+              className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 px-5 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
+            >
               Our Services
-            </Button>
-          </div>
-        </FadeIn>
-
-        <FadeIn delay={0.1} className="relative">
-          <div className="pointer-events-none absolute -inset-4 rounded-3xl bg-gradient-to-br from-secondary/15 via-transparent to-highlight/15 blur-xl" />
-          <div className="relative aspect-[4/3] overflow-hidden rounded-2xl soft-shadow lg:rounded-3xl">
-            <Image
-              src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=1400&q=80"
-              alt="Professional Frannys cleaner in a modern home"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
+            </a>
           </div>
         </FadeIn>
       </div>

@@ -1,171 +1,242 @@
-"use client";
-
-import { Suspense, useState, type FormEvent } from "react";
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import { FadeIn } from "@/components/ui/FadeIn";
 import { Button } from "@/components/ui/Button";
+import { InstagramIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
-import { bookingMessage, buildWhatsAppUrl, SITE, SOCIAL } from "@/lib/constants";
+import { AnimatedImage } from "@/components/ui/AnimatedImage";
+import { HeroOverlay } from "@/components/ui/HeroOverlay";
+import { SectionSpinner } from "@/components/ui/PageSpinner";
+import { ContactForm } from "@/components/contact/ContactForm";
+import { getSiteConfig } from "@/lib/db/settings";
+import { buildWhatsAppUrl } from "@/lib/constants";
+import { FLYERS } from "@/lib/flyers";
 
-const field =
-  "mt-1.5 w-full rounded-[8px] border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
+export const metadata = {
+  title: "Contact",
+  description:
+    "Email Frannys Tidy Solutions for cleaning products, bookings, and support in Accra.",
+};
 
-function ContactInner() {
-  const params = useSearchParams();
-  const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    serviceType: params.get("service") ?? "General Enquiry",
-    location: "",
-    preferredDate: "",
-    message: "",
-  });
+export default async function ContactPage() {
+  const site = await getSiteConfig();
+  const whatsappUrl = buildWhatsAppUrl(
+    `Hello ${site.name}!`,
+    site.whatsappE164,
+  );
+  const mailtoUrl = `mailto:${site.email}`;
 
-  function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    window.open(
-      buildWhatsAppUrl(bookingMessage(form)),
-      "_blank",
-      "noopener,noreferrer",
-    );
-  }
+  const channels = [
+    {
+      icon: Mail,
+      label: "Email",
+      value: site.email,
+      href: mailtoUrl,
+    },
+    {
+      icon: Phone,
+      label: "Phone",
+      value: site.phoneDisplay,
+      href: `tel:${site.phone}`,
+    },
+    {
+      icon: MapPin,
+      label: "Address",
+      value: site.address,
+    },
+    {
+      icon: Clock,
+      label: "Hours",
+      value: site.hours,
+    },
+  ];
 
   return (
-    <div className="container-page py-12 sm:py-16">
-      <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
-        Contact Us
-      </h1>
-      <p className="mt-3 max-w-xl text-muted">
-        Reach the Frannys team by phone, WhatsApp, or email, every day of the
-        week.
-      </p>
-
-      <div className="mt-10 grid gap-8 lg:grid-cols-2">
-        <form
-          onSubmit={onSubmit}
-          className="rounded-[10px] border border-border bg-surface p-6 shadow-sm sm:p-8"
-        >
-          <h2 className="text-lg font-bold">Send a Message</h2>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-sm font-medium">Name</span>
-              <input
-                required
-                className={field}
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </label>
-            <label className="block">
-              <span className="text-sm font-medium">Phone</span>
-              <input
-                required
-                type="tel"
-                className={field}
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              />
-            </label>
-            <label className="block sm:col-span-2">
-              <span className="text-sm font-medium">Subject / Service</span>
-              <input
-                className={field}
-                value={form.serviceType}
-                onChange={(e) =>
-                  setForm({ ...form, serviceType: e.target.value })
-                }
-              />
-            </label>
-            <label className="block sm:col-span-2">
-              <span className="text-sm font-medium">Location</span>
-              <input
-                className={field}
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-              />
-            </label>
-            <label className="block sm:col-span-2">
-              <span className="text-sm font-medium">Message</span>
-              <textarea
-                required
-                rows={4}
-                className={field}
-                value={form.message}
-                onChange={(e) => setForm({ ...form, message: e.target.value })}
-              />
-            </label>
-          </div>
-          <Button type="submit" className="mt-6 w-full" size="lg">
-            Send via WhatsApp
-          </Button>
-        </form>
-
-        <div className="space-y-4">
-          {[
-            { icon: MapPin, label: "Address", value: SITE.address },
-            { icon: Phone, label: "Phone", value: SITE.phoneDisplay, href: `tel:${SITE.phone}` },
-            { icon: Mail, label: "Email", value: SITE.email, href: `mailto:${SITE.email}` },
-            { icon: Clock, label: "Working Hours", value: SITE.hours },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className="flex gap-3 rounded-[10px] border border-border bg-surface p-5 shadow-sm"
-            >
-              <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-secondary/15 text-primary">
-                <item.icon className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-sm font-semibold">{item.label}</p>
-                {"href" in item && item.href ? (
-                  <a href={item.href} className="mt-1 block text-sm text-muted hover:text-primary">
-                    {item.value}
-                  </a>
-                ) : (
-                  <p className="mt-1 text-sm text-muted">{item.value}</p>
-                )}
-              </div>
+    <>
+      <section className="relative isolate overflow-hidden bg-primary-dark text-white">
+        <AnimatedImage
+          src={FLYERS.freshness.src}
+          alt={FLYERS.freshness.alt}
+          priority
+          sizes="100vw"
+          className="object-[center_20%]"
+          drift="right"
+        />
+        <HeroOverlay />
+        <div className="container-page relative py-20 sm:py-28">
+          <FadeIn className="max-w-2xl">
+            <p className="text-2xl font-extrabold tracking-tight sm:text-4xl">
+              {site.name}
+            </p>
+            <h1 className="mt-4 text-xl font-semibold leading-snug text-white/95 sm:text-3xl">
+              {site.contactHeroHeadline}
+            </h1>
+            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
+              {site.contactHeroSubcopy}
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button href="#message" variant="light" size="md">
+                <Mail className="h-4 w-4" />
+                Email Us
+              </Button>
+              <a
+                href={mailtoUrl}
+                className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 px-5 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
+              >
+                {site.email}
+              </a>
             </div>
-          ))}
+          </FadeIn>
+        </div>
+      </section>
 
-          <Button
-            href={buildWhatsAppUrl(`Hello ${SITE.name}!`)}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="whatsapp"
-            size="lg"
-            className="w-full"
-          >
-            <WhatsAppIcon className="h-5 w-5" />
-            Chat on WhatsApp
-          </Button>
-
-          <div className="overflow-hidden rounded-[10px] border border-border">
-            <iframe
-              title="Map"
-              src="https://maps.google.com/maps?q=East%20Legon%20Hills%2C%20Accra%2C%20Ghana&t=&z=14&ie=UTF8&iwloc=&output=embed"
-              className="h-56 w-full border-0"
-              loading="lazy"
-            />
-          </div>
-
-          <div className="flex gap-3 text-sm text-muted">
-            <a href={SOCIAL.instagram} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-              Instagram
-            </a>
-            <a href={SOCIAL.tiktok} target="_blank" rel="noopener noreferrer" className="hover:text-primary">
-              TikTok
-            </a>
+      <section className="bg-surface py-16 sm:py-20">
+        <div className="container-page">
+          <FadeIn className="max-w-2xl">
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              Direct lines to the team
+            </h2>
+          </FadeIn>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2">
+            {channels.map((item, i) => (
+              <FadeIn key={item.label} delay={i * 0.05}>
+                <div className="flex gap-4 border-l-2 border-secondary/40 pl-5">
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/15 text-primary">
+                    <item.icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">
+                      {item.label}
+                    </p>
+                    {"href" in item && item.href ? (
+                      <a
+                        href={item.href}
+                        className="mt-1 block text-sm text-muted hover:text-primary"
+                      >
+                        {item.value}
+                      </a>
+                    ) : (
+                      <p className="mt-1 text-sm text-muted">{item.value}</p>
+                    )}
+                  </div>
+                </div>
+              </FadeIn>
+            ))}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
+      </section>
 
-export default function ContactPage() {
-  return (
-    <Suspense fallback={<div className="container-page py-20">Loading...</div>}>
-      <ContactInner />
-    </Suspense>
+      <section className="bg-surface-muted py-16 sm:py-20">
+        <div className="container-page grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <FadeIn>
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              {site.contactTopicsHeadline}
+            </h2>
+            <ul className="mt-8 space-y-3">
+              {site.contactTopics.map((topic) => (
+                <li
+                  key={topic}
+                  className="flex items-start gap-3 text-[15px] text-muted"
+                >
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-secondary" />
+                  {topic}
+                </li>
+              ))}
+            </ul>
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl soft-shadow">
+              <AnimatedImage
+                src={FLYERS.freshness.src}
+                alt={FLYERS.freshness.alt}
+                className="object-[center_20%]"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                drift="right"
+              />
+            </div>
+          </FadeIn>
+        </div>
+      </section>
+
+      <section id="message" className="bg-surface py-16 sm:py-20">
+        <div className="container-page grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+          <FadeIn>
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              Email the {site.shortName} team
+            </h2>
+            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted">
+              Use the form to send a message to{" "}
+              <a href={mailtoUrl} className="font-semibold text-primary hover:underline">
+                {site.email}
+              </a>
+              . Need something faster? WhatsApp is still available for quick
+              chats.
+            </p>
+            <Button
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="whatsapp"
+              size="md"
+              className="mt-8"
+            >
+              <WhatsAppIcon className="h-4 w-4" />
+              Chat on WhatsApp
+            </Button>
+          </FadeIn>
+          <FadeIn delay={0.08}>
+            <Suspense fallback={<SectionSpinner label="Loading form..." />}>
+              <ContactForm />
+            </Suspense>
+          </FadeIn>
+        </div>
+      </section>
+
+      <section className="bg-surface-muted py-16 sm:py-20">
+        <div className="container-page">
+          <FadeIn className="max-w-2xl">
+            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              Based in {site.address}
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-muted">
+              Open {site.hours}. Follow us on social for freshness tips and
+              updates from the {site.shortName} team.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-3">
+              {site.instagramUrl ? (
+                <a
+                  href={site.instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-primary transition hover:border-secondary hover:bg-secondary/10"
+                >
+                  <InstagramIcon className="h-4 w-4" />
+                  Instagram
+                </a>
+              ) : null}
+              {site.tiktokUrl ? (
+                <a
+                  href={site.tiktokUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-primary transition hover:border-secondary hover:bg-secondary/10"
+                >
+                  <TikTokIcon className="h-4 w-4" />
+                  TikTok
+                </a>
+              ) : null}
+            </div>
+          </FadeIn>
+          <FadeIn delay={0.1} className="mt-10 overflow-hidden rounded-2xl border border-border soft-shadow">
+            <iframe
+              title={`Map of ${site.address}`}
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(site.address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+              className="h-72 w-full border-0 sm:h-80"
+              loading="lazy"
+            />
+          </FadeIn>
+        </div>
+      </section>
+    </>
   );
 }

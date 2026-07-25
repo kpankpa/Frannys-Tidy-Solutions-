@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { listCategories } from "@/lib/db/products";
+import { ensureAdminPage } from "@/lib/auth/admin-page";
 
 export default async function NewProductPage() {
+  await ensureAdminPage();
   const categories = await listCategories();
 
   return (

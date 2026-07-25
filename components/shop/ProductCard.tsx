@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, ShoppingCart, Star } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
-import { buildWhatsAppUrl, productOrderMessage } from "@/lib/constants";
+import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
 import { formatPrice, type Product } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
@@ -18,11 +18,12 @@ type ProductCardProps = {
 
 export function ProductCard({ product, className }: ProductCardProps) {
   const { addItem } = useCart();
-  const [wishlisted, setWishlisted] = useState(false);
+  const { buildWhatsAppUrl, productOrderMessage } = useWhatsAppHelpers();
   const [added, setAdded] = useState(false);
 
   function handleAdd() {
-    addItem(product.id, 1);
+    if (!product.inStock) return;
+    addItem(product.dbId, 1);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1400);
   }
@@ -49,16 +50,6 @@ export function ProductCard({ product, className }: ProductCardProps) {
             {product.badge}
           </span>
         ) : null}
-        <button
-          type="button"
-          aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-          onClick={() => setWishlisted((v) => !v)}
-          className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/95 text-foreground soft-shadow transition hover:scale-105"
-        >
-          <Heart
-            className={cn("h-4 w-4", wishlisted && "fill-danger text-danger")}
-          />
-        </button>
       </div>
 
       <div className="flex flex-1 flex-col p-4">
@@ -87,8 +78,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
             <button
               type="button"
               onClick={handleAdd}
+              disabled={!product.inStock}
               aria-label="Add to cart"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-primary transition hover:bg-surface-muted"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border text-primary transition hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ShoppingCart className="h-4 w-4" />
             </button>

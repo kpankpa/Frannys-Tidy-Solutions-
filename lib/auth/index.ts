@@ -5,6 +5,15 @@ import { eq } from "drizzle-orm";
 import { authConfig } from "./config";
 import "./types";
 
+if (
+  process.env.NODE_ENV === "production" &&
+  (!process.env.AUTH_SECRET || process.env.AUTH_SECRET.length < 32)
+) {
+  throw new Error(
+    "AUTH_SECRET must be set to a strong value (32+ chars) in production.",
+  );
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   providers: [
@@ -48,4 +57,38 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user, trigger }) {
+      if (user) {
+        token.role = user.role ?? "user";
+        token.roleCheckedAt = Date.now();
+        return token;
+      }
+
+      const checkedAt =
+        typeof token.roleCheckedAt === "number" ? token.roleCheckedAt : 0;
+      const stale = Date.now() - checkedAt > 5 * 60 * 1000;
+
+      if ((trigger === "update" || stale) && token.sub) {
+        try {
+          const { db } = await import("@/lib/db");
+          const { users } = await import("@/lib/db/schema");
+          const row = await db.query.users.findFirst({
+            where: eq(users.id, token.sub),
+            columns: { role: true },
+          });
+          token.role = row?.role === "admin" ? "admin" : "user";
+          token.roleCheckedAt = Date.now();
+        } catch {
+          // Keep existing role if DB is briefly unavailable.
+        }
+      }
+
+      if (!token.role) {
+        token.role = "user";
+      }
+      return token;
+    },
+  },
 });
