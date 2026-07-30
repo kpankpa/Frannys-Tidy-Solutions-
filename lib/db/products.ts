@@ -2,7 +2,11 @@ import { asc, eq, sql } from "drizzle-orm";
 import { db } from "./index";
 import { categories, productImages, products } from "./schema";
 import { pesewasToCedis, cedisToPesewas } from "../money";
-import type { Product, ProductFilters } from "../products";
+import {
+  isLowStock,
+  type Product,
+  type ProductFilters,
+} from "../products";
 
 type ProductRow = typeof products.$inferSelect;
 type CategoryRow = typeof categories.$inferSelect;
@@ -18,6 +22,7 @@ export function mapDbProduct(row: ProductWithRelations): Product {
   const urls = sortedImages.map((img) => img.url);
   const fallback =
     "https://images.unsplash.com/photo-1585421514738-17ce1bc2d45d?auto=format&fit=crop&w=900&q=80";
+  const stockQuantity = Math.max(0, row.stockQuantity ?? 0);
 
   return {
     id: row.slug,
@@ -30,10 +35,12 @@ export function mapDbProduct(row: ProductWithRelations): Product {
     category: row.category?.name ?? "Uncategorized",
     rating: Number(row.rating),
     reviews: row.reviewsCount,
-    inStock: row.inStock,
+    inStock: stockQuantity > 0,
+    stockQuantity,
     badge: row.badge ?? undefined,
     image: urls[0] ?? fallback,
-    images: urls.length > 0 ? urls : [fallback],
+    // Real stored URLs only (no fallback) so admin edit never invents images.
+    images: urls,
     imageAlt: row.imageAlt || row.name,
   };
 }
@@ -65,6 +72,8 @@ export async function listProducts(filters: ProductFilters = {}): Promise<Produc
     mapped = mapped.filter((p) => p.inStock);
   } else if (filters.availability === "out") {
     mapped = mapped.filter((p) => !p.inStock);
+  } else if (filters.availability === "low") {
+    mapped = mapped.filter((p) => isLowStock(p.stockQuantity));
   }
 
   if (filters.query?.trim()) {
@@ -139,11 +148,19 @@ export type ProductInput = {
   categoryId: string;
   rating?: number;
   reviewsCount?: number;
-  inStock: boolean;
+  stockQuantity: number;
   badge?: string | null;
   imageAlt: string;
   imageUrls: string[];
 };
+
+function normalizeStock(quantity: number) {
+  const stockQuantity = Math.max(0, Math.floor(Number(quantity) || 0));
+  return {
+    stockQuantity,
+    inStock: stockQuantity > 0,
+  };
+}
 
 function slugify(value: string) {
   return value
@@ -154,6 +171,7 @@ function slugify(value: string) {
 
 export async function createProduct(input: ProductInput) {
   const slug = input.slug.trim() || slugify(input.name);
+  const stock = normalizeStock(input.stockQuantity);
 
   const [created] = await db
     .insert(products)
@@ -167,7 +185,8 @@ export async function createProduct(input: ProductInput) {
       categoryId: input.categoryId,
       rating: String(input.rating ?? 0),
       reviewsCount: input.reviewsCount ?? 0,
-      inStock: input.inStock,
+      inStock: stock.inStock,
+      stockQuantity: stock.stockQuantity,
       badge: input.badge || null,
       imageAlt: input.imageAlt.trim() || input.name.trim(),
     })
@@ -188,6 +207,7 @@ export async function createProduct(input: ProductInput) {
 
 export async function updateProduct(dbId: string, input: ProductInput) {
   const slug = input.slug.trim() || slugify(input.name);
+  const stock = normalizeStock(input.stockQuantity);
 
   await db.transaction(async (tx) => {
     await tx
@@ -202,7 +222,8 @@ export async function updateProduct(dbId: string, input: ProductInput) {
         categoryId: input.categoryId,
         rating: String(input.rating ?? 0),
         reviewsCount: input.reviewsCount ?? 0,
-        inStock: input.inStock,
+        inStock: stock.inStock,
+        stockQuantity: stock.stockQuantity,
         badge: input.badge || null,
         imageAlt: input.imageAlt.trim() || input.name.trim(),
         updatedAt: new Date(),
@@ -231,9 +252,14 @@ export async function toggleProductStock(dbId: string) {
   });
   if (!current) return null;
 
+  const currentlyInStock = (current.stockQuantity ?? 0) > 0;
+  const next = currentlyInStock
+    ? { stockQuantity: 0, inStock: false }
+    : { stockQuantity: Math.max(current.stockQuantity, 10), inStock: true };
+
   await db
     .update(products)
-    .set({ inStock: !current.inStock, updatedAt: new Date() })
+    .set({ ...next, updatedAt: new Date() })
     .where(eq(products.id, dbId));
 
   return getProductByDbId(dbId);
@@ -241,4 +267,78 @@ export async function toggleProductStock(dbId: string) {
 
 export async function deleteProduct(dbId: string) {
   await db.delete(products).where(eq(products.id, dbId));
+}
+
+export async function duplicateProduct(dbId: string) {
+  const source = await getProductByDbId(dbId);
+  if (!source) {
+    throw new Error("Product not found.");
+  }
+
+  const category = await db.query.categories.findFirst({
+    where: eq(categories.name, source.category),
+  });
+  if (!category) {
+    throw new Error("Product category is missing.");
+  }
+
+  const baseSlug = `${source.id}-copy`;
+  let slug = baseSlug;
+  let attempt = 2;
+  while (await getProductBySlug(slug)) {
+    slug = `${baseSlug}-${attempt}`;
+    attempt += 1;
+  }
+
+  return createProduct({
+    name: `${source.name} (copy)`,
+    slug,
+    description: source.description,
+    longDescription: source.longDescription,
+    features: source.features,
+    priceCedis: source.price,
+    categoryId: category.id,
+    rating: source.rating,
+    reviewsCount: source.reviews,
+    stockQuantity: source.stockQuantity,
+    badge: source.badge ?? null,
+    imageAlt: source.imageAlt,
+    imageUrls: source.images,
+  });
+}
+
+export async function createCategory(name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Category name is required.");
+  const slug = slugify(trimmed);
+  const [created] = await db
+    .insert(categories)
+    .values({ name: trimmed, slug })
+    .returning();
+  return created;
+}
+
+export async function renameCategory(id: string, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed) throw new Error("Category name is required.");
+  const [updated] = await db
+    .update(categories)
+    .set({
+      name: trimmed,
+      slug: slugify(trimmed),
+      updatedAt: new Date(),
+    })
+    .where(eq(categories.id, id))
+    .returning();
+  return updated;
+}
+
+export async function deleteCategory(id: string) {
+  const inUse = await db.query.products.findFirst({
+    where: eq(products.categoryId, id),
+  });
+  if (inUse) {
+    throw new Error("Move or delete products in this category first.");
+  }
+  await db.delete(categories).where(eq(categories.id, id));
 }

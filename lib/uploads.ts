@@ -1,12 +1,25 @@
 import { randomBytes } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, readdir, stat, unlink, writeFile } from "fs/promises";
 import path from "path";
+import { eq } from "drizzle-orm";
+import { db } from "@/lib/db";
+import { productImages } from "@/lib/db/schema";
 
 const MAX_BYTES = 5 * 1024 * 1024;
+const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
+const SAFE_FILENAME = /^[A-Za-z0-9._-]+$/;
 
 export type UploadResult = {
   url: string;
   filename: string;
+};
+
+export type MediaLibraryItem = {
+  filename: string;
+  url: string;
+  sizeBytes: number;
+  modifiedAt: string;
+  usedByProducts: number;
 };
 
 type DetectedImage = {
@@ -75,11 +88,10 @@ export async function saveUploadedImage(file: File): Promise<UploadResult> {
   }
 
   const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${detected.ext}`;
-  const dir = path.join(process.cwd(), "public", "uploads");
 
   try {
-    await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, filename), buffer);
+    await mkdir(UPLOAD_DIR, { recursive: true });
+    await writeFile(path.join(UPLOAD_DIR, filename), buffer);
   } catch (error) {
     const code =
       error && typeof error === "object" && "code" in error
@@ -94,4 +106,83 @@ export async function saveUploadedImage(file: File): Promise<UploadResult> {
   }
 
   return { url: `/uploads/${filename}`, filename };
+}
+
+export async function listUploadedMedia(): Promise<MediaLibraryItem[]> {
+  try {
+    await mkdir(UPLOAD_DIR, { recursive: true });
+  } catch {
+    return [];
+  }
+
+  let names: string[] = [];
+  try {
+    names = await readdir(UPLOAD_DIR);
+  } catch {
+    return [];
+  }
+
+  const usageRows = await db.select({ url: productImages.url }).from(productImages);
+  const usage = new Map<string, number>();
+  for (const row of usageRows) {
+    if (!row.url.startsWith("/uploads/")) continue;
+    usage.set(row.url, (usage.get(row.url) ?? 0) + 1);
+  }
+
+  const items: MediaLibraryItem[] = [];
+  for (const name of names) {
+    if (name.startsWith(".") || !SAFE_FILENAME.test(name)) continue;
+    if (!/\.(jpe?g|png|gif|webp)$/i.test(name)) continue;
+
+    const fullPath = path.join(UPLOAD_DIR, name);
+    try {
+      const info = await stat(fullPath);
+      if (!info.isFile()) continue;
+      const url = `/uploads/${name}`;
+      items.push({
+        filename: name,
+        url,
+        sizeBytes: info.size,
+        modifiedAt: info.mtime.toISOString(),
+        usedByProducts: usage.get(url) ?? 0,
+      });
+    } catch {
+      // skip unreadable entries
+    }
+  }
+
+  return items.sort(
+    (a, b) =>
+      new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
+  );
+}
+
+export async function deleteUploadedMedia(filename: string): Promise<void> {
+  if (!SAFE_FILENAME.test(filename) || filename.includes("..")) {
+    throw new Error("Invalid file name.");
+  }
+
+  const url = `/uploads/${filename}`;
+  const [inUse] = await db
+    .select({ id: productImages.id })
+    .from(productImages)
+    .where(eq(productImages.url, url))
+    .limit(1);
+
+  if (inUse) {
+    throw new Error(
+      "This image is used by a product. Remove it from products first.",
+    );
+  }
+
+  try {
+    await unlink(path.join(UPLOAD_DIR, filename));
+  } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? String((error as { code: unknown }).code)
+        : "";
+    if (code === "ENOENT") return;
+    throw new Error("Could not delete that file.");
+  }
 }

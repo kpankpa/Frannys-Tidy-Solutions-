@@ -1,4 +1,4 @@
-import { count, desc, eq, sql, sum } from "drizzle-orm";
+import { count, desc, eq, sql, sum, and, gt, lte } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   bookings,
@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { bookingStatusLabel } from "@/lib/booking-status";
 import { pesewasToCedis } from "@/lib/money";
+import { LOW_STOCK_THRESHOLD } from "@/lib/products";
 
 export type DashboardStats = {
   salesTotalCedis: number;
@@ -22,6 +23,7 @@ export type DashboardStats = {
   openComplaints: number;
   inStockProducts: number;
   outOfStockProducts: number;
+  lowStockProducts: number;
 };
 
 export type AdminNavBadges = {
@@ -73,6 +75,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     openComplaintsRow,
     inStockRow,
     outOfStockRow,
+    lowStockRow,
   ] = await Promise.all([
     db.select({ total: sum(orders.totalPesewas) }).from(orders),
     db.select({ value: count() }).from(orders),
@@ -99,6 +102,15 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .select({ value: count() })
       .from(products)
       .where(eq(products.inStock, false)),
+    db
+      .select({ value: count() })
+      .from(products)
+      .where(
+        and(
+          gt(products.stockQuantity, 0),
+          lte(products.stockQuantity, LOW_STOCK_THRESHOLD),
+        ),
+      ),
   ]);
 
   return {
@@ -112,6 +124,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     openComplaints: openComplaintsRow[0]?.value ?? 0,
     inStockProducts: inStockRow[0]?.value ?? 0,
     outOfStockProducts: outOfStockRow[0]?.value ?? 0,
+    lowStockProducts: lowStockRow[0]?.value ?? 0,
   };
 }
 

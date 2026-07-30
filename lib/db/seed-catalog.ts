@@ -11,6 +11,8 @@ export type SeedProduct = {
   rating: number;
   reviews: number;
   inStock: boolean;
+  /** Optional seed stock. Defaults to 25 when in stock. */
+  stockQuantity?: number;
   badge?: "Best Seller" | "New" | "Eco" | "Top Rated";
   image: string;
   images: string[];

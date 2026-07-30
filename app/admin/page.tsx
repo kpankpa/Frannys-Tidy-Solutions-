@@ -69,7 +69,13 @@ export default async function AdminOverviewPage() {
     {
       label: "Out of stock SKUs",
       value: stats.outOfStockProducts,
-      href: "/admin/products",
+      href: "/admin/products?stock=out",
+      icon: Package,
+    },
+    {
+      label: "Low stock SKUs",
+      value: stats.lowStockProducts,
+      href: "/admin/products?stock=low",
       icon: Package,
     },
   ];
@@ -120,7 +126,7 @@ export default async function AdminOverviewPage() {
             Reports
           </Link>
         </div>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {attention.map((item) => {
             const Icon = item.icon;
             return (
@@ -159,7 +165,7 @@ export default async function AdminOverviewPage() {
             {recentOrders.map((order) => (
               <Link
                 key={order.orderNumber}
-                href="/admin/orders"
+                href={`/admin/orders/${order.orderNumber}`}
                 className="flex items-center justify-between gap-3 border-b border-border/70 pb-3 last:border-0 hover:opacity-90"
               >
                 <div>
@@ -226,6 +232,8 @@ export default async function AdminOverviewPage() {
           {[
             { href: "/admin/customers", label: "Customers" },
             { href: "/admin/products", label: "Products" },
+            { href: "/admin/categories", label: "Categories" },
+            { href: "/admin/media", label: "Media" },
             { href: "/admin/content", label: "Site content" },
             { href: "/admin/settings", label: "Settings" },
             { href: "/", label: "View website" },

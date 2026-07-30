@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
 import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
-import { formatPrice, type Product } from "@/lib/products";
+import { formatPrice, isLowStock, type Product } from "@/lib/products";
+import { shouldUnoptimizeImage } from "@/lib/image-src";
 
 type ProductDetailProps = {
   product: Product;
@@ -21,6 +22,9 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
   const { buildWhatsAppUrl, productOrderMessage } = useWhatsAppHelpers();
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const gallery =
+    product.images.length > 0 ? product.images : [product.image];
+  const maxQty = Math.max(1, product.stockQuantity || 1);
 
   return (
     <div className="container-page py-10 sm:py-14">
@@ -28,30 +32,42 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
         <div>
           <div className="relative aspect-square overflow-hidden rounded-[12px] border border-border bg-surface shadow-sm">
             <Image
-              src={product.images[activeImage] ?? product.image}
+              src={gallery[activeImage] ?? product.image}
               alt={product.imageAlt}
               fill
               className="object-cover transition duration-300 hover:scale-105"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
+              unoptimized={shouldUnoptimizeImage(
+                gallery[activeImage] ?? product.image,
+              )}
             />
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            {product.images.map((img) => (
-              <button
-                key={img}
-                type="button"
-                onClick={() => setActiveImage(product.images.indexOf(img))}
-                className={`relative aspect-square overflow-hidden rounded-[8px] border-2 ${
-                  product.images[activeImage] === img
-                    ? "border-primary"
-                    : "border-transparent"
-                }`}
-              >
-                <Image src={img} alt="" fill className="object-cover" sizes="120px" />
-              </button>
-            ))}
-          </div>
+          {gallery.length > 1 ? (
+            <div className="mt-4 grid grid-cols-3 gap-3">
+              {gallery.map((img, idx) => (
+                <button
+                  key={`${img}-${idx}`}
+                  type="button"
+                  onClick={() => setActiveImage(idx)}
+                  className={`relative aspect-square overflow-hidden rounded-[8px] border-2 ${
+                    activeImage === idx
+                      ? "border-primary"
+                      : "border-transparent"
+                  }`}
+                >
+                  <Image
+                    src={img}
+                    alt=""
+                    fill
+                    className="object-cover"
+                    sizes="120px"
+                    unoptimized={shouldUnoptimizeImage(img)}
+                  />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div>
@@ -67,6 +83,11 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
           <p className="mt-5 text-3xl font-bold text-primary">
             {formatPrice(product.price)}
           </p>
+          {product.inStock && isLowStock(product.stockQuantity) ? (
+            <p className="mt-2 text-sm font-semibold text-amber-700">
+              Only {product.stockQuantity} left in stock
+            </p>
+          ) : null}
           <p className="mt-5 leading-relaxed text-muted">{product.longDescription}</p>
 
           <ul className="mt-6 space-y-2">
@@ -93,12 +114,17 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
                 type="button"
                 aria-label="Increase quantity"
                 className="px-3 py-3 text-foreground"
-                onClick={() => setQty((q) => q + 1)}
+                onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
               >
                 <Plus className="h-4 w-4" />
               </button>
             </div>
-            <Button type="button" size="lg" onClick={() => addItem(product.dbId, qty)} disabled={!product.inStock}>
+            <Button
+              type="button"
+              size="lg"
+              onClick={() => addItem(product.dbId, qty)}
+              disabled={!product.inStock}
+            >
               <ShoppingCart className="h-4 w-4" />
               {product.inStock ? "Add to Cart" : "Out of Stock"}
             </Button>

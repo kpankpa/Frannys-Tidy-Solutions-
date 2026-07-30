@@ -48,6 +48,8 @@ export const products = pgTable("products", {
   rating: numeric("rating", { precision: 2, scale: 1 }).notNull().default("0"),
   reviewsCount: integer("reviews_count").notNull().default(0),
   inStock: boolean("in_stock").notNull().default(true),
+  /** Units available. Kept in sync with inStock (inStock = stockQuantity > 0). */
+  stockQuantity: integer("stock_quantity").notNull().default(0),
   badge: text("badge"),
   imageAlt: text("image_alt").notNull().default(""),
   ...timestamps,

@@ -14,19 +14,28 @@ export type Product = {
   rating: number;
   reviews: number;
   inStock: boolean;
+  /** Units left in inventory. */
+  stockQuantity: number;
   badge?: string;
   image: string;
   images: string[];
   imageAlt: string;
 };
 
+/** At or below this count (while still > 0) counts as low stock. */
+export const LOW_STOCK_THRESHOLD = 5;
+
 export type ProductFilters = {
   category?: string;
   query?: string;
   maxPrice?: number;
-  availability?: "all" | "in" | "out";
+  availability?: "all" | "in" | "out" | "low";
 };
 
 export function formatPrice(amount: number): string {
   return formatPriceFromCedis(amount);
+}
+
+export function isLowStock(stockQuantity: number): boolean {
+  return stockQuantity > 0 && stockQuantity <= LOW_STOCK_THRESHOLD;
 }

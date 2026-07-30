@@ -29,6 +29,7 @@ export async function updateOrderStatusAction(formData: FormData) {
   await updateOrderStatus(orderNumber, status, note);
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${orderNumber.trim().toUpperCase()}`);
   revalidatePath("/track-order");
 }
 

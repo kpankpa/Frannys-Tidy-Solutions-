@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
 import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
-import { formatPrice, type Product } from "@/lib/products";
+import { formatPrice, isLowStock, type Product } from "@/lib/products";
+import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { cn } from "@/lib/utils";
 
 type ProductCardProps = {
@@ -43,11 +44,17 @@ export function ProductCard({ product, className }: ProductCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
             className="object-cover transition duration-500 group-hover:scale-105"
+            unoptimized={shouldUnoptimizeImage(product.image)}
           />
         </Link>
         {product.badge ? (
           <span className="absolute left-3 top-3 rounded-full bg-highlight px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary-dark">
             {product.badge}
+          </span>
+        ) : null}
+        {product.inStock && isLowStock(product.stockQuantity) ? (
+          <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+            Only {product.stockQuantity} left
           </span>
         ) : null}
       </div>

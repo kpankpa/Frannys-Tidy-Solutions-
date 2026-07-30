@@ -43,11 +43,21 @@ export default async function EditProductPage({ params }: PageProps) {
           rating: product.rating,
           reviewsCount: product.reviews,
           inStock: product.inStock,
+          stockQuantity: product.stockQuantity,
           badge: product.badge ?? "",
           imageAlt: product.imageAlt,
           imageUrls: product.images,
         }}
       />
+      <p className="text-center text-sm text-muted">
+        <Link
+          href={`/shop/${product.id}`}
+          target="_blank"
+          className="text-primary hover:underline"
+        >
+          Open live shop page
+        </Link>
+      </p>
     </div>
   );
 }

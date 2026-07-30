@@ -1,7 +1,3 @@
-const ALLOWED_IMAGE_HOSTS = new Set([
-  "images.unsplash.com",
-]);
-
 const SOCIAL_HOST_HINTS = [
   "instagram.com",
   "www.instagram.com",
@@ -45,7 +41,8 @@ export function sanitizeSocialUrl(value: string): string | null {
 }
 
 /**
- * Product image URLs: site-relative /uploads/... or allowlisted https hosts.
+ * Product image URLs: site-relative /uploads/... or https (admin-only saves).
+ * Blocks javascript/data and path traversal.
  */
 export function sanitizeImageUrl(value: string): string | null {
   const trimmed = value.trim();
@@ -60,20 +57,37 @@ export function sanitizeImageUrl(value: string): string | null {
   try {
     const url = new URL(trimmed);
     if (url.protocol !== "https:") return null;
-    if (!ALLOWED_IMAGE_HOSTS.has(url.hostname.toLowerCase())) return null;
+    if (!url.hostname.includes(".")) return null;
     return url.toString();
   } catch {
     return null;
   }
 }
 
-export function sanitizeImageUrlList(rawLines: string[]): string[] {
-  const out: string[] = [];
+export function explainInvalidImageUrl(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "URL is empty.";
+  if (trimmed.startsWith("/uploads/")) {
+    return "Upload path looks invalid. Use a file uploaded through this form.";
+  }
+  if (trimmed.startsWith("http://")) {
+    return "Use https image URLs only (not http).";
+  }
+  return "Use an uploaded file path (/uploads/...) or a full https image URL.";
+}
+
+export function sanitizeImageUrlList(rawLines: string[]): {
+  urls: string[];
+  rejected: string[];
+} {
+  const urls: string[] = [];
+  const rejected: string[] = [];
   for (const line of rawLines) {
     const safe = sanitizeImageUrl(line);
-    if (safe) out.push(safe);
+    if (safe) urls.push(safe);
+    else if (line.trim()) rejected.push(line.trim());
   }
-  return out;
+  return { urls, rejected };
 }
 
 export function isHoneypotFilled(value: unknown): boolean {

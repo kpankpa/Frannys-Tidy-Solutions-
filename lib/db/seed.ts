@@ -120,6 +120,7 @@ async function seedProducts(categoryRows: typeof categories.$inferSelect[]) {
         rating: String(item.rating),
         reviewsCount: item.reviews,
         inStock: item.inStock,
+        stockQuantity: item.inStock ? (item.stockQuantity ?? 25) : 0,
         badge: item.badge ?? null,
         imageAlt: item.imageAlt,
       })

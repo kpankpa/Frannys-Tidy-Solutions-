@@ -4,6 +4,7 @@ import { formatPrice } from "@/lib/products";
 import { ORDER_PIPELINE } from "@/lib/order-status";
 import { updateOrderStatusAction } from "@/server/admin";
 import { PendingSaveButton } from "@/components/admin/PendingSaveButton";
+import { Button } from "@/components/ui/Button";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 
 type PageProps = {
@@ -15,6 +16,9 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const status = params.status?.trim() || undefined;
   const orders = await listRecentOrders(80, status);
+  const exportHref = status
+    ? `/api/admin/orders/export?status=${encodeURIComponent(status)}`
+    : "/api/admin/orders/export";
 
   return (
     <div className="space-y-6">
@@ -25,34 +29,38 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             Fulfilment queue. Status changes update customer track-order.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <Button href={exportHref} variant="outline" size="sm">
+          Export CSV
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Link
+          href="/admin/orders"
+          className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+            !status ? "bg-primary text-white" : "bg-surface-muted text-muted"
+          }`}
+        >
+          All
+        </Link>
+        {ORDER_PIPELINE.map((step) => (
           <Link
-            href="/admin/orders"
+            key={step.key}
+            href={`/admin/orders?status=${step.key}`}
             className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-              !status ? "bg-primary text-white" : "bg-surface-muted text-muted"
+              status === step.key
+                ? "bg-primary text-white"
+                : "bg-surface-muted text-muted"
             }`}
           >
-            All
+            {step.label}
           </Link>
-          {ORDER_PIPELINE.map((step) => (
-            <Link
-              key={step.key}
-              href={`/admin/orders?status=${step.key}`}
-              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                status === step.key
-                  ? "bg-primary text-white"
-                  : "bg-surface-muted text-muted"
-              }`}
-            >
-              {step.label}
-            </Link>
-          ))}
-        </div>
+        ))}
       </div>
 
       <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[860px] text-left text-sm">
+          <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="bg-surface-muted text-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">Order</th>
@@ -66,7 +74,12 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               {orders.map((o) => (
                 <tr key={o.orderNumber} className="border-t border-border align-top">
                   <td className="px-4 py-3">
-                    <p className="font-semibold">{o.orderNumber}</p>
+                    <Link
+                      href={`/admin/orders/${o.orderNumber}`}
+                      className="font-semibold text-primary hover:underline"
+                    >
+                      {o.orderNumber}
+                    </Link>
                     <p className="text-xs text-muted">{o.statusLabel}</p>
                   </td>
                   <td className="px-4 py-3">
@@ -78,7 +91,10 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                     {formatPrice(o.totalCedis)}
                   </td>
                   <td className="px-4 py-3">
-                    <form action={updateOrderStatusAction} className="flex flex-wrap gap-2">
+                    <form
+                      action={updateOrderStatusAction}
+                      className="flex flex-wrap items-center gap-2"
+                    >
                       <input type="hidden" name="orderNumber" value={o.orderNumber} />
                       <select
                         name="status"
@@ -92,6 +108,12 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                         ))}
                       </select>
                       <PendingSaveButton />
+                      <Link
+                        href={`/admin/orders/${o.orderNumber}`}
+                        className="text-xs text-muted hover:text-primary hover:underline"
+                      >
+                        Details
+                      </Link>
                     </form>
                   </td>
                 </tr>

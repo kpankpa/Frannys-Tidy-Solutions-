@@ -22,6 +22,13 @@
       "when": 1784952000000,
       "tag": "0002_users_role_default",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785432000000,
+      "tag": "0003_stock_quantity",
+      "breakpoints": true
     }
   ]
 }

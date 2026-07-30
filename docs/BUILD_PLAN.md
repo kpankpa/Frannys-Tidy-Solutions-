@@ -28,7 +28,7 @@ WhatsApp remains the checkout / booking confirmation channel for v1 (no online c
 | Marketing + shop UI | Done | Products from Postgres (Phase 3) |
 | Cart (localStorage) | Done | `lib/cart.tsx` (resolves via `/api/products`) |
 | WhatsApp deep links | Done | Driven by admin Settings via `getSiteConfig` |
-| Admin business hub | Done | Live ops, CMS settings/content, reports |
+| Admin business hub | Done | Live ops, CMS, stock qty, media library, order detail |
 | Auth | Done | Admin credentials login |
 | PostgreSQL + Drizzle | Done | Docker on port 5433, migrated + seeded |
 | Real orders / bookings | Done | Checkout, bookings, and track-order use Postgres |
@@ -124,7 +124,7 @@ WhatsApp
 | Table | Purpose |
 |-------|---------|
 | `users` | Admin (and later customer accounts if needed) |
-| `products` | Shop catalogue |
+| `products` | Shop catalogue (includes `stock_quantity`) |
 | `product_images` | Multiple images per product |
 | `categories` | Product categories |
 | `customers` | People who ordered or booked (by phone/email) |
@@ -554,4 +554,5 @@ Write a short note under the phase:
 | 2026-07-24 | Phase 7+8 Done: business ops admin hub, live stats, order/booking status, settings + site content CMS, customers/complaints/reports. |
 | 2026-07-24 | Wired public site to admin Settings/Content: WhatsApp, contact, about, hero, metadata, login brand name. |
 | 2026-07-24 | Phase 9 Done: local image uploads, loading/error/empty polish, SEO sitemap/robots, deploy + backup docs. Production host still needs owner credentials. |
-| 2026-07-24 | Hardening pass: rate limits, role-aware admin auth, phone normalize, safer track payload, upload magic bytes, URL allowlists, security headers, seed prod guards. |
+| 2026-07-30 | Admin hub hardening: visual product image gallery (upload/reorder/cover/remove), https image URLs, category CRUD, product search/filter/duplicate/confirm-delete, order detail + WhatsApp customer, bookings WhatsApp, orders CSV export. |
+| 2026-07-30 | Stock quantities (`stock_quantity`) with low-stock alerts and checkout decrement; admin media library + product form picker. |

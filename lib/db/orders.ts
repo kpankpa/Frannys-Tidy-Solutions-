@@ -104,6 +104,7 @@ export async function createOrderFromCart(
       productName: string;
       unitPricePesewas: number;
       quantity: number;
+      stockAfter: number;
     }> = [];
 
     for (const item of cleanedItems) {
@@ -114,8 +115,13 @@ export async function createOrderFromCart(
       if (!product) {
         throw new Error("One or more products are no longer available.");
       }
-      if (!product.inStock) {
+      if (product.stockQuantity <= 0 || !product.inStock) {
         throw new Error(`${product.name} is currently out of stock.`);
+      }
+      if (product.stockQuantity < item.quantity) {
+        throw new Error(
+          `${product.name} only has ${product.stockQuantity} left in stock.`,
+        );
       }
 
       pricedLines.push({
@@ -123,6 +129,7 @@ export async function createOrderFromCart(
         productName: product.name,
         unitPricePesewas: product.pricePesewas,
         quantity: item.quantity,
+        stockAfter: product.stockQuantity - item.quantity,
       });
     }
 
@@ -190,6 +197,17 @@ export async function createOrderFromCart(
         quantity: line.quantity,
       })),
     );
+
+    for (const line of pricedLines) {
+      await tx
+        .update(products)
+        .set({
+          stockQuantity: line.stockAfter,
+          inStock: line.stockAfter > 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, line.productId));
+    }
 
     await tx.insert(orderEvents).values({
       orderId: createdOrder.id,
@@ -290,6 +308,68 @@ export async function findOrderByNumberAndPhone(
   if (!phonesMatch(order.customer.phone, phone)) {
     return null;
   }
+
+  return {
+    orderNumber: order.orderNumber,
+    status: order.status,
+    statusLabel: orderStatusLabel(order.status),
+    statusIndex: orderStatusIndex(order.status),
+    customer: order.customer.name,
+    phone: order.customer.phone,
+    deliveryAddress: order.deliveryAddress,
+    notes: order.notes,
+    subtotalCedis: pesewasToCedis(order.subtotalPesewas),
+    deliveryCedis: pesewasToCedis(order.deliveryPesewas),
+    totalCedis: pesewasToCedis(order.totalPesewas),
+    createdAt: order.createdAt.toISOString(),
+    lineItems: order.items.map((item) => {
+      const images = item.product?.images ?? [];
+      const sorted = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+      return {
+        productId: item.productId,
+        name: item.productName,
+        quantity: item.quantity,
+        unitPriceCedis: pesewasToCedis(item.unitPricePesewas),
+        image: sorted[0]?.url ?? FALLBACK_IMAGE,
+        category: item.product?.category?.name ?? "Product",
+      };
+    }),
+    events: order.events.map((event) => ({
+      status: event.status,
+      statusLabel: orderStatusLabel(event.status),
+      note: event.note,
+      createdAt: event.createdAt.toISOString(),
+    })),
+  };
+}
+
+export async function findOrderByNumber(
+  orderNumber: string,
+): Promise<TrackedOrder | null> {
+  const normalizedNumber = clampText(orderNumber, LIMITS.orderNumber).toUpperCase();
+  if (!normalizedNumber) return null;
+
+  const order = await db.query.orders.findFirst({
+    where: eq(orders.orderNumber, normalizedNumber),
+    with: {
+      customer: true,
+      items: {
+        with: {
+          product: {
+            with: {
+              category: true,
+              images: true,
+            },
+          },
+        },
+      },
+      events: {
+        orderBy: [asc(orderEvents.createdAt)],
+      },
+    },
+  });
+
+  if (!order) return null;
 
   return {
     orderNumber: order.orderNumber,

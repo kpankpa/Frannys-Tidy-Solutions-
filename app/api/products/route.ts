@@ -19,7 +19,11 @@ export async function GET(request: Request) {
     maxPrice: searchParams.get("maxPrice")
       ? Number(searchParams.get("maxPrice"))
       : undefined,
-    availability: (searchParams.get("availability") as "all" | "in" | "out") || "all",
+    availability: (searchParams.get("availability") as
+      | "all"
+      | "in"
+      | "out"
+      | "low") || "all",
   });
 
   return NextResponse.json(products);
