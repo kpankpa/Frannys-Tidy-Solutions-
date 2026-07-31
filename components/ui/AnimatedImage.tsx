@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { cn } from "@/lib/utils";
 
 type AnimatedImageProps = {
@@ -70,6 +71,7 @@ export function AnimatedImage({
         fill
         priority={priority}
         sizes={sizes}
+        unoptimized={shouldUnoptimizeImage(src)}
         onLoad={() => setLoaded(true)}
         className={cn(
           "object-cover transition-opacity duration-500",

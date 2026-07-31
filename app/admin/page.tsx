@@ -3,22 +3,50 @@ import {
   AlertTriangle,
   CalendarDays,
   ClipboardList,
+  Download,
+  MessageCircle,
   Package,
 } from "lucide-react";
 import { listRecentOrders } from "@/lib/db/orders";
 import { listBookings } from "@/lib/db/bookings";
+import { listProducts } from "@/lib/db/products";
+import { getSiteConfig } from "@/lib/db/settings";
 import { getDashboardStats } from "@/lib/db/stats";
-import { formatPrice } from "@/lib/products";
+import { buildWhatsAppUrl } from "@/lib/constants";
+import { formatPrice, isLowStock } from "@/lib/products";
+import { lowStockAlertMessage } from "@/lib/wa-templates";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 import { Button } from "@/components/ui/Button";
 
 export default async function AdminOverviewPage() {
   await ensureAdminPage();
-  const [stats, recentOrders, recentBookings] = await Promise.all([
-    getDashboardStats(),
-    listRecentOrders(6),
-    listBookings(5),
-  ]);
+  const [stats, recentOrders, recentBookings, products, site] =
+    await Promise.all([
+      getDashboardStats(),
+      listRecentOrders(6),
+      listBookings(5),
+      listProducts(),
+      getSiteConfig(),
+    ]);
+
+  const lowStockItems = products
+    .filter(
+      (p) => !p.inStock || isLowStock(p.stockQuantity),
+    )
+    .map((p) => ({ name: p.name, stockQuantity: p.stockQuantity }))
+    .slice(0, 12);
+
+  const stockAlertText = lowStockAlertMessage(lowStockItems, site.name);
+  const stockWaUrl =
+    lowStockItems.length > 0
+      ? buildWhatsAppUrl(stockAlertText, site.whatsappE164)
+      : null;
+  const stockMailUrl =
+    lowStockItems.length > 0
+      ? `mailto:${encodeURIComponent(site.email)}?subject=${encodeURIComponent(
+          `${site.shortName} low stock alert`,
+        )}&body=${encodeURIComponent(stockAlertText)}`
+      : null;
 
   const kpis = [
     {
@@ -99,6 +127,10 @@ export default async function AdminOverviewPage() {
           <Button href="/admin/products/new" variant="outline" size="sm">
             Add product
           </Button>
+          <Button href="/api/admin/backup" variant="outline" size="sm">
+            <Download className="h-4 w-4" />
+            Backup CSV zip
+          </Button>
         </div>
       </div>
 
@@ -149,6 +181,56 @@ export default async function AdminOverviewPage() {
           })}
         </div>
       </div>
+
+      {lowStockItems.length > 0 ? (
+        <div className="rounded-[10px] border border-amber-200 bg-amber-50/80 p-5 shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 className="font-bold text-foreground">Low stock alert</h2>
+              <p className="mt-1 text-sm text-muted">
+                {lowStockItems.length} product
+                {lowStockItems.length === 1 ? "" : "s"} need restocking before
+                checkout sells through.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {stockWaUrl ? (
+                <Button
+                  href={stockWaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="whatsapp"
+                  size="sm"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp alert
+                </Button>
+              ) : null}
+              {stockMailUrl ? (
+                <Button href={stockMailUrl} variant="outline" size="sm">
+                  Email alert
+                </Button>
+              ) : null}
+              <Button href="/admin/products?stock=low" variant="outline" size="sm">
+                View stock
+              </Button>
+            </div>
+          </div>
+          <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+            {lowStockItems.map((item) => (
+              <li
+                key={item.name}
+                className="rounded-[8px] bg-white/70 px-3 py-2 text-sm"
+              >
+                <span className="font-medium">{item.name}</span>
+                <span className="ml-2 text-muted">
+                  {item.stockQuantity} left
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-[10px] border border-border bg-surface p-5 shadow-sm">

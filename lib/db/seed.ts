@@ -138,19 +138,38 @@ async function seedProducts(categoryRows: typeof categories.$inferSelect[]) {
   console.log(`Seeded ${seedCatalog.length} products.`);
 }
 
+/** Keys we refresh on re-seed so public defaults stay current. */
+const FORCE_UPDATE_KEYS = new Set([
+  "about_blurb",
+  "about_headline",
+  "about_intro",
+  "about_story",
+  "about_mission",
+  "about_vision",
+  "testimonials",
+  "service_packages",
+]);
+
 async function seedSettings() {
   const defaults = Object.entries(SETTINGS_DEFAULTS).map(([key, value]) => ({
     key,
     value,
   }));
 
-  // Insert-only: never overwrite live CMS values on re-seed.
+  // Insert-only for most settings. Refresh About trust copy on re-seed.
   for (const row of defaults) {
     const existing = await db.query.settings.findFirst({
       where: eq(settings.key, row.key),
     });
     if (!existing) {
       await db.insert(settings).values(row);
+      continue;
+    }
+    if (FORCE_UPDATE_KEYS.has(row.key)) {
+      await db
+        .update(settings)
+        .set({ value: row.value, updatedAt: new Date() })
+        .where(eq(settings.key, row.key));
     }
   }
 

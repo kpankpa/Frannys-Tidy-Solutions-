@@ -38,6 +38,7 @@ export function mapDbProduct(row: ProductWithRelations): Product {
     inStock: stockQuantity > 0,
     stockQuantity,
     badge: row.badge ?? undefined,
+    badgeExpiresAt: row.badgeExpiresAt?.toISOString() ?? null,
     image: urls[0] ?? fallback,
     // Real stored URLs only (no fallback) so admin edit never invents images.
     images: urls,
@@ -150,9 +151,17 @@ export type ProductInput = {
   reviewsCount?: number;
   stockQuantity: number;
   badge?: string | null;
+  badgeExpiresAt?: string | null;
   imageAlt: string;
   imageUrls: string[];
 };
+
+function parseBadgeExpiry(raw?: string | null): Date | null {
+  if (!raw?.trim()) return null;
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
+}
 
 function normalizeStock(quantity: number) {
   const stockQuantity = Math.max(0, Math.floor(Number(quantity) || 0));
@@ -188,6 +197,7 @@ export async function createProduct(input: ProductInput) {
       inStock: stock.inStock,
       stockQuantity: stock.stockQuantity,
       badge: input.badge || null,
+      badgeExpiresAt: parseBadgeExpiry(input.badgeExpiresAt),
       imageAlt: input.imageAlt.trim() || input.name.trim(),
     })
     .returning();
@@ -225,6 +235,7 @@ export async function updateProduct(dbId: string, input: ProductInput) {
         inStock: stock.inStock,
         stockQuantity: stock.stockQuantity,
         badge: input.badge || null,
+        badgeExpiresAt: parseBadgeExpiry(input.badgeExpiresAt),
         imageAlt: input.imageAlt.trim() || input.name.trim(),
         updatedAt: new Date(),
       })
@@ -302,6 +313,7 @@ export async function duplicateProduct(dbId: string) {
     reviewsCount: source.reviews,
     stockQuantity: source.stockQuantity,
     badge: source.badge ?? null,
+    badgeExpiresAt: source.badgeExpiresAt,
     imageAlt: source.imageAlt,
     imageUrls: source.images,
   });

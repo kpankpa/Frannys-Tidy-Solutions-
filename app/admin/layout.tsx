@@ -32,6 +32,7 @@ export default async function AdminLayout({
   return (
     <AdminShell
       brandName={site.name}
+      logoUrl={site.logoUrl}
       email={session.user.email ?? ""}
       displayName={session.user.name ?? "Admin"}
       badges={badges}

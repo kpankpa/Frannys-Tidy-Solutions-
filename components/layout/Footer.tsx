@@ -11,10 +11,14 @@ export function Footer({ site }: { site: SiteConfig }) {
         <div>
           <Link href="/" className="inline-block" aria-label={site.name}>
             <Image
-              src="/frannystidy.png"
+              src={site.logoUrl || "/frannystidy.png"}
               alt={site.name}
               width={72}
               height={72}
+              unoptimized={
+                site.logoUrl.startsWith("/uploads/") ||
+                site.logoUrl.startsWith("https://")
+              }
               className="h-14 w-14 rounded-lg object-contain"
             />
           </Link>
@@ -52,21 +56,13 @@ export function Footer({ site }: { site: SiteConfig }) {
             Services
           </h3>
           <ul className="mt-4 space-y-2 text-sm text-white/75">
-            <li>
-              <Link href="/services" className="hover:text-white">
-                Home Cleaning
-              </Link>
-            </li>
-            <li>
-              <Link href="/services" className="hover:text-white">
-                Office Sanitization
-              </Link>
-            </li>
-            <li>
-              <Link href="/services" className="hover:text-white">
-                Deep Cleaning
-              </Link>
-            </li>
+            {site.serviceItems.slice(0, 3).map((service) => (
+              <li key={service.id}>
+                <Link href="/services" className="hover:text-white">
+                  {service.title}
+                </Link>
+              </li>
+            ))}
             <li>
               <Link href="/shop" className="hover:text-white">
                 Cleaning Products

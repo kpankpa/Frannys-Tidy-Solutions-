@@ -63,9 +63,14 @@ export const cleaningServices: Service[] = [
   },
 ];
 
-/** Merge CMS title/description overrides onto the coded service catalogue. */
+/** Merge CMS title/description/image overrides onto the coded service catalogue. */
 export function resolveCleaningServices(
-  overrides: { id: string; title: string; description: string }[],
+  overrides: {
+    id: string;
+    title: string;
+    description: string;
+    image?: string;
+  }[],
 ): Service[] {
   const byId = new Map(overrides.map((item) => [item.id, item]));
   return cleaningServices.map((service) => {
@@ -76,6 +81,7 @@ export function resolveCleaningServices(
       ...service,
       title,
       description: override.description.trim() || service.description,
+      image: override.image?.trim() || service.image,
       href: `/contact?service=${encodeURIComponent(title)}`,
     };
   });

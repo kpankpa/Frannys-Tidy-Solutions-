@@ -9,12 +9,9 @@ import { SectionSpinner } from "@/components/ui/PageSpinner";
 import { BookingForm } from "@/components/services/BookingForm";
 import { WhyBook } from "@/components/services/WhyBook";
 import { resolveCleaningServices } from "@/lib/services";
-import {
-  SERVICE_PROCESS,
-  SERVICE_SPACES,
-} from "@/lib/services-page";
 import { getSiteConfig } from "@/lib/db/settings";
 import { FLYERS } from "@/lib/flyers";
+import { formatPrice } from "@/lib/products";
 
 export const metadata = {
   title: "Cleaning Services",
@@ -112,21 +109,60 @@ export default async function ServicesPage() {
         </div>
       </section>
 
+      {site.servicePackages.length > 0 ? (
+        <section className="border-y border-border bg-surface-muted/60 py-16 sm:py-20">
+          <div className="container-page">
+            <FadeIn className="max-w-2xl">
+              <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+                {site.packagesHeadline}
+              </h2>
+              <p className="mt-4 text-[15px] leading-relaxed text-muted">
+                {site.packagesSubcopy}
+              </p>
+            </FadeIn>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {site.servicePackages.map((pkg, i) => (
+                <FadeIn key={`${pkg.name}-${i}`} delay={i * 0.04} as="article">
+                  <div className="flex h-full flex-col rounded-2xl border border-border/80 bg-surface p-6 soft-shadow">
+                    <h3 className="text-lg font-bold text-foreground">
+                      {pkg.name}
+                    </h3>
+                    <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">
+                      {pkg.description}
+                    </p>
+                    <p className="mt-5 text-xl font-extrabold text-primary">
+                      From {formatPrice(pkg.priceFromCedis)}
+                    </p>
+                    <Button
+                      href={`?service=${encodeURIComponent(pkg.name)}#book`}
+                      className="mt-5 w-full"
+                      size="sm"
+                    >
+                      Book this package
+                    </Button>
+                  </div>
+                </FadeIn>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {/* 3. How it works */}
       <section className="droplet-bg border-y border-border py-16 sm:py-20">
         <div className="container-page">
           <FadeIn className="max-w-2xl">
             <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              How it works
+              {site.serviceProcessTitle}
             </h2>
             <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              A simple path from request to fresh space.
+              {site.serviceProcessSubcopy}
             </p>
           </FadeIn>
 
           <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {SERVICE_PROCESS.map((item, i) => (
-              <FadeIn key={item.step} delay={i * 0.06}>
+            {site.serviceProcess.map((item, i) => (
+              <FadeIn key={`${item.step}-${item.title}`} delay={i * 0.06}>
                 <p className="text-3xl font-extrabold text-secondary/45">
                   {item.step}
                 </p>
@@ -148,20 +184,24 @@ export default async function ServicesPage() {
           <FadeIn>
             <div className="relative aspect-[4/3] overflow-hidden rounded-2xl soft-shadow">
               <Image
-                src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80"
-                alt="Clean modern office workspace"
+                src={site.serviceSpacesImage}
+                alt={site.serviceSpacesTitle}
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 50vw"
+                unoptimized={
+                  site.serviceSpacesImage.startsWith("/uploads/") ||
+                  site.serviceSpacesImage.startsWith("https://")
+                }
               />
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
             <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Homes, workplaces, and community spaces
+              {site.serviceSpacesTitle}
             </h2>
             <ul className="mt-8 space-y-5">
-              {SERVICE_SPACES.map((space) => (
+              {site.serviceSpaces.map((space) => (
                 <li key={space.title} className="border-l-2 border-secondary/40 pl-4">
                   <h3 className="font-bold text-foreground">{space.title}</h3>
                   <p className="mt-1 text-sm leading-relaxed text-muted">

@@ -1,0 +1,1 @@
+ALTER TABLE "products" ADD COLUMN "badge_expires_at" timestamp with time zone;

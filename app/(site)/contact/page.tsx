@@ -233,7 +233,25 @@ export default async function ContactPage() {
               src={`https://maps.google.com/maps?q=${encodeURIComponent(site.address)}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
               className="h-72 w-full border-0 sm:h-80"
               loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
             />
+          </FadeIn>
+          <FadeIn delay={0.12} className="mt-3">
+            <a
+              href={
+                site.googleMapsUrl ||
+                `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(site.address)}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-semibold text-primary hover:underline"
+            >
+              Open in Google Maps
+            </a>
+            <p className="mt-1 text-xs text-muted">
+              Find {site.name} in {site.locationBlurb}. Claim the Google
+              Business Profile and keep photos updated for local search.
+            </p>
           </FadeIn>
         </div>
       </section>

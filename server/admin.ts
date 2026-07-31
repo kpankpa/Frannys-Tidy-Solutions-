@@ -12,10 +12,15 @@ import {
   type SettingKey,
 } from "@/lib/db/settings";
 import { cedisToPesewas } from "@/lib/money";
-import { ORDER_PIPELINE } from "@/lib/order-status";
+import { ORDER_ADMIN_STATUSES } from "@/lib/order-status";
 import { BOOKING_PIPELINE } from "@/lib/booking-status";
 import { toWhatsAppE164, normalizeGhanaPhone } from "@/lib/phone";
-import { clampText, sanitizeSocialUrl, LIMITS } from "@/lib/validation";
+import {
+  clampText,
+  sanitizeLogoUrl,
+  sanitizeSocialUrl,
+  LIMITS,
+} from "@/lib/validation";
 
 export async function updateOrderStatusAction(formData: FormData) {
   await requireAdmin();
@@ -23,13 +28,14 @@ export async function updateOrderStatusAction(formData: FormData) {
   const status = String(formData.get("status") ?? "");
   const note = clampText(String(formData.get("note") ?? ""), 240);
 
-  const allowed = ORDER_PIPELINE.some((s) => s.key === status);
+  const allowed = ORDER_ADMIN_STATUSES.some((s) => s.key === status);
   if (!orderNumber || !allowed) return;
 
   await updateOrderStatus(orderNumber, status, note);
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${orderNumber.trim().toUpperCase()}`);
+  revalidatePath("/admin/customers");
   revalidatePath("/track-order");
 }
 
@@ -43,6 +49,7 @@ export async function updateBookingStatusAction(formData: FormData) {
   await updateBookingStatus(bookingId, status);
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
+  revalidatePath("/admin/customers");
 }
 
 export async function saveBusinessSettingsAction(formData: FormData) {
@@ -67,9 +74,34 @@ export async function saveBusinessSettingsAction(formData: FormData) {
     String(formData.get("instagramUrl") ?? ""),
   );
   const tiktok = sanitizeSocialUrl(String(formData.get("tiktokUrl") ?? ""));
+  const mapsRaw = String(formData.get("googleMapsUrl") ?? "").trim();
+  let googleMapsUrl = "";
+  if (mapsRaw) {
+    try {
+      const url = new URL(mapsRaw);
+      if (url.protocol !== "https:") {
+        redirect("/admin/settings?error=InvalidMapsUrl");
+      }
+      googleMapsUrl = url.toString();
+    } catch {
+      redirect("/admin/settings?error=InvalidMapsUrl");
+    }
+  }
 
   if (instagram === null || tiktok === null) {
     redirect("/admin/settings?error=InvalidSocialUrl");
+  }
+
+  const logoRaw = String(formData.get("logoUrl") ?? "").trim();
+  const logoUrl = sanitizeLogoUrl(logoRaw);
+  if (logoUrl === null) {
+    redirect("/admin/settings?error=InvalidLogoUrl");
+  }
+
+  const heroHomeRaw = String(formData.get("heroHomeImage") ?? "").trim();
+  const heroHomeImage = sanitizeLogoUrl(heroHomeRaw);
+  if (heroHomeImage === null) {
+    redirect("/admin/settings?error=InvalidLogoUrl");
   }
 
   const entries: Partial<Record<SettingKey, string>> = {
@@ -77,12 +109,20 @@ export async function saveBusinessSettingsAction(formData: FormData) {
       String(formData.get("businessName") ?? ""),
       120,
     ),
+    [SETTING_KEYS.shortName]: clampText(
+      String(formData.get("shortName") ?? ""),
+      40,
+    ),
     [SETTING_KEYS.tagline]: clampText(String(formData.get("tagline") ?? ""), 160),
     [SETTING_KEYS.description]: clampText(
       String(formData.get("description") ?? ""),
       500,
     ),
     [SETTING_KEYS.address]: clampText(String(formData.get("address") ?? ""), 240),
+    [SETTING_KEYS.locationBlurb]: clampText(
+      String(formData.get("locationBlurb") ?? ""),
+      120,
+    ),
     [SETTING_KEYS.phone]: phone,
     [SETTING_KEYS.phoneDisplay]: clampText(
       String(formData.get("phoneDisplay") ?? ""),
@@ -101,6 +141,21 @@ export async function saveBusinessSettingsAction(formData: FormData) {
     ),
     [SETTING_KEYS.instagramUrl]: instagram,
     [SETTING_KEYS.tiktokUrl]: tiktok,
+    [SETTING_KEYS.googleMapsUrl]: googleMapsUrl,
+    [SETTING_KEYS.logoUrl]: logoUrl,
+    [SETTING_KEYS.heroHomeImage]: heroHomeImage,
+    [SETTING_KEYS.receiptTitle]: clampText(
+      String(formData.get("receiptTitle") ?? ""),
+      80,
+    ),
+    [SETTING_KEYS.receiptFooter]: clampText(
+      String(formData.get("receiptFooter") ?? ""),
+      500,
+    ),
+    [SETTING_KEYS.receiptNote]: clampText(
+      String(formData.get("receiptNote") ?? ""),
+      500,
+    ),
   };
 
   await upsertSettings(entries as Record<string, string>);
@@ -109,9 +164,11 @@ export async function saveBusinessSettingsAction(formData: FormData) {
   revalidatePath("/contact");
   revalidatePath("/services");
   revalidatePath("/checkout");
+  revalidatePath("/admin");
   revalidatePath("/admin/settings");
   revalidatePath("/admin/content");
   revalidatePath("/admin/login");
+  revalidatePath("/admin/orders");
 }
 
 export async function saveSiteContentAction(formData: FormData) {
@@ -130,14 +187,19 @@ export async function saveSiteContentAction(formData: FormData) {
     "move",
     "commercial",
   ] as const;
-  const serviceItems = serviceIds.map((id) => ({
-    id,
-    title: clampText(String(formData.get(`serviceTitle_${id}`) ?? ""), 80),
-    description: clampText(
-      String(formData.get(`serviceDesc_${id}`) ?? ""),
-      320,
-    ),
-  }));
+  const serviceItems = serviceIds.map((id) => {
+    const imageRaw = String(formData.get(`serviceImage_${id}`) ?? "").trim();
+    const image = sanitizeLogoUrl(imageRaw);
+    return {
+      id,
+      title: clampText(String(formData.get(`serviceTitle_${id}`) ?? ""), 80),
+      description: clampText(
+        String(formData.get(`serviceDesc_${id}`) ?? ""),
+        320,
+      ),
+      image: image || "",
+    };
+  });
 
   const servicePromises = [0, 1, 2].map((i) => ({
     title: clampText(String(formData.get(`promiseTitle${i}`) ?? ""), 80),
@@ -149,6 +211,75 @@ export async function saveSiteContentAction(formData: FormData) {
     .map((line) => clampText(line.trim(), 120))
     .filter(Boolean);
 
+  const testimonials = [0, 1, 2, 3, 4].map((i) => ({
+    name: clampText(String(formData.get(`testimonialName${i}`) ?? ""), 80),
+    role: clampText(String(formData.get(`testimonialRole${i}`) ?? ""), 120),
+    quote: clampText(String(formData.get(`testimonialQuote${i}`) ?? ""), 500),
+    rating: Math.min(
+      5,
+      Math.max(1, Math.round(Number(formData.get(`testimonialRating${i}`) ?? 5))),
+    ),
+    approved:
+      formData.get(`testimonialApproved${i}`) === "on" ||
+      formData.get(`testimonialApproved${i}`) === "true",
+  })).filter((item) => item.name && item.quote);
+
+  const servicePackages = [0, 1, 2, 3, 4].map((i) => ({
+    name: clampText(String(formData.get(`packageName${i}`) ?? ""), 120),
+    description: clampText(String(formData.get(`packageDesc${i}`) ?? ""), 400),
+    priceFromCedis: Math.max(
+      0,
+      Number(formData.get(`packagePrice${i}`) ?? 0),
+    ),
+  })).filter((item) => item.name && item.priceFromCedis > 0);
+
+  const aboutValues = [0, 1, 2, 3].map((i) => ({
+    title: clampText(String(formData.get(`aboutValueTitle${i}`) ?? ""), 120),
+    body: clampText(String(formData.get(`aboutValueBody${i}`) ?? ""), 400),
+  })).filter((item) => item.title);
+
+  const aboutJourney = [0, 1, 2, 3].map((i) => ({
+    year: clampText(String(formData.get(`aboutJourneyYear${i}`) ?? ""), 40),
+    title: clampText(String(formData.get(`aboutJourneyTitle${i}`) ?? ""), 120),
+    body: clampText(String(formData.get(`aboutJourneyBody${i}`) ?? ""), 400),
+  })).filter((item) => item.title);
+
+  const aboutDifference = [0, 1, 2].map((i) => ({
+    title: clampText(String(formData.get(`aboutDiffTitle${i}`) ?? ""), 120),
+    body: clampText(String(formData.get(`aboutDiffBody${i}`) ?? ""), 400),
+  })).filter((item) => item.title);
+
+  const aboutTrustPoints = [0, 1, 2, 3].map((i) => ({
+    title: clampText(String(formData.get(`aboutTrustTitle${i}`) ?? ""), 120),
+    body: clampText(String(formData.get(`aboutTrustBody${i}`) ?? ""), 400),
+  })).filter((item) => item.title);
+
+  const howItWorks = [0, 1, 2, 3].map((i) => ({
+    step: i + 1,
+    title: clampText(String(formData.get(`howTitle${i}`) ?? ""), 80),
+    description: clampText(String(formData.get(`howDesc${i}`) ?? ""), 240),
+  })).filter((item) => item.title);
+
+  const serviceProcess = [0, 1, 2, 3].map((i) => ({
+    step: clampText(
+      String(formData.get(`processStep${i}`) ?? String(i + 1).padStart(2, "0")),
+      8,
+    ),
+    title: clampText(String(formData.get(`processTitle${i}`) ?? ""), 120),
+    body: clampText(String(formData.get(`processBody${i}`) ?? ""), 400),
+  })).filter((item) => item.title);
+
+  const serviceSpaces = [0, 1, 2, 3].map((i) => ({
+    title: clampText(String(formData.get(`spaceTitle${i}`) ?? ""), 120),
+    body: clampText(String(formData.get(`spaceBody${i}`) ?? ""), 400),
+  })).filter((item) => item.title);
+
+  const spacesImageRaw = String(formData.get("serviceSpacesImage") ?? "").trim();
+  const serviceSpacesImage = sanitizeLogoUrl(spacesImageRaw);
+  if (serviceSpacesImage === null) {
+    redirect("/admin/content?error=InvalidImageUrl");
+  }
+
   await upsertSettings({
     [SETTING_KEYS.heroHeadline]: clampText(
       String(formData.get("heroHeadline") ?? ""),
@@ -157,6 +288,14 @@ export async function saveSiteContentAction(formData: FormData) {
     [SETTING_KEYS.heroSubcopy]: clampText(
       String(formData.get("heroSubcopy") ?? ""),
       500,
+    ),
+    [SETTING_KEYS.heroCtaPrimary]: clampText(
+      String(formData.get("heroCtaPrimary") ?? ""),
+      40,
+    ),
+    [SETTING_KEYS.heroCtaSecondary]: clampText(
+      String(formData.get("heroCtaSecondary") ?? ""),
+      40,
     ),
     [SETTING_KEYS.aboutBlurb]: clampText(
       String(formData.get("aboutBlurb") ?? ""),
@@ -183,6 +322,14 @@ export async function saveSiteContentAction(formData: FormData) {
       String(formData.get("aboutVision") ?? ""),
       1200,
     ),
+    [SETTING_KEYS.aboutPromise]: clampText(
+      String(formData.get("aboutPromise") ?? ""),
+      400,
+    ),
+    [SETTING_KEYS.aboutValues]: JSON.stringify(aboutValues),
+    [SETTING_KEYS.aboutJourney]: JSON.stringify(aboutJourney),
+    [SETTING_KEYS.aboutDifference]: JSON.stringify(aboutDifference),
+    [SETTING_KEYS.aboutTrustPoints]: JSON.stringify(aboutTrustPoints),
     [SETTING_KEYS.shopHeroHeadline]: clampText(
       String(formData.get("shopHeroHeadline") ?? ""),
       160,
@@ -211,6 +358,29 @@ export async function saveSiteContentAction(formData: FormData) {
       String(formData.get("whyBookSubcopy") ?? ""),
       240,
     ),
+    [SETTING_KEYS.serviceProcess]: JSON.stringify(serviceProcess),
+    [SETTING_KEYS.serviceProcessTitle]: clampText(
+      String(formData.get("serviceProcessTitle") ?? ""),
+      120,
+    ),
+    [SETTING_KEYS.serviceProcessSubcopy]: clampText(
+      String(formData.get("serviceProcessSubcopy") ?? ""),
+      240,
+    ),
+    [SETTING_KEYS.serviceSpaces]: JSON.stringify(serviceSpaces),
+    [SETTING_KEYS.serviceSpacesTitle]: clampText(
+      String(formData.get("serviceSpacesTitle") ?? ""),
+      160,
+    ),
+    [SETTING_KEYS.serviceSpacesImage]: serviceSpacesImage,
+    [SETTING_KEYS.packagesHeadline]: clampText(
+      String(formData.get("packagesHeadline") ?? ""),
+      120,
+    ),
+    [SETTING_KEYS.packagesSubcopy]: clampText(
+      String(formData.get("packagesSubcopy") ?? ""),
+      400,
+    ),
     [SETTING_KEYS.contactHeroHeadline]: clampText(
       String(formData.get("contactHeroHeadline") ?? ""),
       160,
@@ -233,8 +403,47 @@ export async function saveSiteContentAction(formData: FormData) {
       240,
     ),
     [SETTING_KEYS.whyChooseItems]: JSON.stringify(whyChooseItems),
+    [SETTING_KEYS.howItWorks]: JSON.stringify(howItWorks),
+    [SETTING_KEYS.homeHowTitle]: clampText(
+      String(formData.get("homeHowTitle") ?? ""),
+      120,
+    ),
+    [SETTING_KEYS.homeHowDescription]: clampText(
+      String(formData.get("homeHowDescription") ?? ""),
+      240,
+    ),
+    [SETTING_KEYS.homeShopTitle]: clampText(
+      String(formData.get("homeShopTitle") ?? ""),
+      120,
+    ),
+    [SETTING_KEYS.homeShopDescription]: clampText(
+      String(formData.get("homeShopDescription") ?? ""),
+      240,
+    ),
+    [SETTING_KEYS.homeShopCta]: clampText(
+      String(formData.get("homeShopCta") ?? ""),
+      60,
+    ),
+    [SETTING_KEYS.homeCtaTitle]: clampText(
+      String(formData.get("homeCtaTitle") ?? ""),
+      120,
+    ),
+    [SETTING_KEYS.homeCtaDescription]: clampText(
+      String(formData.get("homeCtaDescription") ?? ""),
+      320,
+    ),
+    [SETTING_KEYS.testimonialsTitle]: clampText(
+      String(formData.get("testimonialsTitle") ?? ""),
+      120,
+    ),
+    [SETTING_KEYS.testimonialsDescription]: clampText(
+      String(formData.get("testimonialsDescription") ?? ""),
+      240,
+    ),
     [SETTING_KEYS.serviceItems]: JSON.stringify(serviceItems),
     [SETTING_KEYS.servicePromises]: JSON.stringify(servicePromises),
+    [SETTING_KEYS.servicePackages]: JSON.stringify(servicePackages),
+    [SETTING_KEYS.testimonials]: JSON.stringify(testimonials),
     [SETTING_KEYS.homeServicesTitle]: clampText(
       String(formData.get("homeServicesTitle") ?? ""),
       120,

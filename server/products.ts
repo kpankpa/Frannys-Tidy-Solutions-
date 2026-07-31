@@ -79,6 +79,7 @@ export async function saveProductAction(formData: FormData) {
     reviewsCount,
     stockQuantity,
     badge: clampText(String(formData.get("badge") ?? ""), 40) || null,
+    badgeExpiresAt: String(formData.get("badgeExpiresAt") ?? "").trim() || null,
     imageAlt: clampText(String(formData.get("imageAlt") ?? ""), 160),
     imageUrls: parsedImages.urls,
   };

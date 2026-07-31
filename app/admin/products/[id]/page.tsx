@@ -45,6 +45,7 @@ export default async function EditProductPage({ params }: PageProps) {
           inStock: product.inStock,
           stockQuantity: product.stockQuantity,
           badge: product.badge ?? "",
+          badgeExpiresAt: product.badgeExpiresAt ?? "",
           imageAlt: product.imageAlt,
           imageUrls: product.images,
         }}

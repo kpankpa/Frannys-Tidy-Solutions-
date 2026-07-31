@@ -1,6 +1,8 @@
 import { count, desc, eq, sql, sum } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { customers, orders } from "@/lib/db/schema";
+import { listBookingsForCustomer } from "@/lib/db/bookings";
+import { bookingStatusLabel } from "@/lib/booking-status";
 import { pesewasToCedis } from "@/lib/money";
 import { orderStatusLabel } from "@/lib/order-status";
 
@@ -53,11 +55,14 @@ export async function getCustomerById(id: string) {
   });
   if (!customer) return null;
 
-  const customerOrders = await db.query.orders.findMany({
-    where: eq(orders.customerId, id),
-    with: { items: true },
-    orderBy: [desc(orders.createdAt)],
-  });
+  const [customerOrders, customerBookings] = await Promise.all([
+    db.query.orders.findMany({
+      where: eq(orders.customerId, id),
+      with: { items: true },
+      orderBy: [desc(orders.createdAt)],
+    }),
+    listBookingsForCustomer(id, customer.phone),
+  ]);
 
   return {
     ...customer,
@@ -70,6 +75,17 @@ export async function getCustomerById(id: string) {
       itemsSummary: order.items
         .map((item) => `${item.productName} x${item.quantity}`)
         .join(", "),
+    })),
+    bookings: customerBookings.map((booking) => ({
+      id: booking.id,
+      serviceType: booking.serviceType,
+      location: booking.location,
+      preferredDate: booking.preferredDate,
+      status: booking.status,
+      statusLabel: bookingStatusLabel(booking.status),
+      source: booking.source,
+      message: booking.message,
+      createdAt: booking.createdAt.toISOString(),
     })),
   };
 }

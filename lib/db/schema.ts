@@ -51,6 +51,8 @@ export const products = pgTable("products", {
   /** Units available. Kept in sync with inStock (inStock = stockQuantity > 0). */
   stockQuantity: integer("stock_quantity").notNull().default(0),
   badge: text("badge"),
+  /** When set, badge shows only until this date (end of day local handling in app). */
+  badgeExpiresAt: timestamp("badge_expires_at", { withTimezone: true }),
   imageAlt: text("image_alt").notNull().default(""),
   ...timestamps,
 });

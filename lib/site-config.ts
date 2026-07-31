@@ -1,11 +1,41 @@
 import { SITE, SOCIAL } from "@/lib/constants";
-import { cedisToPesewas, pesewasToCedis } from "@/lib/money";
-import { cleaningServices, whyChooseUs } from "@/lib/services";
+import {
+  DEFAULT_ABOUT_DIFFERENCE,
+  DEFAULT_ABOUT_JOURNEY,
+  DEFAULT_ABOUT_PROMISE,
+  DEFAULT_ABOUT_TRUST,
+  DEFAULT_ABOUT_VALUES,
+  DEFAULT_HOW_IT_WORKS,
+  DEFAULT_SERVICE_PROCESS,
+  DEFAULT_SERVICE_SPACES,
+  parseHowItWorksList,
+  parseJourneyList,
+  parseProcessList,
+  parseTitleBodyList,
+  type HowItWorksItem,
+  type JourneyItem,
+  type ProcessItem,
+  type TitleBodyItem,
+} from "@/lib/cms-lists";
 import { CONTACT_TOPICS } from "@/lib/contact-page";
+import { cedisToPesewas, pesewasToCedis } from "@/lib/money";
+import {
+  cleaningServices,
+  testimonials as defaultTestimonials,
+  whyChooseUs,
+} from "@/lib/services";
 import { SERVICE_PROMISES } from "@/lib/services-page";
+
+export type {
+  HowItWorksItem,
+  JourneyItem,
+  ProcessItem,
+  TitleBodyItem,
+} from "@/lib/cms-lists";
 
 export const SETTING_KEYS = {
   businessName: "business_name",
+  shortName: "short_name",
   tagline: "tagline",
   description: "description",
   address: "business_address",
@@ -17,14 +47,23 @@ export const SETTING_KEYS = {
   hours: "business_hours",
   hoursShort: "business_hours_short",
   deliveryFeePesewas: "delivery_fee_pesewas",
+  locationBlurb: "location_blurb",
+  heroHomeImage: "hero_home_image",
   heroHeadline: "hero_headline",
   heroSubcopy: "hero_subcopy",
+  heroCtaPrimary: "hero_cta_primary",
+  heroCtaSecondary: "hero_cta_secondary",
   aboutBlurb: "about_blurb",
   aboutHeadline: "about_headline",
   aboutIntro: "about_intro",
   aboutStory: "about_story",
   aboutMission: "about_mission",
   aboutVision: "about_vision",
+  aboutPromise: "about_promise",
+  aboutValues: "about_values",
+  aboutJourney: "about_journey",
+  aboutDifference: "about_difference",
+  aboutTrustPoints: "about_trust_points",
   instagramUrl: "instagram_url",
   tiktokUrl: "tiktok_url",
   shopHeroHeadline: "shop_hero_headline",
@@ -34,6 +73,14 @@ export const SETTING_KEYS = {
   servicesSectionHeadline: "services_section_headline",
   servicesSectionSubcopy: "services_section_subcopy",
   whyBookSubcopy: "why_book_subcopy",
+  serviceProcess: "service_process",
+  serviceProcessTitle: "service_process_title",
+  serviceProcessSubcopy: "service_process_subcopy",
+  serviceSpaces: "service_spaces",
+  serviceSpacesTitle: "service_spaces_title",
+  serviceSpacesImage: "service_spaces_image",
+  packagesHeadline: "packages_headline",
+  packagesSubcopy: "packages_subcopy",
   contactHeroHeadline: "contact_hero_headline",
   contactHeroSubcopy: "contact_hero_subcopy",
   contactTopicsHeadline: "contact_topics_headline",
@@ -41,11 +88,33 @@ export const SETTING_KEYS = {
   homeWhyTitle: "home_why_title",
   homeWhyDescription: "home_why_description",
   whyChooseItems: "why_choose_items",
+  howItWorks: "how_it_works",
+  homeHowTitle: "home_how_title",
+  homeHowDescription: "home_how_description",
+  homeShopTitle: "home_shop_title",
+  homeShopDescription: "home_shop_description",
+  homeShopCta: "home_shop_cta",
+  homeCtaTitle: "home_cta_title",
+  homeCtaDescription: "home_cta_description",
+  testimonialsTitle: "testimonials_title",
+  testimonialsDescription: "testimonials_description",
   serviceItems: "service_items",
   servicePromises: "service_promises",
+  servicePackages: "service_packages",
+  testimonials: "testimonials",
+  googleMapsUrl: "google_maps_url",
+  logoUrl: "logo_url",
+  receiptTitle: "receipt_title",
+  receiptFooter: "receipt_footer",
+  receiptNote: "receipt_note",
   homeServicesTitle: "home_services_title",
   homeServicesDescription: "home_services_description",
 } as const;
+
+export const DEFAULT_LOGO_URL = "/frannystidy.png";
+export const DEFAULT_HERO_HOME_IMAGE = "/hero-home.png";
+export const DEFAULT_SERVICE_SPACES_IMAGE =
+  "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80";
 
 export type SettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS];
 
@@ -54,8 +123,23 @@ export type ServiceContentItem = {
   id: string;
   title: string;
   description: string;
+  image?: string;
+  /** Optional "from" price in cedis for packages catalogue. */
+  priceFromCedis?: number | null;
 };
 export type PromiseItem = { title: string; body: string };
+export type TestimonialItem = {
+  name: string;
+  role: string;
+  quote: string;
+  rating: number;
+  approved: boolean;
+};
+export type ServicePackageItem = {
+  name: string;
+  description: string;
+  priceFromCedis: number;
+};
 
 const DEFAULT_WHY_CHOOSE: ContentItem[] = whyChooseUs.map((item) => ({
   title: item.title,
@@ -67,6 +151,7 @@ const DEFAULT_SERVICE_ITEMS: ServiceContentItem[] = cleaningServices.map(
     id: s.id,
     title: s.title,
     description: s.description,
+    image: s.image,
   }),
 );
 
@@ -77,8 +162,38 @@ const DEFAULT_PROMISES: PromiseItem[] = SERVICE_PROMISES.map((p) => ({
 
 const DEFAULT_CONTACT_TOPICS = [...CONTACT_TOPICS];
 
+const DEFAULT_TESTIMONIALS: TestimonialItem[] = defaultTestimonials.map((t) => ({
+  name: t.name,
+  role: t.role,
+  quote: t.quote,
+  rating: t.rating,
+  approved: true,
+}));
+
+const DEFAULT_SERVICE_PACKAGES: ServicePackageItem[] = [
+  {
+    name: "Studio / 1-bedroom refresh",
+    description:
+      "Professional home cleaning for compact Accra apartments. Ideal weekly or fortnightly upkeep.",
+    priceFromCedis: 250,
+  },
+  {
+    name: "2-bedroom deep clean",
+    description:
+      "Intensive deep cleaning for kitchens, bathrooms, and living areas. Perfect before guests or move-in.",
+    priceFromCedis: 450,
+  },
+  {
+    name: "Office tidy (half day)",
+    description:
+      "Office cleaning for small teams: desks, floors, washrooms, and shared spaces.",
+    priceFromCedis: 400,
+  },
+];
+
 export const SETTINGS_DEFAULTS: Record<SettingKey, string> = {
   business_name: SITE.name,
+  short_name: SITE.shortName,
   tagline: SITE.tagline,
   description: SITE.description,
   business_address: SITE.address,
@@ -90,20 +205,30 @@ export const SETTINGS_DEFAULTS: Record<SettingKey, string> = {
   business_hours: SITE.hours,
   business_hours_short: SITE.hoursShort,
   delivery_fee_pesewas: String(cedisToPesewas(SITE.deliveryFee)),
+  location_blurb: "East Legon Hills, Accra",
+  hero_home_image: DEFAULT_HERO_HOME_IMAGE,
   hero_headline: "Cleaning Made Easy,\nFreshness Guaranteed.",
   hero_subcopy:
     "Premium detergents and professional cleaning for Ghanaian homes and businesses, delivered with clinical care and hospitality standards.",
+  hero_cta_primary: "Explore Products",
+  hero_cta_secondary: "Our Services",
   about_blurb:
-    "A proudly Ghanaian cleaning brand crafting detergents and professional services for healthier everyday spaces.",
-  about_headline: "Freshness with clinical care, made for Ghanaian life",
+    "Ghanaian cleaning company in Accra offering cleaning detergents, home cleaning, and office cleaning services.",
+  about_headline:
+    "Cleaning products and professional cleaning services in Accra, Ghana",
   about_intro:
-    "We manufacture trusted cleaning products and deliver professional services so homes and businesses can feel genuinely clean, calm, and cared for.",
+    "Frannys Tidy Solutions is a registered Ghanaian cleaning company in East Legon Hills, Accra. We manufacture cleaning detergents and provide professional home cleaning and office cleaning services across Accra and surrounding areas.",
   about_story:
-    "Established in 2023 and registered in 2025, Frannys Tidy Solutions is headquartered in East Legon Hills, Accra. We began with a clear frustration: too many cleaning options promised shine without lasting care. So we built both sides of the solution ourselves. Today our detergents are stocked by retail partners in Accra and Mampong, while our trained teams serve households, offices, and community spaces with hospitality-level standards.",
+    "Frannys Tidy Solutions is a proudly Ghanaian-owned cleaning company specialising in cleaning detergents and professional cleaning services in Accra. Established in 2023 and formally registered, we serve households and businesses that need reliable cleaning products Ghana customers can trust. From our base in East Legon Hills, Accra, we manufacture detergents in-house and deliver on-site home cleaning, office cleaning, and commercial cleaning. Shop Frannys cleaning products through selected retail partners in Accra and Mampong, or book a professional cleaning service for a healthier space. We focus on effective, safe, and affordable cleaning solutions with clear customer care.",
   about_mission:
-    "To help Ghanaian homes and businesses enjoy superior cleaning products and professional services that promote hygiene, comfort, and well-being at prices that feel fair and accessible.",
+    "To provide homes and businesses in Ghana with superior cleaning products and professional cleaning services in Accra that promote hygiene, comfort, and well-being at accessible prices and with outstanding customer care.",
   about_vision:
-    "To become Ghana's most trusted cleaning solutions brand, known for reliable formulas, respectful service, and healthier communities from Accra outward.",
+    "To become the most trusted cleaning company in Ghana for detergents and professional cleaning services, known for reliability, quality, and cleaner communities across Accra and beyond.",
+  about_promise: DEFAULT_ABOUT_PROMISE,
+  about_values: JSON.stringify(DEFAULT_ABOUT_VALUES),
+  about_journey: JSON.stringify(DEFAULT_ABOUT_JOURNEY),
+  about_difference: JSON.stringify(DEFAULT_ABOUT_DIFFERENCE),
+  about_trust_points: JSON.stringify(DEFAULT_ABOUT_TRUST),
   instagram_url: SOCIAL.instagram,
   tiktok_url: SOCIAL.tiktok,
   shop_hero_headline: "Shop Frannys products",
@@ -116,6 +241,15 @@ export const SETTINGS_DEFAULTS: Record<SettingKey, string> = {
   services_section_subcopy:
     "Choose the service that fits, then book. We confirm the plan on WhatsApp before our team arrives.",
   why_book_subcopy: "Cleaning backed by the products we make.",
+  service_process: JSON.stringify(DEFAULT_SERVICE_PROCESS),
+  service_process_title: "How it works",
+  service_process_subcopy: "A simple path from request to fresh space.",
+  service_spaces: JSON.stringify(DEFAULT_SERVICE_SPACES),
+  service_spaces_title: "Homes, workplaces, and community spaces",
+  service_spaces_image: DEFAULT_SERVICE_SPACES_IMAGE,
+  packages_headline: "Fixed-price packages",
+  packages_subcopy:
+    "Clear starting prices for common Accra homes and offices. Final quote confirmed on WhatsApp after we understand the space.",
   contact_hero_headline: "Get in touch",
   contact_hero_subcopy:
     "Send us an email for products, bookings, and support. Phone and WhatsApp are also available if you need a quicker chat.",
@@ -124,8 +258,29 @@ export const SETTINGS_DEFAULTS: Record<SettingKey, string> = {
   home_why_title: "Why Choose Frannys?",
   home_why_description: "The clinical premium standard for Ghanaian homes.",
   why_choose_items: JSON.stringify(DEFAULT_WHY_CHOOSE),
+  how_it_works: JSON.stringify(DEFAULT_HOW_IT_WORKS),
+  home_how_title: "Ordering Made Simple",
+  home_how_description: "Four easy steps from browse to delivery.",
+  home_shop_title: "Premium Shop",
+  home_shop_description: "Professional-grade detergents for your home.",
+  home_shop_cta: "View Full Catalog",
+  home_cta_title: "Ready for a Cleaner Space?",
+  home_cta_description:
+    "Join households and businesses across Ghana who trust Frannys for premium products and professional cleaning.",
+  testimonials_title: "Loved by Homes & Businesses",
+  testimonials_description:
+    "Customer reviews for Frannys cleaning products and cleaning services in Accra.",
   service_items: JSON.stringify(DEFAULT_SERVICE_ITEMS),
   service_promises: JSON.stringify(DEFAULT_PROMISES),
+  service_packages: JSON.stringify(DEFAULT_SERVICE_PACKAGES),
+  testimonials: JSON.stringify(DEFAULT_TESTIMONIALS),
+  google_maps_url: "",
+  logo_url: DEFAULT_LOGO_URL,
+  receipt_title: "Receipt",
+  receipt_footer:
+    "Thank you for choosing Frannys Tidy Solutions. Track your order anytime at /track-order.",
+  receipt_note:
+    "Payment: Mobile Money or cash on delivery as agreed. Keep this receipt for your records.",
   home_services_title: "Onsite Cleaning Services",
   home_services_description:
     "Homes, offices, hotels, schools, churches, and commercial spaces across Ghana.",
@@ -176,6 +331,7 @@ function parseServiceItems(raw: string | undefined): ServiceContentItem[] {
           id: item.id,
           title: String(item.title ?? "").trim(),
           description: String(item.description ?? "").trim(),
+          image: String(item.image ?? "").trim(),
         },
       ]),
   );
@@ -187,6 +343,7 @@ function parseServiceItems(raw: string | undefined): ServiceContentItem[] {
       id: fallback.id,
       title: override.title,
       description: override.description || fallback.description,
+      image: override.image || fallback.image,
     };
   });
 }
@@ -203,6 +360,34 @@ function parsePromises(raw: string | undefined): PromiseItem[] {
   return cleaned.length > 0 ? cleaned : DEFAULT_PROMISES;
 }
 
+function parseTestimonials(raw: string | undefined): TestimonialItem[] {
+  const items = parseJsonArray<TestimonialItem>(raw, DEFAULT_TESTIMONIALS);
+  const cleaned = items
+    .filter((item) => item && typeof item.name === "string")
+    .map((item) => ({
+      name: String(item.name).trim().slice(0, 80),
+      role: String(item.role ?? "").trim().slice(0, 120),
+      quote: String(item.quote ?? "").trim().slice(0, 500),
+      rating: Math.min(5, Math.max(1, Math.round(Number(item.rating) || 5))),
+      approved: item.approved !== false,
+    }))
+    .filter((item) => item.name && item.quote);
+  return cleaned.length > 0 ? cleaned : DEFAULT_TESTIMONIALS;
+}
+
+function parseServicePackages(raw: string | undefined): ServicePackageItem[] {
+  const items = parseJsonArray<ServicePackageItem>(raw, DEFAULT_SERVICE_PACKAGES);
+  const cleaned = items
+    .filter((item) => item && typeof item.name === "string")
+    .map((item) => ({
+      name: String(item.name).trim().slice(0, 120),
+      description: String(item.description ?? "").trim().slice(0, 400),
+      priceFromCedis: Math.max(0, Number(item.priceFromCedis) || 0),
+    }))
+    .filter((item) => item.name && item.priceFromCedis > 0);
+  return cleaned.length > 0 ? cleaned : DEFAULT_SERVICE_PACKAGES;
+}
+
 export type SiteConfig = {
   name: string;
   shortName: string;
@@ -217,14 +402,23 @@ export type SiteConfig = {
   hours: string;
   hoursShort: string;
   deliveryFee: number;
+  locationBlurb: string;
+  heroHomeImage: string;
   heroHeadline: string;
   heroSubcopy: string;
+  heroCtaPrimary: string;
+  heroCtaSecondary: string;
   aboutBlurb: string;
   aboutHeadline: string;
   aboutIntro: string;
   aboutStory: string;
   aboutMission: string;
   aboutVision: string;
+  aboutPromise: string;
+  aboutValues: TitleBodyItem[];
+  aboutJourney: JourneyItem[];
+  aboutDifference: TitleBodyItem[];
+  aboutTrustPoints: TitleBodyItem[];
   instagramUrl: string;
   tiktokUrl: string;
   shopHeroHeadline: string;
@@ -234,6 +428,14 @@ export type SiteConfig = {
   servicesSectionHeadline: string;
   servicesSectionSubcopy: string;
   whyBookSubcopy: string;
+  serviceProcess: ProcessItem[];
+  serviceProcessTitle: string;
+  serviceProcessSubcopy: string;
+  serviceSpaces: TitleBodyItem[];
+  serviceSpacesTitle: string;
+  serviceSpacesImage: string;
+  packagesHeadline: string;
+  packagesSubcopy: string;
   contactHeroHeadline: string;
   contactHeroSubcopy: string;
   contactTopicsHeadline: string;
@@ -241,18 +443,40 @@ export type SiteConfig = {
   homeWhyTitle: string;
   homeWhyDescription: string;
   whyChooseItems: ContentItem[];
+  howItWorks: HowItWorksItem[];
+  homeHowTitle: string;
+  homeHowDescription: string;
+  homeShopTitle: string;
+  homeShopDescription: string;
+  homeShopCta: string;
+  homeCtaTitle: string;
+  homeCtaDescription: string;
+  testimonialsTitle: string;
+  testimonialsDescription: string;
   serviceItems: ServiceContentItem[];
   servicePromises: PromiseItem[];
+  servicePackages: ServicePackageItem[];
+  testimonials: TestimonialItem[];
+  googleMapsUrl: string;
+  logoUrl: string;
+  receiptTitle: string;
+  receiptFooter: string;
+  receiptNote: string;
   homeServicesTitle: string;
   homeServicesDescription: string;
 };
+
+function textOrDefault(raw: string | undefined, fallback: string) {
+  const value = (raw ?? "").trim();
+  return value || fallback;
+}
 
 export function siteConfigFromMap(s: Record<string, string>): SiteConfig {
   const feePesewas = Number(s[SETTING_KEYS.deliveryFeePesewas]);
 
   return {
     name: s[SETTING_KEYS.businessName] || SITE.name,
-    shortName: SITE.shortName,
+    shortName: textOrDefault(s[SETTING_KEYS.shortName], SITE.shortName),
     tagline: s[SETTING_KEYS.tagline] || SITE.tagline,
     description: s[SETTING_KEYS.description] || SITE.description,
     address: s[SETTING_KEYS.address] || SITE.address,
@@ -266,8 +490,24 @@ export function siteConfigFromMap(s: Record<string, string>): SiteConfig {
     deliveryFee: Number.isFinite(feePesewas)
       ? pesewasToCedis(feePesewas)
       : SITE.deliveryFee,
+    locationBlurb: textOrDefault(
+      s[SETTING_KEYS.locationBlurb],
+      SETTINGS_DEFAULTS.location_blurb,
+    ),
+    heroHomeImage: textOrDefault(
+      s[SETTING_KEYS.heroHomeImage],
+      DEFAULT_HERO_HOME_IMAGE,
+    ),
     heroHeadline: s[SETTING_KEYS.heroHeadline] || SETTINGS_DEFAULTS.hero_headline,
     heroSubcopy: s[SETTING_KEYS.heroSubcopy] || SETTINGS_DEFAULTS.hero_subcopy,
+    heroCtaPrimary: textOrDefault(
+      s[SETTING_KEYS.heroCtaPrimary],
+      SETTINGS_DEFAULTS.hero_cta_primary,
+    ),
+    heroCtaSecondary: textOrDefault(
+      s[SETTING_KEYS.heroCtaSecondary],
+      SETTINGS_DEFAULTS.hero_cta_secondary,
+    ),
     aboutBlurb: s[SETTING_KEYS.aboutBlurb] || SETTINGS_DEFAULTS.about_blurb,
     aboutHeadline:
       s[SETTING_KEYS.aboutHeadline] || SETTINGS_DEFAULTS.about_headline,
@@ -276,6 +516,23 @@ export function siteConfigFromMap(s: Record<string, string>): SiteConfig {
     aboutMission:
       s[SETTING_KEYS.aboutMission] || SETTINGS_DEFAULTS.about_mission,
     aboutVision: s[SETTING_KEYS.aboutVision] || SETTINGS_DEFAULTS.about_vision,
+    aboutPromise: textOrDefault(
+      s[SETTING_KEYS.aboutPromise],
+      DEFAULT_ABOUT_PROMISE,
+    ),
+    aboutValues: parseTitleBodyList(
+      s[SETTING_KEYS.aboutValues],
+      DEFAULT_ABOUT_VALUES,
+    ),
+    aboutJourney: parseJourneyList(s[SETTING_KEYS.aboutJourney]),
+    aboutDifference: parseTitleBodyList(
+      s[SETTING_KEYS.aboutDifference],
+      DEFAULT_ABOUT_DIFFERENCE,
+    ),
+    aboutTrustPoints: parseTitleBodyList(
+      s[SETTING_KEYS.aboutTrustPoints],
+      DEFAULT_ABOUT_TRUST,
+    ),
     instagramUrl: s[SETTING_KEYS.instagramUrl] ?? SOCIAL.instagram,
     tiktokUrl: s[SETTING_KEYS.tiktokUrl] ?? SOCIAL.tiktok,
     shopHeroHeadline:
@@ -296,6 +553,35 @@ export function siteConfigFromMap(s: Record<string, string>): SiteConfig {
       SETTINGS_DEFAULTS.services_section_subcopy,
     whyBookSubcopy:
       s[SETTING_KEYS.whyBookSubcopy] || SETTINGS_DEFAULTS.why_book_subcopy,
+    serviceProcess: parseProcessList(s[SETTING_KEYS.serviceProcess]),
+    serviceProcessTitle: textOrDefault(
+      s[SETTING_KEYS.serviceProcessTitle],
+      SETTINGS_DEFAULTS.service_process_title,
+    ),
+    serviceProcessSubcopy: textOrDefault(
+      s[SETTING_KEYS.serviceProcessSubcopy],
+      SETTINGS_DEFAULTS.service_process_subcopy,
+    ),
+    serviceSpaces: parseTitleBodyList(
+      s[SETTING_KEYS.serviceSpaces],
+      DEFAULT_SERVICE_SPACES,
+    ),
+    serviceSpacesTitle: textOrDefault(
+      s[SETTING_KEYS.serviceSpacesTitle],
+      SETTINGS_DEFAULTS.service_spaces_title,
+    ),
+    serviceSpacesImage: textOrDefault(
+      s[SETTING_KEYS.serviceSpacesImage],
+      DEFAULT_SERVICE_SPACES_IMAGE,
+    ),
+    packagesHeadline: textOrDefault(
+      s[SETTING_KEYS.packagesHeadline],
+      SETTINGS_DEFAULTS.packages_headline,
+    ),
+    packagesSubcopy: textOrDefault(
+      s[SETTING_KEYS.packagesSubcopy],
+      SETTINGS_DEFAULTS.packages_subcopy,
+    ),
     contactHeroHeadline:
       s[SETTING_KEYS.contactHeroHeadline] ||
       SETTINGS_DEFAULTS.contact_hero_headline,
@@ -315,8 +601,56 @@ export function siteConfigFromMap(s: Record<string, string>): SiteConfig {
       s[SETTING_KEYS.homeWhyDescription] ||
       SETTINGS_DEFAULTS.home_why_description,
     whyChooseItems: parseWhyChoose(s[SETTING_KEYS.whyChooseItems]),
+    howItWorks: parseHowItWorksList(s[SETTING_KEYS.howItWorks]),
+    homeHowTitle: textOrDefault(
+      s[SETTING_KEYS.homeHowTitle],
+      SETTINGS_DEFAULTS.home_how_title,
+    ),
+    homeHowDescription: textOrDefault(
+      s[SETTING_KEYS.homeHowDescription],
+      SETTINGS_DEFAULTS.home_how_description,
+    ),
+    homeShopTitle: textOrDefault(
+      s[SETTING_KEYS.homeShopTitle],
+      SETTINGS_DEFAULTS.home_shop_title,
+    ),
+    homeShopDescription: textOrDefault(
+      s[SETTING_KEYS.homeShopDescription],
+      SETTINGS_DEFAULTS.home_shop_description,
+    ),
+    homeShopCta: textOrDefault(
+      s[SETTING_KEYS.homeShopCta],
+      SETTINGS_DEFAULTS.home_shop_cta,
+    ),
+    homeCtaTitle: textOrDefault(
+      s[SETTING_KEYS.homeCtaTitle],
+      SETTINGS_DEFAULTS.home_cta_title,
+    ),
+    homeCtaDescription: textOrDefault(
+      s[SETTING_KEYS.homeCtaDescription],
+      SETTINGS_DEFAULTS.home_cta_description,
+    ),
+    testimonialsTitle: textOrDefault(
+      s[SETTING_KEYS.testimonialsTitle],
+      SETTINGS_DEFAULTS.testimonials_title,
+    ),
+    testimonialsDescription: textOrDefault(
+      s[SETTING_KEYS.testimonialsDescription],
+      SETTINGS_DEFAULTS.testimonials_description,
+    ),
     serviceItems: parseServiceItems(s[SETTING_KEYS.serviceItems]),
     servicePromises: parsePromises(s[SETTING_KEYS.servicePromises]),
+    servicePackages: parseServicePackages(s[SETTING_KEYS.servicePackages]),
+    testimonials: parseTestimonials(s[SETTING_KEYS.testimonials]),
+    googleMapsUrl: (s[SETTING_KEYS.googleMapsUrl] ?? "").trim(),
+    logoUrl: (s[SETTING_KEYS.logoUrl] ?? "").trim() || DEFAULT_LOGO_URL,
+    receiptTitle:
+      (s[SETTING_KEYS.receiptTitle] ?? "").trim() ||
+      SETTINGS_DEFAULTS.receipt_title,
+    receiptFooter:
+      (s[SETTING_KEYS.receiptFooter] ?? "").trim() ||
+      SETTINGS_DEFAULTS.receipt_footer,
+    receiptNote: (s[SETTING_KEYS.receiptNote] ?? "").trim(),
     homeServicesTitle:
       s[SETTING_KEYS.homeServicesTitle] ||
       SETTINGS_DEFAULTS.home_services_title,

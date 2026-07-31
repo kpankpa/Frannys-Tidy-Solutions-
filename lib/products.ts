@@ -17,10 +17,25 @@ export type Product = {
   /** Units left in inventory. */
   stockQuantity: number;
   badge?: string;
+  /** ISO date when badge should stop showing (optional). */
+  badgeExpiresAt?: string | null;
   image: string;
   images: string[];
   imageAlt: string;
 };
+
+/** Active shop badge after expiry check. */
+export function activeProductBadge(
+  badge: string | undefined,
+  badgeExpiresAt?: string | null,
+): string | undefined {
+  if (!badge?.trim()) return undefined;
+  if (!badgeExpiresAt) return badge;
+  const ends = new Date(badgeExpiresAt);
+  if (Number.isNaN(ends.getTime())) return badge;
+  if (ends.getTime() < Date.now()) return undefined;
+  return badge;
+}
 
 /** At or below this count (while still > 0) counts as low stock. */
 export const LOW_STOCK_THRESHOLD = 5;

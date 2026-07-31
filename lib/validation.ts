@@ -64,6 +64,20 @@ export function sanitizeImageUrl(value: string): string | null {
   }
 }
 
+/** Logo / receipt image: site-relative public path, /uploads/..., or https. */
+export function sanitizeLogoUrl(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    if (trimmed.includes("..") || trimmed.includes("\\")) return null;
+    if (!/^\/[A-Za-z0-9._/-]+$/.test(trimmed)) return null;
+    return trimmed;
+  }
+
+  return sanitizeImageUrl(trimmed);
+}
+
 export function explainInvalidImageUrl(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "URL is empty.";

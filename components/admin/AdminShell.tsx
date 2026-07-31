@@ -159,6 +159,7 @@ function NavItems({
 
 type AdminShellProps = {
   brandName: string;
+  logoUrl: string;
   email: string;
   displayName: string;
   badges: AdminNavBadges;
@@ -168,6 +169,7 @@ type AdminShellProps = {
 
 export function AdminShell({
   brandName,
+  logoUrl,
   email,
   displayName,
   badges,
@@ -192,10 +194,13 @@ export function AdminShell({
             aria-label={`${brandName} admin`}
           >
             <Image
-              src="/frannystidy.png"
+              src={logoUrl || "/frannystidy.png"}
               alt={brandName}
               width={44}
               height={44}
+              unoptimized={
+                logoUrl.startsWith("/uploads/") || logoUrl.startsWith("https://")
+              }
               className="h-11 w-11 rounded-md object-contain"
             />
             <span>

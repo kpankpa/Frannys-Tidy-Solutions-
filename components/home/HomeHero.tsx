@@ -15,7 +15,7 @@ export async function HomeHero() {
   return (
     <section className="relative isolate overflow-hidden bg-primary-dark text-white">
       <AnimatedImage
-        src="/hero-home.png"
+        src={site.heroHomeImage}
         alt={`${site.name} cleaning products and brand`}
         priority
         sizes="100vw"
@@ -40,14 +40,14 @@ export async function HomeHero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button href="/shop" variant="light" size="md">
-              Explore Products
+              {site.heroCtaPrimary}
               <ArrowRight className="h-4 w-4" />
             </Button>
             <a
               href="/services"
               className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 px-5 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
             >
-              Our Services
+              {site.heroCtaSecondary}
             </a>
           </div>
         </FadeIn>

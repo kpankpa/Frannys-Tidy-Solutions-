@@ -20,7 +20,8 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
       <div>
         <h1 className="text-2xl font-bold">Business settings</h1>
         <p className="mt-1 text-sm text-muted">
-          Contact details, delivery fee, and social links used across the site and checkout.
+          Contact details, logo, delivery fee, social links, and printable
+          receipt branding used across the site and admin.
         </p>
       </div>
 
@@ -29,15 +30,32 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
           Social links must be blank or valid https URLs.
         </p>
       ) : null}
+      {params.error === "InvalidMapsUrl" ? (
+        <p className="max-w-2xl rounded-[8px] bg-danger/10 px-3 py-2 text-sm text-danger">
+          Google Maps URL must be blank or a valid https link.
+        </p>
+      ) : null}
+      {params.error === "InvalidLogoUrl" ? (
+        <p className="max-w-2xl rounded-[8px] bg-danger/10 px-3 py-2 text-sm text-danger">
+          Logo must be a site path (for example /frannystidy.png or
+          /uploads/...), a https image URL, or blank for the default logo.
+        </p>
+      ) : null}
 
       <form
         action={saveBusinessSettingsAction}
         className="max-w-2xl space-y-4 rounded-[10px] border border-border bg-surface p-6 shadow-sm"
       >
-        <label className="block text-sm">
-          <span className="font-medium">Business name</span>
-          <input name="businessName" defaultValue={site.name} className={field} required />
-        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm">
+            <span className="font-medium">Business name</span>
+            <input name="businessName" defaultValue={site.name} className={field} required />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium">Short name</span>
+            <input name="shortName" defaultValue={site.shortName} className={field} />
+          </label>
+        </div>
         <label className="block text-sm">
           <span className="font-medium">Tagline</span>
           <input name="tagline" defaultValue={site.tagline} className={field} />
@@ -51,9 +69,58 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
             className={field}
           />
         </label>
+
+        <div className="rounded-[8px] border border-border/80 bg-surface-muted/40 p-4">
+          <p className="text-sm font-bold">Logo</p>
+          <p className="mt-1 text-xs text-muted">
+            Used on the website, admin hub, and printable receipts. Upload via{" "}
+            <a href="/admin/media" className="font-medium text-primary hover:underline">
+              Media
+            </a>{" "}
+            then paste the /uploads/... path, or use a https image URL.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={site.logoUrl}
+                alt={`${site.name} logo preview`}
+                className="max-h-14 max-w-14 object-contain"
+              />
+            </div>
+            <label className="block min-w-[16rem] flex-1 text-sm">
+              <span className="font-medium">Logo URL</span>
+              <input
+                name="logoUrl"
+                defaultValue={site.logoUrl}
+                placeholder="/frannystidy.png"
+                className={field}
+              />
+            </label>
+          </div>
+        </div>
+
         <label className="block text-sm">
           <span className="font-medium">Address</span>
           <input name="address" defaultValue={site.address} className={field} />
+        </label>
+        <label className="block text-sm">
+          <span className="font-medium">Location blurb (maps / About captions)</span>
+          <input
+            name="locationBlurb"
+            defaultValue={site.locationBlurb}
+            placeholder="East Legon Hills, Accra"
+            className={field}
+          />
+        </label>
+        <label className="block text-sm">
+          <span className="font-medium">Home hero image URL</span>
+          <input
+            name="heroHomeImage"
+            defaultValue={site.heroHomeImage}
+            placeholder="/hero-home.png or /uploads/..."
+            className={field}
+          />
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm">
@@ -115,8 +182,58 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
             <input name="tiktokUrl" defaultValue={site.tiktokUrl} className={field} />
           </label>
         </div>
+        <label className="block text-sm">
+          <span className="font-medium">Google Maps / Business Profile URL</span>
+          <input
+            name="googleMapsUrl"
+            defaultValue={site.googleMapsUrl}
+            placeholder="https://maps.google.com/... or your Business Profile link"
+            className={field}
+          />
+        </label>
+
+        <div className="space-y-4 rounded-[8px] border border-border/80 bg-surface-muted/40 p-4">
+          <div>
+            <p className="text-sm font-bold">Printable receipt</p>
+            <p className="mt-1 text-xs text-muted">
+              Shown on Admin → Orders → Print receipt. Business name, logo,
+              address, phone, email, and hours come from the fields above.
+            </p>
+          </div>
+          <label className="block text-sm">
+            <span className="font-medium">Receipt title</span>
+            <input
+              name="receiptTitle"
+              defaultValue={site.receiptTitle}
+              placeholder="Receipt"
+              className={field}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium">Footer message</span>
+            <textarea
+              name="receiptFooter"
+              rows={3}
+              defaultValue={site.receiptFooter}
+              className={field}
+            />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium">Payment / extra note</span>
+            <textarea
+              name="receiptNote"
+              rows={3}
+              defaultValue={site.receiptNote}
+              placeholder="MoMo number, bank details, or delivery terms"
+              className={field}
+            />
+          </label>
+        </div>
+
         <p className="text-xs text-muted">
-          Leave social fields blank to hide those icons on the site.
+          Leave social fields blank to hide those icons. Claim your Google
+          Business Profile, add real photos, then paste the public Maps link
+          here for Contact and About.
         </p>
         <PendingSubmitButton>Save settings</PendingSubmitButton>
       </form>

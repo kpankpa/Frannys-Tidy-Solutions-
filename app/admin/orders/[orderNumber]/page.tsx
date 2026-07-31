@@ -1,15 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { Printer } from "lucide-react";
+import { AdminWhatsAppTemplates } from "@/components/admin/AdminWhatsAppTemplates";
 import { PendingSaveButton } from "@/components/admin/PendingSaveButton";
 import { Button } from "@/components/ui/Button";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 import { findOrderByNumber } from "@/lib/db/orders";
+import { getSiteConfig } from "@/lib/db/settings";
 import { shouldUnoptimizeImage } from "@/lib/image-src";
-import { ORDER_PIPELINE } from "@/lib/order-status";
-import { toWhatsAppE164 } from "@/lib/phone";
+import { ORDER_ADMIN_STATUSES } from "@/lib/order-status";
 import { formatPrice } from "@/lib/products";
+import { customerOrderWaTemplates } from "@/lib/wa-templates";
 import { updateOrderStatusAction } from "@/server/admin";
 
 type PageProps = {
@@ -26,21 +28,19 @@ function formatWhen(iso: string) {
 export default async function AdminOrderDetailPage({ params }: PageProps) {
   await ensureAdminPage();
   const { orderNumber } = await params;
-  const order = await findOrderByNumber(decodeURIComponent(orderNumber));
+  const [order, site] = await Promise.all([
+    findOrderByNumber(decodeURIComponent(orderNumber)),
+    getSiteConfig(),
+  ]);
   if (!order) notFound();
 
-  const customerWa = toWhatsAppE164(order.phone);
-  const waMessage = [
-    `Hello ${order.customer},`,
-    "",
-    `This is an update on your Frannys order ${order.orderNumber}.`,
-    `Current status: ${order.statusLabel}.`,
-    "",
-    "Reply here if you have any questions.",
-  ].join("\n");
-  const waUrl = customerWa
-    ? `https://wa.me/${customerWa}?text=${encodeURIComponent(waMessage)}`
-    : null;
+  const waTemplates = customerOrderWaTemplates({
+    customerName: order.customer,
+    customerPhone: order.phone,
+    orderNumber: order.orderNumber,
+    status: order.status,
+    businessName: site.name,
+  });
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -55,16 +55,26 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {waUrl ? (
-            <Button href={waUrl} target="_blank" rel="noopener noreferrer" variant="whatsapp" size="sm">
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp customer
-            </Button>
-          ) : null}
+          <Button
+            href={`/admin/orders/${order.orderNumber}/print`}
+            target="_blank"
+            variant="outline"
+            size="sm"
+          >
+            <Printer className="h-4 w-4" />
+            Print receipt
+          </Button>
           <Button href="/admin/orders" variant="outline" size="sm">
             Back to orders
           </Button>
         </div>
+      </div>
+
+      <div className="rounded-[10px] border border-border bg-surface p-5 shadow-sm">
+        <AdminWhatsAppTemplates
+          title="WhatsApp customer templates"
+          templates={waTemplates}
+        />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -153,7 +163,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               defaultValue={order.status}
               className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm"
             >
-              {ORDER_PIPELINE.map((step) => (
+              {ORDER_ADMIN_STATUSES.map((step) => (
                 <option key={step.key} value={step.key}>
                   {step.label}
                 </option>

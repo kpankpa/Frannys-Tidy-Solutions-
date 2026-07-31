@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
 import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
-import { formatPrice, isLowStock, type Product } from "@/lib/products";
+import {
+  activeProductBadge,
+  formatPrice,
+  isLowStock,
+  type Product,
+} from "@/lib/products";
 import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +26,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
   const { addItem } = useCart();
   const { buildWhatsAppUrl, productOrderMessage } = useWhatsAppHelpers();
   const [added, setAdded] = useState(false);
+  const badge = activeProductBadge(product.badge, product.badgeExpiresAt);
 
   function handleAdd() {
     if (!product.inStock) return;
@@ -47,9 +53,9 @@ export function ProductCard({ product, className }: ProductCardProps) {
             unoptimized={shouldUnoptimizeImage(product.image)}
           />
         </Link>
-        {product.badge ? (
+        {badge ? (
           <span className="absolute left-3 top-3 rounded-full bg-highlight px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary-dark">
-            {product.badge}
+            {badge}
           </span>
         ) : null}
         {product.inStock && isLowStock(product.stockQuantity) ? (

@@ -556,3 +556,7 @@ Write a short note under the phase:
 | 2026-07-24 | Phase 9 Done: local image uploads, loading/error/empty polish, SEO sitemap/robots, deploy + backup docs. Production host still needs owner credentials. |
 | 2026-07-30 | Admin hub hardening: visual product image gallery (upload/reorder/cover/remove), https image URLs, category CRUD, product search/filter/duplicate/confirm-delete, order detail + WhatsApp customer, bookings WhatsApp, orders CSV export. |
 | 2026-07-30 | Stock quantities (`stock_quantity`) with low-stock alerts and checkout decrement; admin media library + product form picker. |
+| 2026-07-31 | About page trust refresh: corporate copy, registered (no registration year), Maps/contact block, 5+ sections; seed refreshes about CMS keys. |
+| 2026-07-31 | Admin gaps closed: order cancelled status, customer order links + bookings + WhatsApp, media page upload, order notes on list. |
+| 2026-07-31 | Ops pack: Neon setup docs, testimonials + service packages CMS, WA message templates, Maps URL setting, printable order receipt, badge end dates, backup CSV zip, low-stock WhatsApp/email alerts. |
+| 2026-07-31 | Dashboard CMS expanded: logo/receipt, short name, location blurb, hero image/CTAs, About blocks, Home shop/how-it-works/CTA, Services process/spaces/packages chrome, service card images, review section titles. |

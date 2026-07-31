@@ -3,7 +3,7 @@ export const SITE = {
   shortName: "Frannys",
   tagline: "Freshness Guaranteed Every Time",
   description:
-    "Premium Ghanaian cleaning detergents and professional residential and commercial cleaning services across Accra and Ghana.",
+    "Frannys Tidy Solutions offers premium cleaning detergents and professional cleaning services in Accra and across Ghana. Shop cleaning products online or book home and office cleaning.",
   established: 2023,
   registered: 2025,
   address: "East Legon Hills, Accra, Ghana",

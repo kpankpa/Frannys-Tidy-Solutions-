@@ -76,10 +76,14 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
       <div className="w-full max-w-md rounded-[10px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-6 flex justify-center">
           <Image
-            src="/frannystidy.png"
+            src={site.logoUrl || "/frannystidy.png"}
             alt={site.name}
             width={96}
             height={96}
+            unoptimized={
+              site.logoUrl.startsWith("/uploads/") ||
+              site.logoUrl.startsWith("https://")
+            }
             className="h-24 w-24 rounded-md object-contain"
             priority
           />

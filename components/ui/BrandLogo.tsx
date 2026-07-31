@@ -28,13 +28,18 @@ export function BrandLogo({
   const site = useSiteConfig();
   const dim = sizes[size];
 
+  const src = site.logoUrl || "/frannystidy.png";
+  const unoptimized =
+    src.startsWith("/uploads/") || src.startsWith("https://");
+
   const image = (
     <Image
-      src="/frannystidy.png"
+      src={src}
       alt={site.name}
       width={dim.width}
       height={dim.height}
       priority={priority}
+      unoptimized={unoptimized}
       className={cn(
         "rounded-md object-contain",
         dim.className,

@@ -36,6 +36,8 @@ Default seeded admin (change before production seed):
 
 Postgres runs in Docker on **localhost:5433** (`docker-compose.yml`).
 
+**No Docker?** Use Neon cloud Postgres instead: [docs/NEON_SETUP.md](docs/NEON_SETUP.md). Set `DATABASE_URL` in `.env.local`, then migrate and seed (skip `npm run db:up`).
+
 ### Database scripts
 
 | Script | Purpose |

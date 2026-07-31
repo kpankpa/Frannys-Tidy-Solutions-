@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { MediaLibraryGrid } from "@/components/admin/MediaLibraryGrid";
-import { Button } from "@/components/ui/Button";
+import { MediaLibraryUpload } from "@/components/admin/MediaLibraryUpload";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 import { listUploadedMedia } from "@/lib/uploads";
 
@@ -14,23 +14,18 @@ export default async function AdminMediaPage() {
         <div>
           <h1 className="text-2xl font-bold">Media library</h1>
           <p className="mt-1 text-sm text-muted">
-            Uploaded product images on this server ({items.length}). Reuse them
-            when editing products.
+            Upload and reuse product images on this server ({items.length}).
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button href="/admin/products/new" size="sm">
-            Upload via product
-          </Button>
-          <Link
-            href="/admin/products"
-            className="text-sm text-primary hover:underline"
-          >
-            Products
-          </Link>
-        </div>
+        <Link
+          href="/admin/products"
+          className="text-sm text-primary hover:underline"
+        >
+          Products
+        </Link>
       </div>
 
+      <MediaLibraryUpload />
       <MediaLibraryGrid items={items} />
     </div>
   );

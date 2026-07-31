@@ -42,6 +42,7 @@ type ProductFormValues = {
   inStock: boolean;
   stockQuantity: number;
   badge: string;
+  badgeExpiresAt?: string;
   imageAlt: string;
   imageUrls: string[];
 };
@@ -481,7 +482,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         />
       </label>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <label className="block">
           <span className="text-sm font-medium">Badge</span>
           <input
@@ -490,6 +491,22 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             placeholder="Best Seller"
             className={fieldClass}
           />
+        </label>
+        <label className="block">
+          <span className="text-sm font-medium">Badge ends</span>
+          <input
+            name="badgeExpiresAt"
+            type="date"
+            defaultValue={
+              product?.badgeExpiresAt
+                ? product.badgeExpiresAt.slice(0, 10)
+                : ""
+            }
+            className={fieldClass}
+          />
+          <span className="mt-1 block text-xs text-muted">
+            Optional. Leave empty for no end date.
+          </span>
         </label>
         <label className="block">
           <span className="text-sm font-medium">Rating</span>

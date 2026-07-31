@@ -26,15 +26,31 @@ export default async function HomePage() {
         description={site.homeWhyDescription}
         items={site.whyChooseItems}
       />
-      <FeaturedProducts products={products} />
+      <FeaturedProducts
+        products={products}
+        title={site.homeShopTitle}
+        description={site.homeShopDescription}
+        ctaLabel={site.homeShopCta}
+      />
       <HomeServices
         title={site.homeServicesTitle}
         description={site.homeServicesDescription}
         services={services}
       />
-      <HowItWorks />
-      <Testimonials />
-      <HomeCTA />
+      <HowItWorks
+        title={site.homeHowTitle}
+        description={site.homeHowDescription}
+        steps={site.howItWorks}
+      />
+      <Testimonials
+        items={site.testimonials}
+        title={site.testimonialsTitle}
+        description={site.testimonialsDescription}
+      />
+      <HomeCTA
+        title={site.homeCtaTitle}
+        description={site.homeCtaDescription}
+      />
     </>
   );
 }

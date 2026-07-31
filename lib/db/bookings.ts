@@ -1,7 +1,7 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { bookings, customers } from "@/lib/db/schema";
-import { normalizeGhanaPhone } from "@/lib/phone";
+import { normalizeGhanaPhone, phonesMatch } from "@/lib/phone";
 import { clampText, LIMITS } from "@/lib/validation";
 
 export type BookingSource = "booking" | "contact";
@@ -117,6 +117,43 @@ export async function listBookings(limit = 100): Promise<BookingListItem[]> {
     .limit(limit);
 
   return rows;
+}
+
+/** Bookings linked by customer id or matching phone. */
+export async function listBookingsForCustomer(
+  customerId: string,
+  phone: string,
+  limit = 40,
+): Promise<BookingListItem[]> {
+  const normalized = normalizeGhanaPhone(phone) ?? phone.replace(/[\s\-()+/]/g, "");
+
+  const rows = await db
+    .select({
+      id: bookings.id,
+      name: bookings.name,
+      phone: bookings.phone,
+      serviceType: bookings.serviceType,
+      location: bookings.location,
+      preferredDate: bookings.preferredDate,
+      message: bookings.message,
+      status: bookings.status,
+      source: bookings.source,
+      createdAt: bookings.createdAt,
+    })
+    .from(bookings)
+    .where(
+      or(eq(bookings.customerId, customerId), eq(bookings.phone, normalized)),
+    )
+    .orderBy(desc(bookings.createdAt))
+    .limit(limit);
+
+  // Also catch alternate phone formats stored before normalize.
+  if (rows.length > 0) return rows;
+
+  const fallback = await listBookings(200);
+  return fallback
+    .filter((b) => phonesMatch(b.phone, phone))
+    .slice(0, limit);
 }
 
 export async function updateBookingStatus(bookingId: string, status: string) {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listRecentOrders } from "@/lib/db/orders";
 import { formatPrice } from "@/lib/products";
-import { ORDER_PIPELINE } from "@/lib/order-status";
+import { ORDER_ADMIN_STATUSES } from "@/lib/order-status";
 import { updateOrderStatusAction } from "@/server/admin";
 import { PendingSaveButton } from "@/components/admin/PendingSaveButton";
 import { Button } from "@/components/ui/Button";
@@ -43,7 +43,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         >
           All
         </Link>
-        {ORDER_PIPELINE.map((step) => (
+        {ORDER_ADMIN_STATUSES.map((step) => (
           <Link
             key={step.key}
             href={`/admin/orders?status=${step.key}`}
@@ -60,7 +60,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
 
       <div className="overflow-hidden rounded-[10px] border border-border bg-surface shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[980px] text-left text-sm">
             <thead className="bg-surface-muted text-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">Order</th>
@@ -93,27 +93,38 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                   <td className="px-4 py-3">
                     <form
                       action={updateOrderStatusAction}
-                      className="flex flex-wrap items-center gap-2"
+                      className="flex min-w-[16rem] flex-col gap-2"
                     >
                       <input type="hidden" name="orderNumber" value={o.orderNumber} />
-                      <select
-                        name="status"
-                        defaultValue={o.status}
-                        className="rounded-[8px] border border-border px-2 py-1.5 text-xs"
-                      >
-                        {ORDER_PIPELINE.map((step) => (
-                          <option key={step.key} value={step.key}>
-                            {step.label}
-                          </option>
-                        ))}
-                      </select>
-                      <PendingSaveButton />
-                      <Link
-                        href={`/admin/orders/${o.orderNumber}`}
-                        className="text-xs text-muted hover:text-primary hover:underline"
-                      >
-                        Details
-                      </Link>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <select
+                          name="status"
+                          defaultValue={
+                            ORDER_ADMIN_STATUSES.some((s) => s.key === o.status)
+                              ? o.status
+                              : "pending"
+                          }
+                          className="rounded-[8px] border border-border px-2 py-1.5 text-xs"
+                        >
+                          {ORDER_ADMIN_STATUSES.map((step) => (
+                            <option key={step.key} value={step.key}>
+                              {step.label}
+                            </option>
+                          ))}
+                        </select>
+                        <PendingSaveButton />
+                        <Link
+                          href={`/admin/orders/${o.orderNumber}`}
+                          className="text-xs text-muted hover:text-primary hover:underline"
+                        >
+                          Details
+                        </Link>
+                      </div>
+                      <input
+                        name="note"
+                        placeholder="Optional note for timeline"
+                        className="w-full rounded-[8px] border border-border px-2 py-1.5 text-xs"
+                      />
                     </form>
                   </td>
                 </tr>

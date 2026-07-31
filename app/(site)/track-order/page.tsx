@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/PageSpinner";
 import { formatPrice } from "@/lib/products";
-import { ORDER_PIPELINE } from "@/lib/order-status";
+import { isOrderCancelled, ORDER_PIPELINE } from "@/lib/order-status";
 import { trackOrderAction, type TrackedOrderView } from "@/server/orders";
 import { cn } from "@/lib/utils";
 
@@ -95,10 +95,23 @@ export default function TrackOrderPage() {
                 Total {formatPrice(result.totalCedis)}
               </p>
             </div>
-            <span className="rounded-full bg-secondary/20 px-3 py-1 text-xs font-bold text-primary">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-bold ${
+                isOrderCancelled(result.status)
+                  ? "bg-danger/15 text-danger"
+                  : "bg-secondary/20 text-primary"
+              }`}
+            >
               {result.statusLabel}
             </span>
           </div>
+
+          {isOrderCancelled(result.status) ? (
+            <p className="mt-4 rounded-[8px] border border-danger/20 bg-danger/5 px-3 py-2 text-sm text-danger">
+              This order was cancelled. Contact us on WhatsApp if you need help
+              placing a new order.
+            </p>
+          ) : null}
 
           <ul className="mt-5 -mx-1 flex gap-3 overflow-x-auto px-1 pb-2 snap-x snap-mandatory">
             {result.lineItems.map((item) => (

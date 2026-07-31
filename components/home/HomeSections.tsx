@@ -15,11 +15,8 @@ import { ProductCard } from "@/components/shop/ProductCard";
 import { Button } from "@/components/ui/Button";
 import { AccentCircles } from "@/components/ui/AccentCircles";
 import type { Product } from "@/lib/products";
-import {
-  howItWorks,
-  testimonials,
-  type Service,
-} from "@/lib/services";
+import type { Service } from "@/lib/services";
+import type { HowItWorksItem, TestimonialItem } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 const whyIcons = [PackageCheck, Users, Wallet, Zap];
@@ -80,24 +77,32 @@ export function WhyChoose({
   );
 }
 
-export function FeaturedProducts({ products }: { products: Product[] }) {
+export function FeaturedProducts({
+  products,
+  title,
+  description,
+  ctaLabel,
+}: {
+  products: Product[];
+  title: string;
+  description: string;
+  ctaLabel: string;
+}) {
   return (
     <section className="py-14 sm:py-16">
       <div className="container-page">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">
-              Premium Shop
+              {title}
             </h2>
-            <p className="mt-2 max-w-lg text-sm text-muted">
-              Professional-grade detergents for your home.
-            </p>
+            <p className="mt-2 max-w-lg text-sm text-muted">{description}</p>
           </div>
           <Link
             href="/shop"
             className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
           >
-            View Full Catalog
+            {ctaLabel}
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -174,18 +179,23 @@ export function HomeServices({
   );
 }
 
-export function HowItWorks() {
+export function HowItWorks({
+  title,
+  description,
+  steps,
+}: {
+  title: string;
+  description: string;
+  steps: HowItWorksItem[];
+}) {
   return (
     <section className="py-14 sm:py-16">
       <div className="container-page">
-        <SectionHeading
-          title="Ordering Made Simple"
-          description="Four easy steps from browse to delivery."
-        />
+        <SectionHeading title={title} description={description} />
         <div className="relative mt-10">
           <div className="absolute left-[12%] right-[12%] top-4 hidden h-px bg-border md:block" />
           <div className="grid gap-8 md:grid-cols-4 md:gap-5">
-            {howItWorks.map((step, i) => (
+            {steps.map((step, i) => (
               <FadeIn key={step.step} delay={i * 0.08} as="article">
                 <div className="relative text-center">
                   <div
@@ -212,17 +222,25 @@ export function HowItWorks() {
   );
 }
 
-export function Testimonials() {
+export function Testimonials({
+  items,
+  title,
+  description,
+}: {
+  items: TestimonialItem[];
+  title: string;
+  description: string;
+}) {
+  const approved = items.filter((t) => t.approved);
+  if (approved.length === 0) return null;
+
   return (
     <section className="bg-surface-muted/70 py-14 sm:py-16">
       <div className="container-page">
-        <SectionHeading
-          title="Loved by Homes & Businesses"
-          description="Real feedback from customers across Accra."
-        />
+        <SectionHeading title={title} description={description} />
         <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {testimonials.map((t, i) => (
-            <FadeIn key={t.name} delay={i * 0.08} as="article">
+          {approved.map((t, i) => (
+            <FadeIn key={`${t.name}-${i}`} delay={i * 0.08} as="article">
               <div className="h-full rounded-2xl border border-border/70 bg-surface p-5 soft-shadow">
                 <div className="flex gap-0.5">
                   {Array.from({ length: t.rating }).map((_, idx) => (
@@ -233,7 +251,7 @@ export function Testimonials() {
                   ))}
                 </div>
                 <p className="mt-3 text-sm leading-relaxed text-foreground">
-                  "{t.quote}"
+                  &ldquo;{t.quote}&rdquo;
                 </p>
                 <div className="mt-5 flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary/15 text-xs font-bold text-primary">
@@ -256,7 +274,13 @@ export function Testimonials() {
   );
 }
 
-export function HomeCTA() {
+export function HomeCTA({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
     <section className="pb-14 sm:pb-16">
       <div className="container-page">
@@ -264,11 +288,10 @@ export function HomeCTA() {
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-dark px-6 py-10 text-center text-white soft-shadow sm:rounded-3xl sm:px-10 sm:py-12">
             <AccentCircles />
             <h2 className="relative text-2xl font-bold tracking-tight sm:text-3xl">
-              Ready for a Cleaner Space?
+              {title}
             </h2>
             <p className="relative mx-auto mt-3 max-w-lg text-sm text-white/75 sm:text-[15px]">
-              Join households and businesses across Ghana who trust Frannys for
-              premium products and professional cleaning.
+              {description}
             </p>
             <div className="relative mt-6 flex flex-col items-center justify-center gap-2.5 sm:flex-row">
               <Button href="/shop" variant="highlight" size="md">
