@@ -4,10 +4,19 @@ import path from "path";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { productImages } from "@/lib/db/schema";
+import {
+  deleteObject,
+  getObjectStorageConfig,
+  isObjectStorageConfigured,
+  listObjects,
+  publicUrlForKey,
+  putObject,
+} from "@/lib/object-storage";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
 const SAFE_FILENAME = /^[A-Za-z0-9._-]+$/;
+const SAFE_STORAGE_KEY = /^media\/[A-Za-z0-9._-]+$/;
 
 export type UploadResult = {
   url: string;
@@ -30,12 +39,10 @@ type DetectedImage = {
 function detectImage(buffer: Buffer): DetectedImage | null {
   if (buffer.length < 12) return null;
 
-  // JPEG
   if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
     return { mime: "image/jpeg", ext: "jpg" };
   }
 
-  // PNG
   if (
     buffer[0] === 0x89 &&
     buffer[1] === 0x50 &&
@@ -45,7 +52,6 @@ function detectImage(buffer: Buffer): DetectedImage | null {
     return { mime: "image/png", ext: "png" };
   }
 
-  // GIF
   if (
     buffer[0] === 0x47 &&
     buffer[1] === 0x49 &&
@@ -55,7 +61,6 @@ function detectImage(buffer: Buffer): DetectedImage | null {
     return { mime: "image/gif", ext: "gif" };
   }
 
-  // WebP (RIFF....WEBP)
   if (
     buffer[0] === 0x52 &&
     buffer[1] === 0x49 &&
@@ -72,9 +77,40 @@ function detectImage(buffer: Buffer): DetectedImage | null {
   return null;
 }
 
+function isReadOnlyHostError(error: unknown) {
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? String((error as { code: unknown }).code)
+      : "";
+  if (
+    code === "EROFS" ||
+    code === "EACCES" ||
+    code === "EPERM" ||
+    code === "ENOENT"
+  ) {
+    return true;
+  }
+  if (process.env.VERCEL === "1" || process.env.VERCEL === "true") {
+    return true;
+  }
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+  return (
+    message.includes("read-only") ||
+    message.includes("erofs") ||
+    message.includes("eacces")
+  );
+}
+
+function remoteStorageHint() {
+  return (
+    "This host cannot save uploads to local disk. Add Neon Object Storage " +
+    "(or any S3-compatible bucket) env vars, or paste an https image URL on the product instead. " +
+    "See docs/NEON_SETUP.md."
+  );
+}
+
 /**
- * Saves an image under public/uploads and returns a site-relative URL.
- * Works on local disk / Docker / VPS. Ephemeral on most serverless hosts.
+ * Saves an image to Neon/S3 when configured, otherwise public/uploads.
  */
 export async function saveUploadedImage(file: File): Promise<UploadResult> {
   if (file.size <= 0 || file.size > MAX_BYTES) {
@@ -87,28 +123,68 @@ export async function saveUploadedImage(file: File): Promise<UploadResult> {
     throw new Error("Only JPEG, PNG, WebP, or GIF images are allowed.");
   }
 
-  const filename = `${Date.now()}-${randomBytes(6).toString("hex")}.${detected.ext}`;
+  const basename = `${Date.now()}-${randomBytes(6).toString("hex")}.${detected.ext}`;
+
+  if (isObjectStorageConfigured()) {
+    try {
+      const key = `media/${basename}`;
+      const result = await putObject({
+        key,
+        body: buffer,
+        contentType: detected.mime,
+      });
+      return { url: result.url, filename: key };
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : "Unknown storage error";
+      throw new Error(
+        `Could not upload to object storage. Check STORAGE_* / Neon bucket credentials. (${detail})`,
+      );
+    }
+  }
 
   try {
     await mkdir(UPLOAD_DIR, { recursive: true });
-    await writeFile(path.join(UPLOAD_DIR, filename), buffer);
+    await writeFile(path.join(UPLOAD_DIR, basename), buffer);
   } catch (error) {
-    const code =
-      error && typeof error === "object" && "code" in error
-        ? String((error as { code: unknown }).code)
-        : "";
-    if (code === "EROFS" || code === "EACCES" || code === "EPERM") {
-      throw new Error(
-        "This host cannot write upload files. Paste an image URL instead, or deploy with a writable disk volume.",
-      );
+    if (isReadOnlyHostError(error)) {
+      throw new Error(remoteStorageHint());
     }
-    throw new Error("Could not save the image. Please try again.");
+    throw new Error(
+      "Could not save the image. Configure object storage for this host, or try again.",
+    );
   }
 
-  return { url: `/uploads/${filename}`, filename };
+  return { url: `/uploads/${basename}`, filename: basename };
+}
+
+async function usageByUrl() {
+  const usageRows = await db.select({ url: productImages.url }).from(productImages);
+  const usage = new Map<string, number>();
+  for (const row of usageRows) {
+    usage.set(row.url, (usage.get(row.url) ?? 0) + 1);
+  }
+  return usage;
 }
 
 export async function listUploadedMedia(): Promise<MediaLibraryItem[]> {
+  const usage = await usageByUrl();
+
+  if (isObjectStorageConfigured()) {
+    try {
+      const objects = await listObjects("media/");
+      return objects.map((object) => ({
+        filename: object.key,
+        url: object.url,
+        sizeBytes: object.sizeBytes,
+        modifiedAt: object.modifiedAt,
+        usedByProducts: usage.get(object.url) ?? 0,
+      }));
+    } catch {
+      return [];
+    }
+  }
+
   try {
     await mkdir(UPLOAD_DIR, { recursive: true });
   } catch {
@@ -120,13 +196,6 @@ export async function listUploadedMedia(): Promise<MediaLibraryItem[]> {
     names = await readdir(UPLOAD_DIR);
   } catch {
     return [];
-  }
-
-  const usageRows = await db.select({ url: productImages.url }).from(productImages);
-  const usage = new Map<string, number>();
-  for (const row of usageRows) {
-    if (!row.url.startsWith("/uploads/")) continue;
-    usage.set(row.url, (usage.get(row.url) ?? 0) + 1);
   }
 
   const items: MediaLibraryItem[] = [];
@@ -158,11 +227,38 @@ export async function listUploadedMedia(): Promise<MediaLibraryItem[]> {
 }
 
 export async function deleteUploadedMedia(filename: string): Promise<void> {
-  if (!SAFE_FILENAME.test(filename) || filename.includes("..")) {
+  const key = filename.trim();
+
+  if (isObjectStorageConfigured()) {
+    if (!SAFE_STORAGE_KEY.test(key) || key.includes("..")) {
+      throw new Error("Invalid file name.");
+    }
+
+    const config = getObjectStorageConfig();
+    if (!config) {
+      throw new Error("Object storage is not configured.");
+    }
+    const url = publicUrlForKey(config, key);
+    const [inUse] = await db
+      .select({ id: productImages.id })
+      .from(productImages)
+      .where(eq(productImages.url, url))
+      .limit(1);
+    if (inUse) {
+      throw new Error(
+        "This image is used by a product. Remove it from products first.",
+      );
+    }
+
+    await deleteObject(key);
+    return;
+  }
+
+  if (!SAFE_FILENAME.test(key) || key.includes("..")) {
     throw new Error("Invalid file name.");
   }
 
-  const url = `/uploads/${filename}`;
+  const url = `/uploads/${key}`;
   const [inUse] = await db
     .select({ id: productImages.id })
     .from(productImages)
@@ -176,7 +272,7 @@ export async function deleteUploadedMedia(filename: string): Promise<void> {
   }
 
   try {
-    await unlink(path.join(UPLOAD_DIR, filename));
+    await unlink(path.join(UPLOAD_DIR, key));
   } catch (error) {
     const code =
       error && typeof error === "object" && "code" in error
@@ -185,4 +281,8 @@ export async function deleteUploadedMedia(filename: string): Promise<void> {
     if (code === "ENOENT") return;
     throw new Error("Could not delete that file.");
   }
+}
+
+export function getUploadStorageMode(): "object" | "local" {
+  return isObjectStorageConfigured() ? "object" : "local";
 }

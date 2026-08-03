@@ -21,6 +21,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "*.aws.neon.tech",
+      },
+      {
+        protocol: "https",
+        hostname: "*.neon.tech",
+      },
     ],
   },
   poweredByHeader: false,

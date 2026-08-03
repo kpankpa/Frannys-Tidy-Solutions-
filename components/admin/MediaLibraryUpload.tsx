@@ -62,7 +62,9 @@ export function MediaLibraryUpload() {
         <div>
           <p className="text-sm font-semibold">Upload images</p>
           <p className="mt-0.5 text-xs text-muted">
-            JPEG, PNG, WebP, or GIF up to 5 MB. Then reuse them on products.
+            JPEG, PNG, WebP, or GIF up to 5 MB. On Vercel/shared hosting, configure
+            Neon Object Storage (see Settings / docs) or paste https image URLs on
+            products.
           </p>
         </div>
         <div>

@@ -45,7 +45,11 @@ export async function POST(request: Request) {
       message.includes("JPEG") ||
       message.includes("5 MB") ||
       message.includes("writable") ||
-      message.includes("save")
+      message.includes("save") ||
+      message.includes("object storage") ||
+      message.includes("Neon") ||
+      message.includes("https image URL") ||
+      message.includes("STORAGE_")
         ? message
         : "Upload failed.";
     return NextResponse.json({ error: safe }, { status: 400 });
