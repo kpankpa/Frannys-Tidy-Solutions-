@@ -92,7 +92,10 @@ export default function TrackOrderPage() {
               <p className="text-sm text-muted">Order {result.orderNumber}</p>
               <p className="text-lg font-bold text-foreground">{result.customer}</p>
               <p className="mt-1 text-sm text-muted">
-                Total {formatPrice(result.totalCedis)}
+                Items {formatPrice(result.subtotalCedis)}
+                {result.deliveryCedis > 0
+                  ? ` · Delivery ${formatPrice(result.deliveryCedis)} · Total ${formatPrice(result.totalCedis)}`
+                  : " · Delivery to be confirmed on WhatsApp"}
               </p>
             </div>
             <span

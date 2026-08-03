@@ -110,8 +110,7 @@ export async function placeOrderAction(
       ...lines,
       "",
       `Subtotal: GH₵ ${order.subtotalCedis.toFixed(2)}`,
-      `Delivery: GH₵ ${order.deliveryCedis.toFixed(2)}`,
-      `Grand Total: GH₵ ${order.totalCedis.toFixed(2)}`,
+      "Delivery fee: to be confirmed on WhatsApp based on your address.",
     ]
       .filter(Boolean)
       .join("\n");

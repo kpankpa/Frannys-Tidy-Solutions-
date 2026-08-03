@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/Button";
 import {
   getBookingsByStatus,
   getOrdersByDay,
@@ -6,6 +7,39 @@ import {
 } from "@/lib/db/stats";
 import { formatPrice } from "@/lib/products";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
+
+const exportLinks = [
+  {
+    label: "Orders CSV",
+    href: "/api/admin/orders/export",
+    description: "All recent orders with totals and line items.",
+  },
+  {
+    label: "Customers CSV",
+    href: "/api/admin/reports/customers",
+    description: "Customer list with order count and spend.",
+  },
+  {
+    label: "Bookings CSV",
+    href: "/api/admin/reports/bookings",
+    description: "Cleaning and contact booking requests.",
+  },
+  {
+    label: "Products CSV",
+    href: "/api/admin/reports/products",
+    description: "Catalog, stock levels, and pricing.",
+  },
+  {
+    label: "Sales summary CSV",
+    href: "/api/admin/reports/sales-summary?days=7",
+    description: "Daily revenue (7 days) plus top products.",
+  },
+  {
+    label: "Full backup ZIP",
+    href: "/api/admin/backup",
+    description: "Products, customers, and orders in one zip file.",
+  },
+] as const;
 
 export default async function AdminReportsPage() {
   await ensureAdminPage();
@@ -20,11 +54,36 @@ export default async function AdminReportsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Reports</h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Reports</h1>
+          <p className="mt-1 text-sm text-muted">
+            Live sales and booking performance from your database.
+          </p>
+        </div>
+      </div>
+
+      <div className="rounded-[10px] border border-border bg-surface p-6 shadow-sm">
+        <h2 className="font-bold">Export data</h2>
         <p className="mt-1 text-sm text-muted">
-          Live sales and booking performance from your database.
+          Download CSV files or a full backup for spreadsheets and records.
         </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {exportLinks.map((link) => (
+            <div
+              key={link.href}
+              className="flex flex-col justify-between gap-3 rounded-[8px] border border-border bg-surface-muted/40 p-4"
+            >
+              <div>
+                <p className="font-semibold">{link.label}</p>
+                <p className="mt-1 text-xs text-muted">{link.description}</p>
+              </div>
+              <Button href={link.href} variant="outline" size="sm">
+                Download
+              </Button>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">

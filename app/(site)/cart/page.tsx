@@ -14,7 +14,7 @@ export default function CartPage() {
     setQuantity,
     removeItem,
     subtotal,
-    delivery,
+    deliveryGuide,
     total,
     count,
     catalogReady,
@@ -116,11 +116,21 @@ export default function CartPage() {
               <dd className="font-semibold">{formatPrice(subtotal)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted">Delivery estimate</dt>
-              <dd className="font-semibold">{formatPrice(delivery)}</dd>
+              <dt className="text-muted">Delivery</dt>
+              <dd className="font-semibold text-muted">Agreed on WhatsApp</dd>
             </div>
+            {deliveryGuide > 0 ? (
+              <p className="text-xs text-muted">
+                Typical delivery from {formatPrice(deliveryGuide)}. Final fee
+                is confirmed with Frannys on WhatsApp.
+              </p>
+            ) : (
+              <p className="text-xs text-muted">
+                Delivery fee is confirmed with Frannys on WhatsApp.
+              </p>
+            )}
             <div className="flex justify-between border-t border-border pt-3 text-base">
-              <dt className="font-bold">Total</dt>
+              <dt className="font-bold">Items total</dt>
               <dd className="font-bold text-primary">{formatPrice(total)}</dd>
             </div>
           </dl>

@@ -108,8 +108,7 @@ export function checkoutWhatsAppMessage(
     ...lines,
     "",
     `Subtotal: GH₵ ${data.subtotal.toFixed(2)}`,
-    `Delivery: GH₵ ${data.delivery.toFixed(2)}`,
-    `Grand Total: GH₵ ${data.total.toFixed(2)}`,
+    "Delivery fee: to be confirmed on WhatsApp based on your address.",
   ]
     .filter(Boolean)
     .join("\n");

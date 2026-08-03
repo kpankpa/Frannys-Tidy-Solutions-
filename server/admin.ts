@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { updateOrderStatus } from "@/lib/db/orders";
+import { updateOrderStatus, updateOrderDeliveryFee } from "@/lib/db/orders";
 import { updateBookingStatus } from "@/lib/db/bookings";
 import { createComplaint, setComplaintStatus } from "@/lib/db/complaints";
 import {
@@ -36,6 +36,21 @@ export async function updateOrderStatusAction(formData: FormData) {
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${orderNumber.trim().toUpperCase()}`);
   revalidatePath("/admin/customers");
+  revalidatePath("/track-order");
+}
+
+export async function updateOrderDeliveryFeeAction(formData: FormData) {
+  await requireAdmin();
+  const orderNumber = String(formData.get("orderNumber") ?? "").trim();
+  const deliveryFeeCedis = Number(formData.get("deliveryFeeCedis") ?? NaN);
+
+  if (!orderNumber || !Number.isFinite(deliveryFeeCedis)) return;
+
+  await updateOrderDeliveryFee(orderNumber, deliveryFeeCedis);
+  revalidatePath("/admin");
+  revalidatePath("/admin/orders");
+  revalidatePath(`/admin/orders/${orderNumber.toUpperCase()}`);
+  revalidatePath(`/admin/orders/${orderNumber.toUpperCase()}/print`);
   revalidatePath("/track-order");
 }
 

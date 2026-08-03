@@ -21,7 +21,8 @@ type CartContextValue = {
   items: CartItem[];
   count: number;
   subtotal: number;
-  delivery: number;
+  /** Guide fee from admin settings — not added to checkout total. */
+  deliveryGuide: number;
   total: number;
   catalogReady: boolean;
   addItem: (productDbId: string, quantity?: number) => void;
@@ -53,7 +54,7 @@ function readStoredCart(): CartItem[] {
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [catalog, setCatalog] = useState<Product[]>([]);
-  const [deliveryFee, setDeliveryFee] = useState<number>(SITE.deliveryFee);
+  const [deliveryGuide, setDeliveryGuide] = useState<number>(SITE.deliveryFee);
   const [hydrated, setHydrated] = useState(false);
   const [catalogReady, setCatalogReady] = useState(false);
 
@@ -96,7 +97,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { deliveryFee?: number } | null) => {
         if (!cancelled && data && typeof data.deliveryFee === "number") {
-          setDeliveryFee(data.deliveryFee);
+          setDeliveryGuide(data.deliveryFee);
         }
       })
       .catch(() => {
@@ -182,15 +183,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     [items],
   );
 
-  const delivery = items.length > 0 ? deliveryFee : 0;
-  const total = subtotal + delivery;
+  const total = subtotal;
 
   const value = useMemo(
     () => ({
       items,
       count,
       subtotal,
-      delivery,
+      deliveryGuide,
       total,
       catalogReady,
       addItem,
@@ -203,7 +203,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       items,
       count,
       subtotal,
-      delivery,
+      deliveryGuide,
       total,
       catalogReady,
       addItem,

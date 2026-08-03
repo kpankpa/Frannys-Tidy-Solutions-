@@ -12,7 +12,10 @@ import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { ORDER_ADMIN_STATUSES } from "@/lib/order-status";
 import { formatPrice } from "@/lib/products";
 import { customerOrderWaTemplates } from "@/lib/wa-templates";
-import { updateOrderStatusAction } from "@/server/admin";
+import {
+  updateOrderDeliveryFeeAction,
+  updateOrderStatusAction,
+} from "@/server/admin";
 
 type PageProps = {
   params: Promise<{ orderNumber: string }>;
@@ -105,7 +108,11 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
             </div>
             <div className="flex justify-between gap-3">
               <dt className="text-muted">Delivery</dt>
-              <dd className="font-semibold">{formatPrice(order.deliveryCedis)}</dd>
+              <dd className="font-semibold">
+                {order.deliveryCedis > 0
+                  ? formatPrice(order.deliveryCedis)
+                  : "Not set yet"}
+              </dd>
             </div>
             <div className="flex justify-between gap-3 border-t border-border pt-2">
               <dt className="font-medium">Total</dt>
@@ -114,6 +121,27 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               </dd>
             </div>
           </dl>
+          <form action={updateOrderDeliveryFeeAction} className="mt-4 space-y-3 border-t border-border pt-4">
+            <input type="hidden" name="orderNumber" value={order.orderNumber} />
+            <label className="block">
+              <span className="text-sm font-medium">Set delivery fee (GH₵)</span>
+              <p className="mt-1 text-xs text-muted">
+                Enter the fee you agreed with the customer on WhatsApp.
+              </p>
+              <input
+                name="deliveryFeeCedis"
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                defaultValue={
+                  order.deliveryCedis > 0 ? order.deliveryCedis : site.deliveryFee
+                }
+                className="mt-2 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm"
+              />
+            </label>
+            <PendingSaveButton label="Save delivery fee" />
+          </form>
         </div>
       </div>
 

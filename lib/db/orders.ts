@@ -7,9 +7,7 @@ import {
   orderItems,
   orders,
   products,
-  settings,
 } from "@/lib/db/schema";
-import { SITE } from "@/lib/constants";
 import { cedisToPesewas, pesewasToCedis } from "@/lib/money";
 import {
   orderStatusIndex,
@@ -44,16 +42,6 @@ export type CreateOrderResult = {
     unitPriceCedis: number;
   }>;
 };
-
-async function getDeliveryFeePesewas() {
-  const row = await db.query.settings.findFirst({
-    where: eq(settings.key, "delivery_fee_pesewas"),
-  });
-  if (row && Number.isFinite(Number(row.value))) {
-    return Number(row.value);
-  }
-  return cedisToPesewas(SITE.deliveryFee);
-}
 
 function generateOrderNumber() {
   return `FTS-${randomBytes(4).toString("hex").toUpperCase()}`;
@@ -96,7 +84,7 @@ export async function createOrderFromCart(
     throw new Error("Your cart has no valid items.");
   }
 
-  const deliveryPesewas = await getDeliveryFeePesewas();
+  const deliveryPesewas = 0;
 
   return db.transaction(async (tx) => {
     const pricedLines: Array<{
@@ -460,4 +448,40 @@ export async function updateOrderStatus(
   });
 
   return { orderNumber: order.orderNumber, status: normalized };
+}
+
+export async function updateOrderDeliveryFee(
+  orderNumber: string,
+  deliveryFeeCedis: number,
+) {
+  if (!Number.isFinite(deliveryFeeCedis) || deliveryFeeCedis < 0) {
+    throw new Error("Enter a valid delivery fee.");
+  }
+
+  const rounded = Math.round(deliveryFeeCedis * 100) / 100;
+  const deliveryPesewas = cedisToPesewas(rounded);
+
+  const order = await db.query.orders.findFirst({
+    where: eq(orders.orderNumber, orderNumber.trim().toUpperCase()),
+  });
+  if (!order) {
+    throw new Error("Order not found.");
+  }
+
+  const totalPesewas = order.subtotalPesewas + deliveryPesewas;
+
+  await db
+    .update(orders)
+    .set({
+      deliveryPesewas,
+      totalPesewas,
+      updatedAt: new Date(),
+    })
+    .where(eq(orders.id, order.id));
+
+  return {
+    orderNumber: order.orderNumber,
+    deliveryCedis: pesewasToCedis(deliveryPesewas),
+    totalCedis: pesewasToCedis(totalPesewas),
+  };
 }

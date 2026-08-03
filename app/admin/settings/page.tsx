@@ -162,14 +162,18 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
           </label>
         </div>
         <label className="block text-sm">
-          <span className="font-medium">Delivery fee (GH₵)</span>
+          <span className="font-medium">Typical delivery fee (GH₵)</span>
+          <p className="mt-1 text-xs text-muted">
+            Shown as a guide on cart and checkout only. Not added to the order.
+            After you agree a fee on WhatsApp, set it on that order in Admin.
+          </p>
           <input
             name="deliveryFeeCedis"
             type="number"
             step="0.01"
             min="0"
             defaultValue={site.deliveryFee}
-            className={field}
+            className={`${field} mt-2`}
           />
         </label>
         <div className="grid gap-4 sm:grid-cols-2">

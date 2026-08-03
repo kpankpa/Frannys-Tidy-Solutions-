@@ -121,18 +121,34 @@ export default async function AdminOrderPrintPage({ params }: PageProps) {
 
       <dl className="mt-6 space-y-1 text-sm">
         <div className="flex justify-between gap-4">
-          <dt>Subtotal</dt>
+          <dt>Items subtotal</dt>
           <dd>{formatPrice(order.subtotalCedis)}</dd>
         </div>
         <div className="flex justify-between gap-4">
-          <dt>Delivery</dt>
-          <dd>{formatPrice(order.deliveryCedis)}</dd>
+          <dt>Delivery fee</dt>
+          <dd className="font-semibold">
+            {order.deliveryCedis > 0
+              ? formatPrice(order.deliveryCedis)
+              : `${formatPrice(0)} (to be confirmed)`}
+          </dd>
         </div>
         <div className="flex justify-between gap-4 border-t border-black/20 pt-2 text-base font-bold">
-          <dt>Total</dt>
+          <dt>Grand total</dt>
           <dd>{formatPrice(order.totalCedis)}</dd>
         </div>
       </dl>
+      {order.deliveryCedis <= 0 ? (
+        <p className="mt-2 text-xs text-black/70">
+          Delivery fee has not been set on this order yet. Confirm the amount
+          on WhatsApp, then save it under Admin → Orders before handing out
+          this receipt.
+        </p>
+      ) : (
+        <p className="mt-2 text-xs text-black/70">
+          Delivery fee: {formatPrice(order.deliveryCedis)}. Items + delivery =
+          grand total {formatPrice(order.totalCedis)}.
+        </p>
+      )}
 
       {order.notes ? (
         <p className="mt-6 text-sm">

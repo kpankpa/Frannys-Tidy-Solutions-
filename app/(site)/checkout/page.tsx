@@ -16,8 +16,7 @@ export default function CheckoutPage() {
   const {
     getLineItems,
     subtotal,
-    delivery,
-    total,
+    deliveryGuide,
     count,
     clear,
     catalogReady,
@@ -143,7 +142,7 @@ export default function CheckoutPage() {
       </h1>
       <p className="mt-2 text-muted">
         Confirm your details. We save your order, then open WhatsApp so you can
-        confirm with Frannys.
+        agree delivery and payment with Frannys.
       </p>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
@@ -240,16 +239,22 @@ export default function CheckoutPage() {
           </ul>
           <dl className="mt-5 space-y-2 border-t border-border pt-4 text-sm">
             <div className="flex justify-between">
-              <dt className="text-muted">Subtotal</dt>
+              <dt className="text-muted">Items subtotal</dt>
               <dd className="font-semibold">{formatPrice(subtotal)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-muted">Delivery</dt>
-              <dd className="font-semibold">{formatPrice(delivery)}</dd>
+              <dd className="font-semibold text-muted">Agreed on WhatsApp</dd>
             </div>
-            <div className="flex justify-between text-base">
-              <dt className="font-bold">Grand Total</dt>
-              <dd className="font-bold text-primary">{formatPrice(total)}</dd>
+            {deliveryGuide > 0 ? (
+              <p className="text-xs text-muted">
+                Typical delivery from {formatPrice(deliveryGuide)}. Final fee
+                depends on your location and is confirmed in chat.
+              </p>
+            ) : null}
+            <div className="flex justify-between border-t border-border pt-3 text-base">
+              <dt className="font-bold">Pay now (items only)</dt>
+              <dd className="font-bold text-primary">{formatPrice(subtotal)}</dd>
             </div>
           </dl>
         </aside>
