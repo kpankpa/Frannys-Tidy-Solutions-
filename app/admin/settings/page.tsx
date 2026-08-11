@@ -1,5 +1,6 @@
 import { getSiteConfig } from "@/lib/db/settings";
 import { saveBusinessSettingsAction } from "@/server/admin";
+import { AdminImageField } from "@/components/admin/AdminImageField";
 import { PendingSubmitButton } from "@/components/ui/PendingSubmitButton";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 
@@ -71,33 +72,13 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
         </label>
 
         <div className="rounded-[8px] border border-border/80 bg-surface-muted/40 p-4">
-          <p className="text-sm font-bold">Logo</p>
-          <p className="mt-1 text-xs text-muted">
-            Used on the website, admin hub, and printable receipts. Upload via{" "}
-            <a href="/admin/media" className="font-medium text-primary hover:underline">
-              Media
-            </a>{" "}
-            then paste the /uploads/... path, or use a https image URL.
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-4">
-            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-md border border-border bg-white">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={site.logoUrl}
-                alt={`${site.name} logo preview`}
-                className="max-h-14 max-w-14 object-contain"
-              />
-            </div>
-            <label className="block min-w-[16rem] flex-1 text-sm">
-              <span className="font-medium">Logo URL</span>
-              <input
-                name="logoUrl"
-                defaultValue={site.logoUrl}
-                placeholder="/frannystidy.png"
-                className={field}
-              />
-            </label>
-          </div>
+          <AdminImageField
+            name="logoUrl"
+            label="Logo"
+            defaultValue={site.logoUrl}
+            hint="Used on the website, admin hub, and printable receipts. Upload, pick from library, or paste a URL."
+            placeholder="/frannystidy.png"
+          />
         </div>
 
         <label className="block text-sm">
@@ -113,15 +94,13 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
             className={field}
           />
         </label>
-        <label className="block text-sm">
-          <span className="font-medium">Home hero image URL</span>
-          <input
-            name="heroHomeImage"
-            defaultValue={site.heroHomeImage}
-            placeholder="/hero-home.png or /uploads/..."
-            className={field}
-          />
-        </label>
+        <AdminImageField
+          name="heroHomeImage"
+          label="Home hero image"
+          defaultValue={site.heroHomeImage}
+          hint="Large background photo on the home page."
+          placeholder="/hero-home.png"
+        />
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block text-sm">
             <span className="font-medium">Phone (digits)</span>

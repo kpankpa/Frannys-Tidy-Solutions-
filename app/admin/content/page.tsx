@@ -1,6 +1,7 @@
 import { getSiteConfig } from "@/lib/db/settings";
 import { cleaningServices } from "@/lib/services";
 import { saveSiteContentAction } from "@/server/admin";
+import { AdminImageField } from "@/components/admin/AdminImageField";
 import { PendingSubmitButton } from "@/components/ui/PendingSubmitButton";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 
@@ -349,14 +350,12 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
                       className={field}
                     />
                   </label>
-                  <label className="block text-sm">
-                    <span className="text-muted">Image URL</span>
-                    <input
-                      name={`serviceImage_${service.id}`}
-                      defaultValue={current.image ?? service.image}
-                      className={field}
-                    />
-                  </label>
+                  <AdminImageField
+                    name={`serviceImage_${service.id}`}
+                    label="Card image"
+                    defaultValue={current.image ?? service.image}
+                    hint="Upload or pick from the media library."
+                  />
                 </div>
               );
             })}
@@ -446,14 +445,12 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
               className={field}
             />
           </label>
-          <label className="block text-sm">
-            <span className="font-medium">Spaces image URL</span>
-            <input
-              name="serviceSpacesImage"
-              defaultValue={site.serviceSpacesImage}
-              className={field}
-            />
-          </label>
+          <AdminImageField
+            name="serviceSpacesImage"
+            label="Spaces section image"
+            defaultValue={site.serviceSpacesImage}
+            hint="Large photo beside the spaces we serve list."
+          />
           <div className="space-y-3">
             <p className="text-sm font-medium">Spaces we serve</p>
             {[0, 1, 2, 3].map((i) => {

@@ -43,8 +43,8 @@ export function MediaLibraryGrid({ items }: { items: MediaLibraryItem[] }) {
 
       {items.length === 0 ? (
         <div className="rounded-[10px] border border-dashed border-border bg-surface px-4 py-16 text-center text-sm text-muted">
-          No uploaded files yet. Upload images from a product form, then reuse
-          them here.
+          No uploaded files yet. Upload images here, then reuse them on products,
+          Settings, and Site content.
         </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

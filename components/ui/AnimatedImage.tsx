@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,23 @@ export function AnimatedImage({
   drift = "in",
 }: AnimatedImageProps) {
   const reduceMotion = useReducedMotion();
+  const imgRef = useRef<HTMLImageElement>(null);
   const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    setLoaded(false);
+
+    function markIfReady() {
+      const img = imgRef.current;
+      if (img?.complete && img.naturalWidth > 0) {
+        setLoaded(true);
+      }
+    }
+
+    markIfReady();
+    const timer = window.setTimeout(markIfReady, 0);
+    return () => window.clearTimeout(timer);
+  }, [src]);
 
   const animate =
     reduceMotion
@@ -59,13 +75,8 @@ export function AnimatedImage({
             }
       }
     >
-      {!loaded ? (
-        <div
-          className="absolute inset-0 animate-pulse bg-primary/10"
-          aria-hidden
-        />
-      ) : null}
       <Image
+        ref={imgRef}
         src={src}
         alt={alt}
         fill
@@ -73,12 +84,14 @@ export function AnimatedImage({
         sizes={sizes}
         unoptimized={shouldUnoptimizeImage(src)}
         onLoad={() => setLoaded(true)}
-        className={cn(
-          "object-cover transition-opacity duration-500",
-          loaded ? "opacity-100" : "opacity-0",
-          className,
-        )}
+        className={cn("object-cover", className)}
       />
+      {!loaded ? (
+        <div
+          className="absolute inset-0 z-[1] animate-pulse bg-primary/10 transition-opacity duration-500"
+          aria-hidden
+        />
+      ) : null}
     </motion.div>
   );
 }
