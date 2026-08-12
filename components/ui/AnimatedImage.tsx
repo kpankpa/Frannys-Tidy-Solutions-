@@ -14,8 +14,8 @@ type AnimatedImageProps = {
   wrapperClassName?: string;
   sizes?: string;
   priority?: boolean;
-  /** Subtle pan direction for variety across sections. */
-  drift?: "in" | "left" | "right";
+  /** Subtle pan direction for variety across sections. `none` keeps a fixed crop. */
+  drift?: "in" | "left" | "right" | "none";
 };
 
 /**
@@ -51,7 +51,7 @@ export function AnimatedImage({
   }, [src]);
 
   const animate =
-    reduceMotion
+    reduceMotion || drift === "none"
       ? { scale: 1, x: "0%" }
       : drift === "left"
         ? { scale: [1, 1.08], x: ["0%", "-2.5%"] }
@@ -65,7 +65,7 @@ export function AnimatedImage({
       initial={{ scale: 1, x: "0%" }}
       animate={animate}
       transition={
-        reduceMotion
+        reduceMotion || drift === "none"
           ? { duration: 0 }
           : {
               duration: drift === "in" ? 16 : 20,

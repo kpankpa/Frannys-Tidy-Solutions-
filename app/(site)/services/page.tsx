@@ -3,15 +3,21 @@ import { Suspense } from "react";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { Button } from "@/components/ui/Button";
 import { HeroOverlay } from "@/components/ui/HeroOverlay";
+import { PageHeroTitle } from "@/components/ui/PageHeroTitle";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { AccentCircles } from "@/components/ui/AccentCircles";
 import { SectionSpinner } from "@/components/ui/PageSpinner";
 import { BookingForm } from "@/components/services/BookingForm";
 import { WhyBook } from "@/components/services/WhyBook";
 import { resolveCleaningServices } from "@/lib/services";
-import { getSiteConfig } from "@/lib/db/settings";
-import { FLYERS } from "@/lib/flyers";
+import { SectionIntro } from "@/components/ui/SectionIntro";
+import { PAGE_SUBTITLE_CLASS, PAGE_TITLE_CLASS } from "@/lib/section-typography";
+import { getCachedSiteConfig } from "@/lib/db/cached-public";
 import { formatPrice } from "@/lib/products";
+import {
+  PAGE_HERO_INNER_CLASS,
+  PAGE_HERO_SECTION_CLASS,
+} from "@/lib/hero-layout";
 
 export const metadata = {
   title: "Cleaning Services",
@@ -20,58 +26,45 @@ export const metadata = {
 };
 
 export default async function ServicesPage() {
-  const site = await getSiteConfig();
+  const site = await getCachedSiteConfig();
   const services = resolveCleaningServices(site.serviceItems);
 
   return (
     <>
       {/* 1. Hero */}
-      <section className="relative isolate overflow-hidden bg-primary-dark text-white">
+      <section className={PAGE_HERO_SECTION_CLASS}>
         <AnimatedImage
-          src={FLYERS.brandProducts.src}
-          alt={FLYERS.brandProducts.alt}
+          src={site.servicesHeroImage}
+          alt="Frannys team member showcasing branded cleaning products"
           priority
           sizes="100vw"
           className="object-[center_18%]"
           drift="in"
         />
         <HeroOverlay />
-        <div className="container-page relative py-20 sm:py-28">
-          <FadeIn className="max-w-2xl">
-            <p className="text-2xl font-extrabold tracking-tight sm:text-4xl">
-              {site.name}
-            </p>
-            <h1 className="mt-4 text-xl font-semibold leading-snug text-white/95 sm:text-3xl">
-              {site.servicesHeroHeadline}
-            </h1>
-            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
-              {site.servicesHeroSubcopy}
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button href="#book" variant="light" size="md">
-                Book a Cleaning
-              </Button>
-              <a
-                href="#services"
-                className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 px-5 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
-              >
-                View Services
-              </a>
-            </div>
-          </FadeIn>
+        <div className={PAGE_HERO_INNER_CLASS}>
+          <PageHeroTitle title={site.servicesHeroHeadline}>
+            <Button href="#book" variant="light" size="md">
+              Book a Cleaning
+            </Button>
+            <a
+              href="#services"
+              className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 px-5 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
+            >
+              View Services
+            </a>
+          </PageHeroTitle>
         </div>
       </section>
 
       {/* 2. Service catalogue */}
       <section id="services" className="bg-surface py-16 sm:py-20">
         <div className="container-page">
-          <FadeIn className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              {site.servicesSectionHeadline}
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              {site.servicesSectionSubcopy}
-            </p>
+          <FadeIn>
+            <SectionIntro
+              title={site.servicesSectionHeadline}
+              subtitle={site.servicesSectionSubcopy}
+            />
           </FadeIn>
 
           <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -112,13 +105,11 @@ export default async function ServicesPage() {
       {site.servicePackages.length > 0 ? (
         <section className="border-y border-border bg-surface-muted/60 py-16 sm:py-20">
           <div className="container-page">
-            <FadeIn className="max-w-2xl">
-              <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-                {site.packagesHeadline}
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-muted">
-                {site.packagesSubcopy}
-              </p>
+            <FadeIn>
+              <SectionIntro
+                title={site.packagesHeadline}
+                subtitle={site.packagesSubcopy}
+              />
             </FadeIn>
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {site.servicePackages.map((pkg, i) => (
@@ -151,13 +142,11 @@ export default async function ServicesPage() {
       {/* 3. How it works */}
       <section className="droplet-bg border-y border-border py-16 sm:py-20">
         <div className="container-page">
-          <FadeIn className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              {site.serviceProcessTitle}
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              {site.serviceProcessSubcopy}
-            </p>
+          <FadeIn>
+            <SectionIntro
+              title={site.serviceProcessTitle}
+              subtitle={site.serviceProcessSubcopy}
+            />
           </FadeIn>
 
           <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -197,9 +186,10 @@ export default async function ServicesPage() {
             </div>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              {site.serviceSpacesTitle}
-            </h2>
+            <SectionIntro
+              title={site.serviceSpacesTitle}
+              maxWidthClass="max-w-none"
+            />
             <ul className="mt-8 space-y-5">
               {site.serviceSpaces.map((space) => (
                 <li key={space.title} className="border-l-2 border-secondary/40 pl-4">
@@ -224,13 +214,12 @@ export default async function ServicesPage() {
       <section id="book" className="bg-surface-muted py-16 sm:py-20">
         <div className="container-page">
           <FadeIn className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Request a cleaning visit
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              Tell us what you need. We save your request, then open WhatsApp so
-              you can confirm with the {site.shortName} team.
-            </p>
+            <SectionIntro
+              title="Request a cleaning visit"
+              subtitle={`Tell us what you need. We save your request, then open WhatsApp so you can confirm with the ${site.shortName} team.`}
+              align="center"
+              maxWidthClass="max-w-none"
+            />
           </FadeIn>
           <div className="mx-auto mt-10 max-w-2xl">
             <Suspense fallback={<SectionSpinner label="Loading booking form..." />}>
@@ -248,10 +237,10 @@ export default async function ServicesPage() {
               <AccentCircles />
               <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
                 <div>
-                  <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                  <h2 className={`${PAGE_TITLE_CLASS} text-white`}>
                     Prefer to talk first?
                   </h2>
-                  <p className="mt-2 max-w-xl text-sm text-white/75">
+                  <p className={`${PAGE_SUBTITLE_CLASS} max-w-xl text-white/75`}>
                     Reach us any day of the week. We are based in {site.address}.
                   </p>
                 </div>

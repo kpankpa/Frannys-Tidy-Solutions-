@@ -1,3 +1,7 @@
+import {
+  SECTION_SUBTITLE_CLASS,
+  SECTION_TITLE_CLASS,
+} from "@/lib/section-typography";
 import { cn } from "@/lib/utils";
 
 type SectionHeadingProps = {
@@ -16,18 +20,14 @@ export function SectionHeading({
   return (
     <div
       className={cn(
-        "max-w-xl",
+        "max-w-2xl",
         align === "center" ? "mx-auto text-center" : "text-left",
         className,
       )}
     >
-      <h2 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">
-        {title}
-      </h2>
+      <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
       {description ? (
-        <p className="mt-2.5 text-sm leading-relaxed text-muted sm:text-[15px]">
-          {description}
-        </p>
+        <p className={SECTION_SUBTITLE_CLASS}>{description}</p>
       ) : null}
     </div>
   );

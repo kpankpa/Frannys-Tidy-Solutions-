@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/ui/PageSpinner";
+import { HomePageSkeleton } from "@/components/ui/PageSkeletons";
 
 export default function SiteLoading() {
-  return <PageSpinner label="Loading page..." />;
+  return <HomePageSkeleton />;
 }

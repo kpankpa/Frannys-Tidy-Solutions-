@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { getDefaultSiteConfig, getSiteConfig } from "@/lib/db/settings";
+import { DEFAULT_LOGO_URL } from "@/lib/site-config";
 import { safeAdminCallbackUrl } from "@/lib/auth/admin-page";
 import { rateLimit, rateLimitMessage } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-ip";
@@ -76,15 +77,15 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
       <div className="w-full max-w-md rounded-[10px] border border-border bg-surface p-8 shadow-sm">
         <div className="mb-6 flex justify-center">
           <Image
-            src={site.logoUrl || "/frannystidy.png"}
+            src={site.logoUrl || DEFAULT_LOGO_URL}
             alt={site.name}
-            width={96}
-            height={96}
+            width={180}
+            height={72}
             unoptimized={
               site.logoUrl.startsWith("/uploads/") ||
               site.logoUrl.startsWith("https://")
             }
-            className="h-24 w-24 rounded-md object-contain"
+            className="h-20 w-auto max-w-[11rem] object-contain"
             priority
           />
         </div>

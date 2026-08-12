@@ -36,6 +36,7 @@ export function MobileBottomNav() {
             <li key={item.href}>
               <Link
                 href={item.href}
+                prefetch
                 className={cn(
                   "relative flex flex-col items-center gap-1 py-2.5 text-[10px] font-medium",
                   active ? "text-primary" : "text-muted",

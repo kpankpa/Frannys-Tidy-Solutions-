@@ -11,6 +11,8 @@ import { placeBookingAction } from "@/server/bookings";
 const field =
   "mt-1.5 w-full rounded-[8px] border border-border bg-white px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
 
+const OTHER_SERVICE_OPTION = "Others";
+
 export function BookingForm() {
   const searchParams = useSearchParams();
   const { buildWhatsAppUrl, site } = useWhatsAppHelpers();
@@ -110,6 +112,7 @@ export function BookingForm() {
                 {s.title}
               </option>
             ))}
+            <option value={OTHER_SERVICE_OPTION}>{OTHER_SERVICE_OPTION}</option>
           </select>
         </label>
         <label className="block">

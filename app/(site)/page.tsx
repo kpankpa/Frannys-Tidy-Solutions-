@@ -7,14 +7,14 @@ import {
   WhyChoose,
 } from "@/components/home/HomeSections";
 import { HomeHero } from "@/components/home/HomeHero";
-import { listProducts } from "@/lib/db/products";
-import { getSiteConfig } from "@/lib/db/settings";
+import { PromoSpotlight } from "@/components/promo/PromoSpotlight";
+import { getCachedProducts, getCachedSiteConfig } from "@/lib/db/cached-public";
 import { resolveCleaningServices } from "@/lib/services";
 
 export default async function HomePage() {
   const [products, site] = await Promise.all([
-    listProducts(),
-    getSiteConfig(),
+    getCachedProducts(),
+    getCachedSiteConfig(),
   ]);
   const services = resolveCleaningServices(site.serviceItems);
 
@@ -26,6 +26,7 @@ export default async function HomePage() {
         description={site.homeWhyDescription}
         items={site.whyChooseItems}
       />
+      <PromoSpotlight promo={site.promoBanner} />
       <FeaturedProducts
         products={products}
         title={site.homeShopTitle}

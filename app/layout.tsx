@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
 import { CartProvider } from "@/lib/cart";
-import { getSiteConfig } from "@/lib/db/settings";
-import { SITE } from "@/lib/constants";
+import { getCachedSiteConfig } from "@/lib/db/cached-public";
+import { getDefaultSiteConfig } from "@/lib/db/settings";
+import { SITE_BRAND_ICON } from "@/lib/constants";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -20,9 +21,9 @@ function siteOrigin() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const site = await getSiteConfig().catch(() => null);
-  const name = site?.name ?? SITE.name;
-  const description = site?.description ?? SITE.description;
+  const site = await getCachedSiteConfig().catch(() => getDefaultSiteConfig());
+  const name = site.name;
+  const description = site.description;
   const origin = siteOrigin();
 
   return {
@@ -47,8 +48,12 @@ export async function generateMetadata(): Promise<Metadata> {
       "WhatsApp checkout",
     ],
     icons: {
-      icon: "/frannystidy.png",
-      apple: "/frannystidy.png",
+      icon: [
+        { url: SITE_BRAND_ICON, type: "image/jpeg" },
+        { url: SITE_BRAND_ICON, sizes: "512x512", type: "image/jpeg" },
+      ],
+      apple: [{ url: SITE_BRAND_ICON, type: "image/jpeg" }],
+      shortcut: SITE_BRAND_ICON,
     },
     openGraph: {
       title: `${name} | Cleaning Made Easy`,
@@ -59,8 +64,8 @@ export async function generateMetadata(): Promise<Metadata> {
       url: origin,
       images: [
         {
-          url: "/frannystidy.png",
-          alt: name,
+          url: SITE_BRAND_ICON,
+          alt: `${name} logo`,
           width: 512,
           height: 512,
         },
@@ -70,7 +75,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: "summary",
       title: `${name} | Cleaning Made Easy`,
       description,
-      images: ["/frannystidy.png"],
+      images: [SITE_BRAND_ICON],
     },
   };
 }

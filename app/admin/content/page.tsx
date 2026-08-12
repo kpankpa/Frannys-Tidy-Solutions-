@@ -1,5 +1,4 @@
 import { getSiteConfig } from "@/lib/db/settings";
-import { cleaningServices } from "@/lib/services";
 import { saveSiteContentAction } from "@/server/admin";
 import { AdminImageField } from "@/components/admin/AdminImageField";
 import { PendingSubmitButton } from "@/components/ui/PendingSubmitButton";
@@ -25,7 +24,6 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
   const promises = [0, 1, 2].map(
     (i) => site.servicePromises[i] ?? { title: "", body: "" },
   );
-  const serviceById = new Map(site.serviceItems.map((s) => [s.id, s]));
 
   return (
     <div className="space-y-6">
@@ -33,13 +31,21 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
         <h1 className="text-2xl font-bold">Site content</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted">
           Edit marketing copy across Home, Shop, Services, Contact, and About.
-          Business details (phone, email, hours, logo, receipt) live under{" "}
+          Home hero image is under{" "}
+          <a href="/admin/settings" className="font-medium text-primary hover:underline">
+            Settings
+          </a>
+          . Business details (phone, email, hours, logo, receipt) also live under{" "}
           <a href="/admin/settings" className="font-medium text-primary hover:underline">
             Settings
           </a>
           . Product names and prices are under{" "}
           <a href="/admin/products" className="font-medium text-primary hover:underline">
             Products
+          </a>
+          . Cleaning service cards and packages are under{" "}
+          <a href="/admin/services" className="font-medium text-primary hover:underline">
+            Cleaning services
           </a>
           .
         </p>
@@ -275,6 +281,12 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
               className={field}
             />
           </label>
+          <AdminImageField
+            name="shopHeroImage"
+            label="Shop hero image"
+            defaultValue={site.shopHeroImage}
+            hint="Background photo on the Shop page hero."
+          />
         </section>
 
         <section className={sectionClass}>
@@ -296,6 +308,12 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
               className={field}
             />
           </label>
+          <AdminImageField
+            name="servicesHeroImage"
+            label="Services hero image"
+            defaultValue={site.servicesHeroImage}
+            hint="Background photo on the Services page hero."
+          />
           <label className="block text-sm">
             <span className="font-medium">Catalogue section title</span>
             <input
@@ -321,45 +339,13 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
               className={field}
             />
           </label>
-          <div className="space-y-3">
-            <p className="text-sm font-medium">Service cards</p>
-            {cleaningServices.map((service) => {
-              const current = serviceById.get(service.id) ?? service;
-              return (
-                <div
-                  key={service.id}
-                  className="space-y-3 rounded-[8px] border border-border/80 p-3"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    {service.id}
-                  </p>
-                  <label className="block text-sm">
-                    <span className="text-muted">Title</span>
-                    <input
-                      name={`serviceTitle_${service.id}`}
-                      defaultValue={current.title}
-                      className={field}
-                    />
-                  </label>
-                  <label className="block text-sm">
-                    <span className="text-muted">Description</span>
-                    <textarea
-                      name={`serviceDesc_${service.id}`}
-                      rows={2}
-                      defaultValue={current.description}
-                      className={field}
-                    />
-                  </label>
-                  <AdminImageField
-                    name={`serviceImage_${service.id}`}
-                    label="Card image"
-                    defaultValue={current.image ?? service.image}
-                    hint="Upload or pick from the media library."
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <p className="rounded-[8px] bg-surface-muted px-3 py-2 text-sm text-muted">
+            Service cards, images, and fixed-price packages are managed under{" "}
+            <a href="/admin/services" className="font-medium text-primary hover:underline">
+              Cleaning services
+            </a>
+            .
+          </p>
           <label className="block text-sm">
             <span className="font-medium">Packages section title</span>
             <input
@@ -529,6 +515,12 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
               className={field}
             />
           </label>
+          <AdminImageField
+            name="contactHeroImage"
+            label="Contact hero image"
+            defaultValue={site.contactHeroImage}
+            hint="Background photo on the Contact page hero."
+          />
           <label className="block text-sm">
             <span className="font-medium">Topics section title</span>
             <input
@@ -558,6 +550,30 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
               className={field}
             />
           </label>
+          <AdminImageField
+            name="aboutHeroImage"
+            label="About hero image"
+            defaultValue={site.aboutHeroImage}
+            hint="Background photo on the About page hero."
+          />
+          <AdminImageField
+            name="aboutPromiseImage"
+            label="About promise illustration"
+            defaultValue={site.aboutPromiseImage}
+            hint="Illustration beside the promise quote near the top of About."
+          />
+          <AdminImageField
+            name="aboutStoryImage"
+            label="About story image"
+            defaultValue={site.aboutStoryImage}
+            hint="Photo beside the Our story section."
+          />
+          <AdminImageField
+            name="aboutDealerImage"
+            label="About products section image"
+            defaultValue={site.aboutDealerImage}
+            hint="Flyer or product photo beside the detergents and services section."
+          />
           <label className="block text-sm">
             <span className="font-medium">About intro</span>
             <textarea
@@ -828,61 +844,6 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
                       <span className="font-medium">Approved (show on site)</span>
                     </label>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className={sectionClass}>
-          <h2 className="font-bold">Service packages (fixed prices)</h2>
-          <p className="text-sm text-muted">
-            Shown on the Services page as &quot;from GH₵&quot; packages. Leave a
-            row blank to skip it.
-          </p>
-          <div className="space-y-3">
-            {[0, 1, 2, 3, 4].map((i) => {
-              const item = site.servicePackages[i] ?? {
-                name: "",
-                description: "",
-                priceFromCedis: 0,
-              };
-              return (
-                <div
-                  key={i}
-                  className="space-y-3 rounded-[8px] border border-border/80 p-3"
-                >
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                    Package {i + 1}
-                  </p>
-                  <label className="block text-sm">
-                    <span className="text-muted">Name</span>
-                    <input
-                      name={`packageName${i}`}
-                      defaultValue={item.name}
-                      className={field}
-                    />
-                  </label>
-                  <label className="block text-sm">
-                    <span className="text-muted">Description</span>
-                    <textarea
-                      name={`packageDesc${i}`}
-                      rows={2}
-                      defaultValue={item.description}
-                      className={field}
-                    />
-                  </label>
-                  <label className="block text-sm">
-                    <span className="text-muted">From price (GH₵)</span>
-                    <input
-                      name={`packagePrice${i}`}
-                      type="number"
-                      min={0}
-                      step="1"
-                      defaultValue={item.priceFromCedis || ""}
-                      className={field}
-                    />
-                  </label>
                 </div>
               );
             })}

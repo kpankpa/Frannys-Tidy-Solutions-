@@ -11,6 +11,10 @@ import {
 } from "lucide-react";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import {
+  SECTION_SUBTITLE_CLASS,
+  SECTION_TITLE_CLASS,
+} from "@/lib/section-typography";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Button } from "@/components/ui/Button";
 import { AccentCircles } from "@/components/ui/AccentCircles";
@@ -93,10 +97,8 @@ export function FeaturedProducts({
       <div className="container-page">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-primary sm:text-3xl">
-              {title}
-            </h2>
-            <p className="mt-2 max-w-lg text-sm text-muted">{description}</p>
+            <h2 className={SECTION_TITLE_CLASS}>{title}</h2>
+            <p className={`${SECTION_SUBTITLE_CLASS} max-w-lg`}>{description}</p>
           </div>
           <Link
             href="/shop"
@@ -287,10 +289,10 @@ export function HomeCTA({
         <FadeIn>
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-dark px-6 py-10 text-center text-white soft-shadow sm:rounded-3xl sm:px-10 sm:py-12">
             <AccentCircles />
-            <h2 className="relative text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className={`relative ${SECTION_TITLE_CLASS} text-white`}>
               {title}
             </h2>
-            <p className="relative mx-auto mt-3 max-w-lg text-sm text-white/75 sm:text-[15px]">
+            <p className="relative mx-auto mt-3 max-w-lg text-sm leading-relaxed text-white/75 sm:text-[15px]">
               {description}
             </p>
             <div className="relative mt-6 flex flex-col items-center justify-center gap-2.5 sm:flex-row">

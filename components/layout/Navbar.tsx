@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -12,9 +12,19 @@ import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const { count } = useCart();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    for (const link of NAV_LINKS) {
+      router.prefetch(link.href);
+    }
+    router.prefetch("/contact");
+    router.prefetch("/cart");
+    router.prefetch("/checkout");
+  }, [router]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -33,19 +43,23 @@ export function Navbar() {
   function closeMenu() {
     setOpen(false);
   }
+
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 border-b transition-all duration-300",
-        scrolled
-          ? "border-border/80 bg-white/90 shadow-sm backdrop-blur-md"
-          : "border-transparent bg-white/80 backdrop-blur-sm",
+        "sticky top-0 z-50 border-b border-border/80 bg-white transition-shadow duration-300",
+        scrolled && "shadow-sm",
       )}
     >
-      <div className="container-page flex h-14 items-center justify-between gap-4 md:h-16">
-        <BrandLogo href="/" size="md" priority className="h-11 w-11 sm:h-12 sm:w-12" />
+      <div className="container-page flex h-20 items-center gap-3 overflow-hidden md:h-24 md:gap-4">
+        <div className="flex h-full min-w-0 shrink-0 items-center">
+          <BrandLogo href="/" size="nav" priority />
+        </div>
 
-        <nav className="hidden items-center gap-6 xl:flex" aria-label="Primary">
+        <nav
+          className="hidden min-w-0 flex-1 items-center justify-center gap-6 xl:flex"
+          aria-label="Primary"
+        >
           {NAV_LINKS.map((link) => {
             const active =
               link.href === "/"
@@ -55,6 +69,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch
                 className={cn(
                   "text-sm font-medium transition-colors",
                   active ? "text-primary" : "text-muted hover:text-primary",
@@ -66,9 +81,10 @@ export function Navbar() {
           })}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <Link
             href="/cart"
+            prefetch
             className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-surface-muted"
             aria-label={`Cart with ${count} items`}
           >
@@ -105,6 +121,7 @@ export function Navbar() {
             <Link
               key={link.href}
               href={link.href}
+              prefetch
               onClick={closeMenu}
               className="rounded-[8px] px-3 py-3 text-base font-medium text-foreground hover:bg-surface-muted"
             >

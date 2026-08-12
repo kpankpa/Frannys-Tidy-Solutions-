@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidatePublicCatalogCache } from "@/lib/cache";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import {
   createProduct,
@@ -39,6 +40,7 @@ function parseImageUrls(raw: string): {
 }
 
 function revalidateProductPaths(slug?: string | null) {
+  revalidatePublicCatalogCache();
   revalidatePath("/shop");
   revalidatePath("/");
   revalidatePath("/admin/products");
@@ -174,6 +176,7 @@ export async function createCategoryAction(formData: FormData) {
   }
   try {
     await createCategory(name);
+    revalidatePublicCatalogCache();
     revalidatePath("/admin/products");
     revalidatePath("/admin/categories");
     revalidatePath("/shop");
@@ -196,6 +199,7 @@ export async function renameCategoryAction(formData: FormData) {
   }
   try {
     await renameCategory(id, name);
+    revalidatePublicCatalogCache();
     revalidatePath("/admin/products");
     revalidatePath("/admin/categories");
     revalidatePath("/shop");
@@ -215,6 +219,7 @@ export async function deleteCategoryAction(formData: FormData) {
   if (!id) return { ok: false as const, error: "Missing category." };
   try {
     await deleteCategory(id);
+    revalidatePublicCatalogCache();
     revalidatePath("/admin/products");
     revalidatePath("/admin/categories");
     revalidatePath("/shop");

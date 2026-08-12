@@ -6,57 +6,49 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { HeroOverlay } from "@/components/ui/HeroOverlay";
-import { FLYERS } from "@/lib/flyers";
+import {
+  ABOUT_HERO_INNER_CLASS,
+  ABOUT_HERO_SECTION_CLASS,
+} from "@/lib/hero-layout";
 
 type AboutHeroProps = {
-  brandName: string;
   headline: string;
-  intro: string;
+  heroImage: string;
 };
 
-export function AboutHero({ brandName, headline, intro }: AboutHeroProps) {
+export function AboutHero({ headline, heroImage }: AboutHeroProps) {
+  const lines = headline.split("\n").filter(Boolean);
+
   return (
-    <section className="relative isolate min-h-[78vh] overflow-hidden bg-primary-dark text-white">
+    <section className={ABOUT_HERO_SECTION_CLASS}>
       <AnimatedImage
-        src={FLYERS.freshness.src}
-        alt={FLYERS.freshness.alt}
+        src={heroImage}
+        alt="Frannys Tidy Solutions team member presenting Frannys cleaning products in Accra, Ghana"
         priority
         sizes="100vw"
-        className="object-[center_25%]"
-        drift="right"
+        className="object-[center_54%]"
+        drift="none"
       />
       <HeroOverlay />
 
-      <div className="container-page relative flex min-h-[78vh] flex-col justify-end pb-14 pt-28 sm:pb-20 sm:pt-32">
-        <motion.p
+      <div className={ABOUT_HERO_INNER_CLASS}>
+        <motion.h1
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-3xl text-3xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl"
+          className="max-w-2xl text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl"
         >
-          {brandName}
-        </motion.p>
-        <motion.h1
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-4 max-w-2xl text-xl font-semibold leading-snug text-white/95 sm:text-2xl lg:text-[1.75rem]"
-        >
-          {headline}
+          {lines.map((line) => (
+            <span key={line} className="block">
+              {line}
+            </span>
+          ))}
         </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base"
-        >
-          {intro}
-        </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.65, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8 flex flex-col gap-3 sm:flex-row"
+          transition={{ duration: 0.65, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+          className="mt-6 flex flex-col gap-3 sm:flex-row"
         >
           <Button href="/services" variant="light" size="md">
             Book Cleaning

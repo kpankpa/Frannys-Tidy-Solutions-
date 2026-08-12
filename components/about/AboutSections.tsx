@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   Clock3,
@@ -11,9 +12,17 @@ import {
 import { Reveal, Stagger, StaggerItem } from "@/components/about/Reveal";
 import { Button } from "@/components/ui/Button";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
+import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { AccentCircles } from "@/components/ui/AccentCircles";
 import { InstagramIcon, TikTokIcon } from "@/components/ui/SocialIcons";
-import { FLYERS } from "@/lib/flyers";
+import { TeamSlideshow } from "@/components/team/TeamSlideshow";
+import { SectionIntro } from "@/components/ui/SectionIntro";
+import { PEOPLE_IMAGES } from "@/lib/people-images";
+import {
+  SECTION_BODY_CLASS,
+  SECTION_SUBTITLE_CLASS,
+  SECTION_TITLE_CLASS,
+} from "@/lib/section-typography";
 import type {
   JourneyItem,
   TestimonialItem,
@@ -27,6 +36,9 @@ type AboutSectionsProps = {
   mission: string;
   vision: string;
   promise: string;
+  promiseImage: string;
+  storyImage: string;
+  dealerImage: string;
   values: TitleBodyItem[];
   journey: JourneyItem[];
   difference: TitleBodyItem[];
@@ -45,6 +57,18 @@ type AboutSectionsProps = {
   yearsGrowing: number;
 };
 
+function productStatValue(count: number) {
+  return `${Math.max(count, 1)}+`;
+}
+
+/** Scale the stat numeral up as the product count grows. */
+function productStatSizeClass(count: number) {
+  const n = Math.max(count, 1);
+  if (n >= 100) return "text-5xl sm:text-6xl lg:text-7xl";
+  if (n >= 10) return "text-4xl sm:text-5xl lg:text-6xl";
+  return "text-4xl sm:text-5xl lg:text-6xl";
+}
+
 export function AboutSections({
   brandName,
   shortName,
@@ -52,6 +76,9 @@ export function AboutSections({
   mission,
   vision,
   promise,
+  promiseImage,
+  storyImage,
+  dealerImage,
   values,
   journey,
   difference,
@@ -79,15 +106,24 @@ export function AboutSections({
   return (
     <>
       {/* 1. Promise */}
-      <section className="border-b border-border bg-surface">
-        <div className="container-page py-14 sm:py-16">
-          <Reveal className="mx-auto max-w-3xl text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-secondary">
-              Registered cleaning company in Accra, Ghana
+      <section>
+        <div className="container-page grid items-center gap-10 py-16 lg:grid-cols-2 lg:gap-14 lg:py-20">
+          <Reveal>
+            <p className="text-2xl font-bold leading-snug tracking-tight text-primary sm:text-3xl lg:text-[2.125rem] lg:leading-[1.35]">
+              &ldquo;{promise}&rdquo;
             </p>
-            <h2 className="mt-3 text-2xl font-bold leading-snug tracking-tight text-primary sm:text-3xl">
-              {promise}
-            </h2>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="relative aspect-[3/2] w-full">
+              <Image
+                src={promiseImage}
+                alt="Frannys professional cleaning team illustration"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                unoptimized={shouldUnoptimizeImage(promiseImage)}
+                className="object-contain"
+              />
+            </div>
           </Reveal>
         </div>
       </section>
@@ -98,8 +134,8 @@ export function AboutSections({
           <Reveal>
             <div className="relative aspect-[4/5] overflow-hidden rounded-2xl soft-shadow sm:aspect-[5/6]">
               <AnimatedImage
-                src={FLYERS.brandProducts.src}
-                alt={FLYERS.brandProducts.alt}
+                src={storyImage}
+                alt="Frannys team member showcasing branded cleaning products"
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-[center_15%]"
                 drift="left"
@@ -107,10 +143,10 @@ export function AboutSections({
             </div>
           </Reveal>
           <Reveal delay={0.1}>
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+            <h2 className={SECTION_TITLE_CLASS}>
               Our story as a cleaning company in Accra
             </h2>
-            <div className="mt-5 space-y-4 text-[15px] leading-relaxed text-muted">
+            <div className={`${SECTION_BODY_CLASS} space-y-4`}>
               {story
                 .split(/(?<=\.)\s+/)
                 .map((paragraph) => paragraph.trim())
@@ -123,17 +159,35 @@ export function AboutSections({
         </div>
       </section>
 
-      {/* 3. Mission & vision */}
+      {/* 3. Meet the team */}
+      <section className="border-y border-border bg-surface-muted">
+        <div className="container-page grid items-center gap-10 py-16 lg:grid-cols-2 lg:gap-14 lg:py-20">
+          <Reveal>
+            <SectionIntro
+              title="Proud to wear our name"
+              subtitle="Faces of Frannys across Accra and Ghana"
+              body="Our black and yellow shirts are not just uniforms. They stand for the same quality in our detergents and the same care on every cleaning job. These are the people who show up for homes and businesses every day."
+            />
+          </Reveal>
+          <Reveal delay={0.1}>
+            <TeamSlideshow images={PEOPLE_IMAGES} />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* 4. Mission & vision */}
       <section className="relative overflow-hidden bg-primary-dark text-white">
         <AccentCircles tone="band" />
         <div className="container-page relative py-16 sm:py-20">
           <Reveal className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Mission and vision
-            </h2>
-            <p className="mt-3 text-[15px] text-white/70">
-              Clear purpose for every product we make and every space we clean.
-            </p>
+            <SectionIntro
+              title="Mission and vision"
+              subtitle="Clear purpose for every product we make and every space we clean."
+              align="center"
+              maxWidthClass="max-w-none"
+              titleClassName="text-white"
+              subtitleClassName="text-white/70"
+            />
           </Reveal>
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-0">
             <Reveal className="lg:border-r lg:border-white/12 lg:pr-14">
@@ -166,14 +220,11 @@ export function AboutSections({
       <section className="bg-surface">
         <div className="container-page py-16 sm:py-20">
           <Reveal className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Why Accra homes and businesses trust {shortName}
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              Practical reasons to choose our cleaning products and professional
-              cleaning services in Accra, with roots in {locationBlurb} and a
-              clear standard of care.
-            </p>
+            <SectionIntro
+              title={`Why Accra homes and businesses trust ${shortName}`}
+              subtitle={`Practical reasons to choose our cleaning products and professional cleaning services in Accra, with roots in ${locationBlurb} and a clear standard of care.`}
+              maxWidthClass="max-w-none"
+            />
           </Reveal>
 
           <Stagger className="mt-12 grid gap-6 sm:grid-cols-2">
@@ -210,21 +261,19 @@ export function AboutSections({
         <div className="container-page py-16 sm:py-20">
           <div className="grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
             <Reveal>
-              <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-                Cleaning detergents and professional cleaning services
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-muted">
-                {shortName} is a complete cleaning solutions partner in Ghana:
-                shop cleaning detergents and book home cleaning or office
-                cleaning under one trusted standard.
-              </p>
-              <div className="relative mt-8 aspect-[4/3] overflow-hidden rounded-2xl soft-shadow">
-                <AnimatedImage
-                  src={FLYERS.productLineup.src}
-                  alt={FLYERS.productLineup.alt}
+              <SectionIntro
+                title="Cleaning detergents and professional cleaning services"
+                subtitle={`${shortName} is a complete cleaning solutions partner in Ghana: shop cleaning detergents and book home cleaning or office cleaning under one trusted standard.`}
+                maxWidthClass="max-w-none"
+              />
+              <div className="relative mt-8 aspect-[4/5] overflow-hidden rounded-2xl border border-border/60 bg-white soft-shadow">
+                <Image
+                  src={dealerImage}
+                  alt="Frannys Tidy Solutions product range"
+                  fill
                   sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-[center_70%]"
-                  drift="in"
+                  unoptimized={shouldUnoptimizeImage(dealerImage)}
+                  className="object-contain p-1"
                 />
               </div>
             </Reveal>
@@ -252,13 +301,11 @@ export function AboutSections({
       <section className="bg-surface">
         <div className="container-page py-16 sm:py-20">
           <Reveal className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Values that show up in the work
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              These are not wall slogans. They shape how we formulate, how we
-              train, and how we show up at your door.
-            </p>
+            <SectionIntro
+              title="Values that show up in the work"
+              subtitle="These are not wall slogans. They shape how we formulate, how we train, and how we show up at your door."
+              maxWidthClass="max-w-none"
+            />
           </Reveal>
 
           <Stagger className="mt-12 grid gap-8 sm:grid-cols-2">
@@ -283,13 +330,11 @@ export function AboutSections({
       <section className="bg-surface-muted">
         <div className="container-page py-16 sm:py-20">
           <Reveal className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Growing with Ghana, one clean space at a time
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              From founding to retail reach and registered operations, our focus
-              has stayed the same: cleaner, healthier everyday spaces.
-            </p>
+            <SectionIntro
+              title="Growing with Ghana, one clean space at a time"
+              subtitle="From founding to retail reach and registered operations, our focus has stayed the same: cleaner, healthier everyday spaces."
+              maxWidthClass="max-w-none"
+            />
           </Reveal>
 
           <ol className="relative mt-12 space-y-0 border-l border-border pl-8 sm:pl-10">
@@ -320,28 +365,34 @@ export function AboutSections({
       <section className="bg-surface">
         <div className="container-page py-16 sm:py-20">
           <Reveal className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Cleaning products and services from {locationBlurb}
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              Buy Frannys cleaning detergents through selected retail partners in
-              Accra and Mampong, or shop online. Book professional home cleaning,
-              office cleaning, and commercial cleaning across Accra and
-              surrounding areas.
-            </p>
+            <SectionIntro
+              title={`Cleaning products and services from ${locationBlurb}`}
+              subtitle="Buy Frannys cleaning detergents through selected retail partners in Accra and Mampong, or shop online. Book professional home cleaning, office cleaning, and commercial cleaning across Accra and surrounding areas."
+              maxWidthClass="max-w-none"
+            />
           </Reveal>
 
           <Stagger className="mt-12 grid gap-8 sm:grid-cols-3">
-            {[
-              { value: `${yearsGrowing}+`, label: "Years growing with Ghana" },
-              {
-                value: String(Math.max(productCount, 1)),
-                label: "Products available to shop",
-              },
-              { value: "7", label: "Days a week, ready to help" },
-            ].map((stat) => (
+            {(
+              [
+                {
+                  value: `${yearsGrowing}+`,
+                  label: "Years growing with Ghana",
+                },
+                {
+                  value: productStatValue(productCount),
+                  label: "Products available to shop",
+                  valueClass: productStatSizeClass(productCount),
+                },
+                { value: "7", label: "Days a week, ready to help" },
+              ] as const
+            ).map((stat) => (
               <StaggerItem key={stat.label}>
-                <p className="text-4xl font-extrabold tracking-tight text-primary sm:text-5xl">
+                <p
+                  className={`font-extrabold tracking-tight text-primary ${
+                    "valueClass" in stat ? stat.valueClass : "text-4xl sm:text-5xl"
+                  }`}
+                >
                   {stat.value}
                 </p>
                 <p className="mt-2 text-sm text-muted">{stat.label}</p>
@@ -355,13 +406,11 @@ export function AboutSections({
         <section className="border-t border-border bg-surface-muted/70 py-16 sm:py-20">
           <div className="container-page">
             <Reveal className="max-w-2xl">
-              <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-                What customers say
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-muted">
-                Real feedback from homes and businesses that use Frannys cleaning
-                products and cleaning services in Accra.
-              </p>
+              <SectionIntro
+                title="What customers say"
+                subtitle="Real feedback from homes and businesses that use Frannys cleaning products and cleaning services in Accra."
+                maxWidthClass="max-w-none"
+              />
             </Reveal>
             <Stagger className="mt-10 grid gap-4 md:grid-cols-3">
               {approvedReviews.map((t) => (
@@ -395,13 +444,11 @@ export function AboutSections({
         <div className="container-page py-16 sm:py-20">
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-14">
             <Reveal>
-              <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-                Contact our Accra cleaning company
-              </h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-muted">
-                Reach Frannys Tidy Solutions for cleaning products, home
-                cleaning bookings, and office cleaning enquiries in Accra.
-              </p>
+              <SectionIntro
+                title="Contact our Accra cleaning company"
+                subtitle="Reach Frannys Tidy Solutions for cleaning products, home cleaning bookings, and office cleaning enquiries in Accra."
+                maxWidthClass="max-w-none"
+              />
 
               <dl className="mt-8 space-y-5">
                 <div className="flex gap-3">
@@ -514,14 +561,15 @@ export function AboutSections({
           <Reveal>
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary to-primary-dark px-6 py-10 text-center text-white soft-shadow sm:rounded-3xl sm:px-10 sm:py-12">
               <AccentCircles />
-              <h2 className="relative text-3xl font-bold tracking-tight sm:text-4xl">
-                Ready for a fresher space?
-              </h2>
-              <p className="relative mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-white/75">
-                Whether you need reliable detergents for home or a professional
-                clean for your space, {brandName} is here to make freshness feel
-                simple.
-              </p>
+              <SectionIntro
+                title="Ready for a fresher space?"
+                subtitle={`Whether you need reliable detergents for home or a professional clean for your space, ${brandName} is here to make freshness feel simple.`}
+                align="center"
+                maxWidthClass="max-w-xl"
+                titleClassName="relative text-white"
+                subtitleClassName="relative text-white/75"
+                bodyClassName="relative"
+              />
               <div className="relative mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <Button href="/services" variant="light" size="md">
                   Book a Cleaning

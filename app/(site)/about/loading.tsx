@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/ui/PageSpinner";
+import { HeroContentPageSkeleton } from "@/components/ui/PageSkeletons";
 
 export default function AboutLoading() {
-  return <PageSpinner label="Loading..." />;
+  return <HeroContentPageSkeleton />;
 }

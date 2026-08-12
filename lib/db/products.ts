@@ -139,6 +139,14 @@ export async function countProducts() {
   return result[0]?.count ?? 0;
 }
 
+export async function countShopProducts() {
+  const result = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(products)
+    .where(eq(products.inStock, true));
+  return result[0]?.count ?? 0;
+}
+
 export type ProductInput = {
   name: string;
   slug: string;

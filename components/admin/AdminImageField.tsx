@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { MediaPicker } from "@/components/admin/MediaPicker";
 import { Button } from "@/components/ui/Button";
@@ -18,6 +18,7 @@ type AdminImageFieldProps = {
   defaultValue?: string;
   hint?: string;
   placeholder?: string;
+  onChange?: (url: string) => void;
 };
 
 export function AdminImageField({
@@ -26,11 +27,16 @@ export function AdminImageField({
   defaultValue = "",
   hint,
   placeholder = "https://... or /uploads/...",
+  onChange,
 }: AdminImageFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState(defaultValue);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    setUrl(defaultValue);
+  }, [defaultValue]);
 
   async function onUpload(fileList: FileList | null) {
     const file = fileList?.[0];
@@ -52,6 +58,7 @@ export function AdminImageField({
       }
       setUrl(data.url);
       setMessage("Image uploaded.");
+      onChange?.(data.url);
     } catch (err) {
       setMessage(err instanceof Error ? err.message : "Upload failed.");
     } finally {
@@ -62,6 +69,7 @@ export function AdminImageField({
   function onUrlChange(next: string) {
     setUrl(next);
     setMessage("");
+    onChange?.(next);
   }
 
   const previewOk = url.trim() && sanitizeLogoUrl(url.trim()) !== null;
@@ -133,6 +141,7 @@ export function AdminImageField({
               onSelect={(picked) => {
                 setUrl(picked);
                 setMessage("Image selected from library.");
+                onChange?.(picked);
               }}
             />
             {url ? (
@@ -141,6 +150,7 @@ export function AdminImageField({
                 onClick={() => {
                   setUrl("");
                   setMessage("Image cleared.");
+                  onChange?.("");
                 }}
                 className="text-xs font-semibold text-muted hover:text-danger"
               >

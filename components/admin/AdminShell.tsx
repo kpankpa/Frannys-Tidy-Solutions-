@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { DEFAULT_LOGO_URL } from "@/lib/site-config";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -16,7 +17,9 @@ import {
   MessageSquareWarning,
   Package,
   Settings,
+  Sparkles,
   Tags,
+  Megaphone,
   Images,
   Users,
   X,
@@ -52,6 +55,11 @@ const navGroups: { label: string; links: NavLink[] }[] = [
         badgeKey: "requestedBookings",
       },
       {
+        href: "/admin/services",
+        label: "Cleaning services",
+        icon: Sparkles,
+      },
+      {
         href: "/admin/products",
         label: "Products",
         icon: Package,
@@ -78,6 +86,7 @@ const navGroups: { label: string; links: NavLink[] }[] = [
     label: "Website",
     links: [
       { href: "/admin/content", label: "Site content", icon: FileText },
+      { href: "/admin/promotions", label: "Promotions", icon: Megaphone },
       { href: "/admin/settings", label: "Settings", icon: Settings },
     ],
   },
@@ -194,14 +203,14 @@ export function AdminShell({
             aria-label={`${brandName} admin`}
           >
             <Image
-              src={logoUrl || "/frannystidy.png"}
+              src={logoUrl || DEFAULT_LOGO_URL}
               alt={brandName}
-              width={44}
-              height={44}
+              width={140}
+              height={56}
               unoptimized={
                 logoUrl.startsWith("/uploads/") || logoUrl.startsWith("https://")
               }
-              className="h-11 w-11 rounded-md object-contain"
+              className="h-11 w-auto max-w-[8rem] object-contain"
             />
             <span>
               <span className="block text-sm font-extrabold text-primary">

@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import type { SiteConfig } from "@/lib/db/settings";
+import { DEFAULT_LOGO_URL } from "@/lib/site-config";
+import { FOOTER_COLUMN_TITLE_CLASS } from "@/lib/section-typography";
 import { InstagramIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 
 export function Footer({ site }: { site: SiteConfig }) {
@@ -11,15 +13,15 @@ export function Footer({ site }: { site: SiteConfig }) {
         <div>
           <Link href="/" className="inline-block" aria-label={site.name}>
             <Image
-              src={site.logoUrl || "/frannystidy.png"}
+              src={site.logoUrl || DEFAULT_LOGO_URL}
               alt={site.name}
-              width={72}
+              width={180}
               height={72}
               unoptimized={
                 site.logoUrl.startsWith("/uploads/") ||
                 site.logoUrl.startsWith("https://")
               }
-              className="h-14 w-14 rounded-lg object-contain"
+              className="h-16 w-auto max-w-[10rem] object-contain"
             />
           </Link>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/70">
@@ -52,9 +54,7 @@ export function Footer({ site }: { site: SiteConfig }) {
         </div>
 
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white">
-            Services
-          </h3>
+          <h3 className={FOOTER_COLUMN_TITLE_CLASS}>Services</h3>
           <ul className="mt-4 space-y-2 text-sm text-white/75">
             {site.serviceItems.slice(0, 3).map((service) => (
               <li key={service.id}>
@@ -72,9 +72,7 @@ export function Footer({ site }: { site: SiteConfig }) {
         </div>
 
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white">
-            Company
-          </h3>
+          <h3 className={FOOTER_COLUMN_TITLE_CLASS}>Company</h3>
           <ul className="mt-4 space-y-2 text-sm text-white/75">
             <li>
               <Link href="/about" className="hover:text-white">
@@ -95,9 +93,7 @@ export function Footer({ site }: { site: SiteConfig }) {
         </div>
 
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-white">
-            Contact
-          </h3>
+          <h3 className={FOOTER_COLUMN_TITLE_CLASS}>Contact</h3>
           <ul className="mt-4 space-y-3 text-sm text-white/75">
             <li className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-highlight" />

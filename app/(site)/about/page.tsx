@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { AboutHero } from "@/components/about/AboutHero";
 import { AboutSections } from "@/components/about/AboutSections";
-import { countProducts } from "@/lib/db/products";
-import { getSiteConfig } from "@/lib/db/settings";
+import { getCachedShopProductCount, getCachedSiteConfig } from "@/lib/db/cached-public";
 
 const ESTABLISHED_YEAR = 2023;
 
@@ -37,19 +36,15 @@ export const metadata: Metadata = {
 
 export default async function AboutPage() {
   const [site, productCount] = await Promise.all([
-    getSiteConfig(),
-    countProducts().catch(() => 0),
+    getCachedSiteConfig(),
+    getCachedShopProductCount().catch(() => 0),
   ]);
 
   const yearsGrowing = Math.max(1, new Date().getFullYear() - ESTABLISHED_YEAR);
 
   return (
     <div>
-      <AboutHero
-        brandName={site.name}
-        headline={site.aboutHeadline}
-        intro={site.aboutIntro}
-      />
+      <AboutHero headline={site.aboutHeadline} heroImage={site.aboutHeroImage} />
       <AboutSections
         brandName={site.name}
         shortName={site.shortName}
@@ -57,6 +52,9 @@ export default async function AboutPage() {
         mission={site.aboutMission}
         vision={site.aboutVision}
         promise={site.aboutPromise}
+        promiseImage={site.aboutPromiseImage}
+        storyImage={site.aboutStoryImage}
+        dealerImage={site.aboutDealerImage}
         values={site.aboutValues}
         journey={site.aboutJourney}
         difference={site.aboutDifference}

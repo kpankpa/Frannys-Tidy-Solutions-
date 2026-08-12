@@ -39,6 +39,37 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 /** v2 keys cart rows by product UUID (dbId). */
 const STORAGE_KEY = "frannys-cart-v2";
+const CATALOG_CACHE_KEY = "frannys-catalog-cache";
+const CONFIG_CACHE_KEY = "frannys-site-config-cache";
+const CLIENT_CACHE_TTL_MS = 2 * 60 * 1000;
+
+type CacheEnvelope<T> = {
+  savedAt: number;
+  data: T;
+};
+
+function readClientCache<T>(key: string): T | null {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CacheEnvelope<T>;
+    if (Date.now() - parsed.savedAt > CLIENT_CACHE_TTL_MS) return null;
+    return parsed.data;
+  } catch {
+    return null;
+  }
+}
+
+function writeClientCache<T>(key: string, data: T) {
+  try {
+    sessionStorage.setItem(
+      key,
+      JSON.stringify({ savedAt: Date.now(), data } satisfies CacheEnvelope<T>),
+    );
+  } catch {
+    /* ignore storage quota */
+  }
+}
 
 function readStoredCart(): CartItem[] {
   try {
@@ -68,6 +99,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    const cachedCatalog = readClientCache<Product[]>(CATALOG_CACHE_KEY);
+    if (cachedCatalog?.length) {
+      setCatalog(cachedCatalog);
+      setCatalogReady(true);
+      setItems((prev) => {
+        const next = prev.filter((item) =>
+          cachedCatalog.some((product) => product.dbId === item.productId),
+        );
+        return next.length === prev.length ? prev : next;
+      });
+    }
+
+    const cachedConfig = readClientCache<{ deliveryFee: number }>(CONFIG_CACHE_KEY);
+    if (cachedConfig && typeof cachedConfig.deliveryFee === "number") {
+      setDeliveryGuide(cachedConfig.deliveryFee);
+    }
+
     fetch("/api/products")
       .then((res) => {
         if (!res.ok) throw new Error("catalog fetch failed");
@@ -76,9 +124,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .then((data: Product[]) => {
         if (cancelled) return;
         const list = Array.isArray(data) ? data : [];
+        writeClientCache(CATALOG_CACHE_KEY, list);
         setCatalog(list);
         setCatalogReady(true);
-        // Only prune stale lines after a successful catalogue load.
         setItems((prev) => {
           const next = prev.filter((item) =>
             list.some((p) => p.dbId === item.productId),
@@ -88,7 +136,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {
         if (!cancelled) {
-          // Keep existing cart lines if the catalogue request fails.
           setCatalogReady(true);
         }
       });
@@ -96,9 +143,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     fetch("/api/site-config")
       .then((res) => (res.ok ? res.json() : null))
       .then((data: { deliveryFee?: number } | null) => {
-        if (!cancelled && data && typeof data.deliveryFee === "number") {
-          setDeliveryGuide(data.deliveryFee);
-        }
+        if (cancelled || !data || typeof data.deliveryFee !== "number") return;
+        writeClientCache(CONFIG_CACHE_KEY, { deliveryFee: data.deliveryFee });
+        setDeliveryGuide(data.deliveryFee);
       })
       .catch(() => {
         /* keep default */

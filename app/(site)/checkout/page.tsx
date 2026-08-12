@@ -8,6 +8,7 @@ import { useCart } from "@/lib/cart";
 import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
 import { formatPrice } from "@/lib/products";
 import { placeOrderAction } from "@/server/orders";
+import { PAGE_SUBTITLE_CLASS, PAGE_TITLE_CLASS } from "@/lib/section-typography";
 
 const field =
   "mt-1.5 w-full rounded-[8px] border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
@@ -45,13 +46,11 @@ export default function CheckoutPage() {
   if (success) {
     return (
       <div className="container-page py-16 text-center sm:py-20">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Order placed
-        </h1>
+        <h1 className={PAGE_TITLE_CLASS}>Order placed</h1>
         <p className="mt-2 text-lg font-semibold text-primary">
           {success.orderNumber}
         </p>
-        <p className="mx-auto mt-3 max-w-md text-muted">
+        <p className={`${PAGE_SUBTITLE_CLASS} mx-auto max-w-md`}>
           Your order is saved. Send the WhatsApp message to confirm with Frannys,
           then track progress anytime.
         </p>
@@ -80,7 +79,8 @@ export default function CheckoutPage() {
   if (count === 0) {
     return (
       <div className="container-page py-20 text-center">
-        <h1 className="text-3xl font-bold">Nothing to checkout</h1>
+        <h1 className={PAGE_TITLE_CLASS}>Nothing to checkout</h1>
+        <p className={PAGE_SUBTITLE_CLASS}>Add products from the shop first.</p>
         <Button href="/shop" className="mt-6">
           Browse Shop
         </Button>
@@ -91,8 +91,8 @@ export default function CheckoutPage() {
   if (lines.length === 0) {
     return (
       <div className="container-page py-20 text-center">
-        <h1 className="text-3xl font-bold">Cart items unavailable</h1>
-        <p className="mt-3 text-muted">
+        <h1 className={PAGE_TITLE_CLASS}>Cart items unavailable</h1>
+        <p className={PAGE_SUBTITLE_CLASS}>
           Some products could not be loaded. Please refresh or return to the shop.
         </p>
         <Button href="/shop" className="mt-6">
@@ -137,10 +137,8 @@ export default function CheckoutPage() {
 
   return (
     <div className="container-page py-10 sm:py-14">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">
-        Checkout
-      </h1>
-      <p className="mt-2 text-muted">
+      <h1 className={PAGE_TITLE_CLASS}>Checkout</h1>
+      <p className={PAGE_SUBTITLE_CLASS}>
         Confirm your details. We save your order, then open WhatsApp so you can
         agree delivery and payment with Frannys.
       </p>

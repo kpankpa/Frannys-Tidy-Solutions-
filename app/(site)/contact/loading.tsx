@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/ui/PageSpinner";
+import { ContactPageSkeleton } from "@/components/ui/PageSkeletons";
 
 export default function ContactLoading() {
-  return <PageSpinner label="Loading contact..." />;
+  return <ContactPageSkeleton />;
 }

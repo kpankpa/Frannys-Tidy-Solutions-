@@ -1,16 +1,24 @@
+import Image from "next/image";
 import { Suspense } from "react";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { Button } from "@/components/ui/Button";
+import { PageHeroTitle } from "@/components/ui/PageHeroTitle";
 import { InstagramIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { HeroOverlay } from "@/components/ui/HeroOverlay";
 import { SectionSpinner } from "@/components/ui/PageSpinner";
 import { ContactForm } from "@/components/contact/ContactForm";
-import { getSiteConfig } from "@/lib/db/settings";
+import { TeamSlideshow } from "@/components/team/TeamSlideshow";
+import { SectionIntro } from "@/components/ui/SectionIntro";
+import { getCachedSiteConfig } from "@/lib/db/cached-public";
+import { PEOPLE_IMAGES } from "@/lib/people-images";
 import { buildWhatsAppUrl } from "@/lib/constants";
-import { FLYERS } from "@/lib/flyers";
+import {
+  PAGE_HERO_INNER_CLASS,
+  PAGE_HERO_SECTION_CLASS,
+} from "@/lib/hero-layout";
 
 export const metadata = {
   title: "Contact",
@@ -19,7 +27,7 @@ export const metadata = {
 };
 
 export default async function ContactPage() {
-  const site = await getSiteConfig();
+  const site = await getCachedSiteConfig();
   const whatsappUrl = buildWhatsAppUrl(
     `Hello ${site.name}!`,
     site.whatsappE164,
@@ -53,49 +61,39 @@ export default async function ContactPage() {
 
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-primary-dark text-white">
+      <section className={PAGE_HERO_SECTION_CLASS}>
         <AnimatedImage
-          src={FLYERS.freshness.src}
-          alt={FLYERS.freshness.alt}
+          src={site.contactHeroImage}
+          alt="Fresh laundry and Frannys cleaning products"
           priority
           sizes="100vw"
           className="object-[center_20%]"
           drift="right"
         />
         <HeroOverlay />
-        <div className="container-page relative py-20 sm:py-28">
-          <FadeIn className="max-w-2xl">
-            <p className="text-2xl font-extrabold tracking-tight sm:text-4xl">
-              {site.name}
-            </p>
-            <h1 className="mt-4 text-xl font-semibold leading-snug text-white/95 sm:text-3xl">
-              {site.contactHeroHeadline}
-            </h1>
-            <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/75 sm:text-base">
-              {site.contactHeroSubcopy}
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button href="#message" variant="light" size="md">
-                <Mail className="h-4 w-4" />
-                Email Us
-              </Button>
-              <a
-                href={mailtoUrl}
-                className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 px-5 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
-              >
-                {site.email}
-              </a>
-            </div>
-          </FadeIn>
+        <div className={PAGE_HERO_INNER_CLASS}>
+          <PageHeroTitle title={site.contactHeroHeadline}>
+            <Button href="#message" variant="light" size="md">
+              <Mail className="h-4 w-4" />
+              Email Us
+            </Button>
+            <a
+              href={mailtoUrl}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-white/35 px-5 text-sm font-semibold text-white transition hover:border-white/60 hover:bg-white/10"
+            >
+              {site.email}
+            </a>
+          </PageHeroTitle>
         </div>
       </section>
 
       <section className="bg-surface py-16 sm:py-20">
         <div className="container-page">
-          <FadeIn className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Direct lines to the team
-            </h2>
+          <FadeIn>
+            <SectionIntro
+              title="Direct lines to the team"
+              subtitle="Phone, email, address, and hours for Frannys Tidy Solutions"
+            />
           </FadeIn>
           <div className="mt-10 grid gap-6 sm:grid-cols-2">
             {channels.map((item, i) => (
@@ -129,9 +127,26 @@ export default async function ContactPage() {
       <section className="bg-surface-muted py-16 sm:py-20">
         <div className="container-page grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <FadeIn>
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              {site.contactTopicsHeadline}
-            </h2>
+            <SectionIntro
+              title="Real people, not a call center"
+              subtitle={`Who you will meet when you reach out to ${site.shortName}`}
+              body="When you call, WhatsApp, or email us, you reach people like these. Friendly faces who know the products, the services, and what it takes to keep your space fresh."
+              maxWidthClass="max-w-md"
+            />
+          </FadeIn>
+          <FadeIn delay={0.1}>
+            <TeamSlideshow images={PEOPLE_IMAGES} />
+          </FadeIn>
+        </div>
+      </section>
+
+      <section className="bg-surface py-16 sm:py-20">
+        <div className="container-page grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <FadeIn>
+            <SectionIntro
+              title={site.contactTopicsHeadline}
+              subtitle="Common reasons customers reach out to our team"
+            />
             <ul className="mt-8 space-y-3">
               {site.contactTopics.map((topic) => (
                 <li
@@ -145,33 +160,35 @@ export default async function ContactPage() {
             </ul>
           </FadeIn>
           <FadeIn delay={0.1}>
-            <div className="relative aspect-[4/3] overflow-hidden rounded-2xl soft-shadow">
-              <AnimatedImage
-                src={FLYERS.freshness.src}
-                alt={FLYERS.freshness.alt}
-                className="object-[center_20%]"
+            <div className="relative aspect-[5/4] w-full">
+              <Image
+                src="/contact-us.jpg"
+                alt="Contact Frannys Tidy Solutions"
+                fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
-                drift="right"
+                className="object-contain"
               />
             </div>
           </FadeIn>
         </div>
       </section>
 
-      <section id="message" className="bg-surface py-16 sm:py-20">
+      <section id="message" className="bg-surface-muted py-16 sm:py-20">
         <div className="container-page grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <FadeIn>
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Email the {site.shortName} team
-            </h2>
-            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted">
-              Use the form to send a message to{" "}
-              <a href={mailtoUrl} className="font-semibold text-primary hover:underline">
-                {site.email}
-              </a>
-              . Need something faster? WhatsApp is still available for quick
-              chats.
-            </p>
+            <SectionIntro
+              title={`Email the ${site.shortName} team`}
+              subtitle={
+                <>
+                  Use the form to send a message to{" "}
+                  <a href={mailtoUrl} className="font-semibold text-primary hover:underline">
+                    {site.email}
+                  </a>
+                  . Need something faster? WhatsApp is still available for quick chats.
+                </>
+              }
+              maxWidthClass="max-w-md"
+            />
             <Button
               href={whatsappUrl}
               target="_blank"
@@ -192,16 +209,13 @@ export default async function ContactPage() {
         </div>
       </section>
 
-      <section className="bg-surface-muted py-16 sm:py-20">
+      <section className="bg-surface py-16 sm:py-20">
         <div className="container-page">
-          <FadeIn className="max-w-2xl">
-            <h2 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Based in {site.address}
-            </h2>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted">
-              Open {site.hours}. Follow us on social for freshness tips and
-              updates from the {site.shortName} team.
-            </p>
+          <FadeIn>
+            <SectionIntro
+              title={`Based in ${site.address}`}
+              subtitle={`Open ${site.hours}. Follow us on social for freshness tips and updates from the ${site.shortName} team.`}
+            />
             <div className="mt-5 flex flex-wrap gap-3">
               {site.instagramUrl ? (
                 <a

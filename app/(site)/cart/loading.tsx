@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/ui/PageSpinner";
+import { FormPageSkeleton } from "@/components/ui/PageSkeletons";
 
 export default function CartLoading() {
-  return <PageSpinner label="Loading cart..." />;
+  return <FormPageSkeleton />;
 }

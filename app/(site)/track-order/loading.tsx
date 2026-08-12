@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/ui/PageSpinner";
+import { SimplePageSkeleton } from "@/components/ui/PageSkeletons";
 
 export default function TrackOrderLoading() {
-  return <PageSpinner label="Loading tracker..." />;
+  return <SimplePageSkeleton />;
 }

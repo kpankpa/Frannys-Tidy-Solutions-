@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/ui/PageSpinner";
+import { ServicesPageSkeleton } from "@/components/ui/PageSkeletons";
 
 export default function ServicesLoading() {
-  return <PageSpinner label="Loading services..." />;
+  return <ServicesPageSkeleton />;
 }

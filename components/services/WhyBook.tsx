@@ -3,6 +3,10 @@
 import { FlaskConical, MessageCircle, Sparkles } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { AccentCircles } from "@/components/ui/AccentCircles";
+import {
+  SECTION_SUBTITLE_CLASS,
+  SECTION_TITLE_CLASS,
+} from "@/lib/section-typography";
 
 const icons = [Sparkles, FlaskConical, MessageCircle];
 
@@ -26,12 +30,10 @@ export function WhyBook({ shortName, subcopy, promises }: WhyBookProps) {
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
           className="max-w-2xl"
         >
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <h2 className={`${SECTION_TITLE_CLASS} text-white`}>
             Why book {shortName}
           </h2>
-          <p className="mt-3 text-[15px] leading-relaxed text-white/70">
-            {subcopy}
-          </p>
+          <p className={`${SECTION_SUBTITLE_CLASS} text-white/70`}>{subcopy}</p>
         </motion.div>
 
         <ul className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-6 lg:gap-10">

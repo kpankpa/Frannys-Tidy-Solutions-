@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ProductDetail } from "@/components/shop/ProductDetail";
-import { getProductBySlug, getRelatedProducts } from "@/lib/db/products";
+import {
+  getCachedProductBySlug,
+  getCachedRelatedProducts,
+} from "@/lib/db/cached-public";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -11,7 +14,7 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const product = await getProductBySlug(id).catch(() => null);
+  const product = await getCachedProductBySlug(id).catch(() => null);
   if (!product) {
     return { title: "Product" };
   }
@@ -29,13 +32,13 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({ params }: PageProps) {
   const { id } = await params;
-  const product = await getProductBySlug(id);
+  const product = await getCachedProductBySlug(id);
 
   if (!product) {
     notFound();
   }
 
-  const related = await getRelatedProducts(product.id);
+  const related = await getCachedRelatedProducts(product.id);
 
   return <ProductDetail product={product} related={related} />;
 }

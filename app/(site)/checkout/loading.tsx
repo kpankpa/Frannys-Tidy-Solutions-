@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/ui/PageSpinner";
+import { FormPageSkeleton } from "@/components/ui/PageSkeletons";
 
 export default function CheckoutLoading() {
-  return <PageSpinner label="Loading checkout..." />;
+  return <FormPageSkeleton />;
 }

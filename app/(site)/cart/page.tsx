@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PageSpinner } from "@/components/ui/PageSpinner";
+import { PAGE_SUBTITLE_CLASS, PAGE_TITLE_CLASS } from "@/lib/section-typography";
 import { useCart } from "@/lib/cart";
 import { formatPrice } from "@/lib/products";
 
@@ -28,8 +29,8 @@ export default function CartPage() {
   if (count === 0) {
     return (
       <div className="container-page py-20 text-center">
-        <h1 className="text-3xl font-bold text-foreground">Your cart is empty</h1>
-        <p className="mt-3 text-muted">Browse our shop and add products to continue.</p>
+        <h1 className={PAGE_TITLE_CLASS}>Your cart is empty</h1>
+        <p className={PAGE_SUBTITLE_CLASS}>Browse our shop and add products to continue.</p>
         <Button href="/shop" className="mt-8">
           Go to Shop
         </Button>
@@ -39,9 +40,10 @@ export default function CartPage() {
 
   return (
     <div className="container-page py-10 sm:py-14">
-      <h1 className="text-3xl font-bold tracking-tight text-foreground">
-        Shopping Cart
-      </h1>
+      <h1 className={PAGE_TITLE_CLASS}>Shopping cart</h1>
+      <p className={PAGE_SUBTITLE_CLASS}>
+        Review your items before checkout. Delivery is confirmed on WhatsApp.
+      </p>
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_0.8fr]">
         <div className="space-y-4">
           {lines.map(({ product, quantity, lineTotal }) => (

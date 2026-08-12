@@ -1,6 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import {
+  revalidateAllPublicCaches,
+  revalidatePublicSiteCache,
+} from "@/lib/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { updateOrderStatus, updateOrderDeliveryFee } from "@/lib/db/orders";
@@ -8,6 +12,7 @@ import { updateBookingStatus } from "@/lib/db/bookings";
 import { createComplaint, setComplaintStatus } from "@/lib/db/complaints";
 import {
   SETTING_KEYS,
+  getSiteConfig,
   upsertSettings,
   type SettingKey,
 } from "@/lib/db/settings";
@@ -174,6 +179,7 @@ export async function saveBusinessSettingsAction(formData: FormData) {
   };
 
   await upsertSettings(entries as Record<string, string>);
+  revalidatePublicSiteCache();
   revalidatePath("/");
   revalidatePath("/about");
   revalidatePath("/contact");
@@ -188,33 +194,12 @@ export async function saveBusinessSettingsAction(formData: FormData) {
 
 export async function saveSiteContentAction(formData: FormData) {
   await requireAdmin();
+  const current = await getSiteConfig();
 
   const whyChooseItems = [0, 1, 2, 3].map((i) => ({
     title: clampText(String(formData.get(`whyTitle${i}`) ?? ""), 80),
     description: clampText(String(formData.get(`whyDesc${i}`) ?? ""), 240),
   })).filter((item) => item.title);
-
-  const serviceIds = [
-    "professional",
-    "office",
-    "residential",
-    "deep",
-    "move",
-    "commercial",
-  ] as const;
-  const serviceItems = serviceIds.map((id) => {
-    const imageRaw = String(formData.get(`serviceImage_${id}`) ?? "").trim();
-    const image = sanitizeLogoUrl(imageRaw);
-    return {
-      id,
-      title: clampText(String(formData.get(`serviceTitle_${id}`) ?? ""), 80),
-      description: clampText(
-        String(formData.get(`serviceDesc_${id}`) ?? ""),
-        320,
-      ),
-      image: image || "",
-    };
-  });
 
   const servicePromises = [0, 1, 2].map((i) => ({
     title: clampText(String(formData.get(`promiseTitle${i}`) ?? ""), 80),
@@ -238,15 +223,6 @@ export async function saveSiteContentAction(formData: FormData) {
       formData.get(`testimonialApproved${i}`) === "on" ||
       formData.get(`testimonialApproved${i}`) === "true",
   })).filter((item) => item.name && item.quote);
-
-  const servicePackages = [0, 1, 2, 3, 4].map((i) => ({
-    name: clampText(String(formData.get(`packageName${i}`) ?? ""), 120),
-    description: clampText(String(formData.get(`packageDesc${i}`) ?? ""), 400),
-    priceFromCedis: Math.max(
-      0,
-      Number(formData.get(`packagePrice${i}`) ?? 0),
-    ),
-  })).filter((item) => item.name && item.priceFromCedis > 0);
 
   const aboutValues = [0, 1, 2, 3].map((i) => ({
     title: clampText(String(formData.get(`aboutValueTitle${i}`) ?? ""), 120),
@@ -295,6 +271,34 @@ export async function saveSiteContentAction(formData: FormData) {
     redirect("/admin/content?error=InvalidImageUrl");
   }
 
+  const imageFields = [
+    ["shopHeroImage", String(formData.get("shopHeroImage") ?? "")],
+    ["servicesHeroImage", String(formData.get("servicesHeroImage") ?? "")],
+    ["contactHeroImage", String(formData.get("contactHeroImage") ?? "")],
+    ["aboutHeroImage", String(formData.get("aboutHeroImage") ?? "")],
+    ["aboutStoryImage", String(formData.get("aboutStoryImage") ?? "")],
+    ["aboutDealerImage", String(formData.get("aboutDealerImage") ?? "")],
+    ["aboutPromiseImage", String(formData.get("aboutPromiseImage") ?? "")],
+  ] as const;
+
+  const savedImages: Record<(typeof imageFields)[number][0], string> = {
+    shopHeroImage: "",
+    servicesHeroImage: "",
+    contactHeroImage: "",
+    aboutHeroImage: "",
+    aboutStoryImage: "",
+    aboutDealerImage: "",
+    aboutPromiseImage: "",
+  };
+
+  for (const [name, raw] of imageFields) {
+    const safe = sanitizeLogoUrl(raw.trim());
+    if (safe === null) {
+      redirect("/admin/content?error=InvalidImageUrl");
+    }
+    savedImages[name] = safe;
+  }
+
   await upsertSettings({
     [SETTING_KEYS.heroHeadline]: clampText(
       String(formData.get("heroHeadline") ?? ""),
@@ -341,6 +345,10 @@ export async function saveSiteContentAction(formData: FormData) {
       String(formData.get("aboutPromise") ?? ""),
       400,
     ),
+    [SETTING_KEYS.aboutHeroImage]: savedImages.aboutHeroImage,
+    [SETTING_KEYS.aboutStoryImage]: savedImages.aboutStoryImage,
+    [SETTING_KEYS.aboutDealerImage]: savedImages.aboutDealerImage,
+    [SETTING_KEYS.aboutPromiseImage]: savedImages.aboutPromiseImage,
     [SETTING_KEYS.aboutValues]: JSON.stringify(aboutValues),
     [SETTING_KEYS.aboutJourney]: JSON.stringify(aboutJourney),
     [SETTING_KEYS.aboutDifference]: JSON.stringify(aboutDifference),
@@ -353,6 +361,7 @@ export async function saveSiteContentAction(formData: FormData) {
       String(formData.get("shopHeroSubcopy") ?? ""),
       500,
     ),
+    [SETTING_KEYS.shopHeroImage]: savedImages.shopHeroImage,
     [SETTING_KEYS.servicesHeroHeadline]: clampText(
       String(formData.get("servicesHeroHeadline") ?? ""),
       160,
@@ -361,6 +370,7 @@ export async function saveSiteContentAction(formData: FormData) {
       String(formData.get("servicesHeroSubcopy") ?? ""),
       500,
     ),
+    [SETTING_KEYS.servicesHeroImage]: savedImages.servicesHeroImage,
     [SETTING_KEYS.servicesSectionHeadline]: clampText(
       String(formData.get("servicesSectionHeadline") ?? ""),
       160,
@@ -404,6 +414,7 @@ export async function saveSiteContentAction(formData: FormData) {
       String(formData.get("contactHeroSubcopy") ?? ""),
       500,
     ),
+    [SETTING_KEYS.contactHeroImage]: savedImages.contactHeroImage,
     [SETTING_KEYS.contactTopicsHeadline]: clampText(
       String(formData.get("contactTopicsHeadline") ?? ""),
       160,
@@ -455,9 +466,9 @@ export async function saveSiteContentAction(formData: FormData) {
       String(formData.get("testimonialsDescription") ?? ""),
       240,
     ),
-    [SETTING_KEYS.serviceItems]: JSON.stringify(serviceItems),
+    [SETTING_KEYS.serviceItems]: JSON.stringify(current.serviceItems),
     [SETTING_KEYS.servicePromises]: JSON.stringify(servicePromises),
-    [SETTING_KEYS.servicePackages]: JSON.stringify(servicePackages),
+    [SETTING_KEYS.servicePackages]: JSON.stringify(current.servicePackages),
     [SETTING_KEYS.testimonials]: JSON.stringify(testimonials),
     [SETTING_KEYS.homeServicesTitle]: clampText(
       String(formData.get("homeServicesTitle") ?? ""),
@@ -469,12 +480,14 @@ export async function saveSiteContentAction(formData: FormData) {
     ),
   });
 
+  revalidateAllPublicCaches();
   revalidatePath("/");
   revalidatePath("/about");
   revalidatePath("/contact");
   revalidatePath("/services");
   revalidatePath("/shop");
   revalidatePath("/admin/content");
+  revalidatePath("/admin/services");
 }
 
 export async function createComplaintAction(formData: FormData) {

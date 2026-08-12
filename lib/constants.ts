@@ -17,6 +17,9 @@ export const SITE = {
   deliveryFee: 20,
 } as const;
 
+/** Favicon, search preview, and app icon (from brand logo JPEG). */
+export const SITE_BRAND_ICON = "/frannys-brand-icon.jpg";
+
 export const SOCIAL = {
   tiktok: "https://www.tiktok.com/@frannys.tidy.solu",
   instagram: "https://www.instagram.com/frannys_tidysolutions",

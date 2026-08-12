@@ -11,6 +11,11 @@ import { useCart } from "@/lib/cart";
 import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
 import { formatPrice, isLowStock, type Product } from "@/lib/products";
 import { shouldUnoptimizeImage } from "@/lib/image-src";
+import {
+  SECTION_SUBTITLE_CLASS,
+  SECTION_TITLE_CLASS,
+  SUBSECTION_TITLE_CLASS,
+} from "@/lib/section-typography";
 
 type ProductDetailProps = {
   product: Product;
@@ -25,6 +30,13 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
   const gallery =
     product.images.length > 0 ? product.images : [product.image];
   const maxQty = Math.max(1, product.stockQuantity || 1);
+  const keyFeatures = product.features.filter(
+    (feature) => !feature.startsWith("Ideal for:"),
+  );
+  const idealForLine = product.features.find((feature) =>
+    feature.startsWith("Ideal for:"),
+  );
+  const idealFor = idealForLine?.replace(/^Ideal for:\s*/, "");
 
   return (
     <div className="container-page py-10 sm:py-14">
@@ -71,10 +83,10 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
         </div>
 
         <div>
-          <p className="text-sm font-medium text-secondary">{product.category}</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {product.name}
           </h1>
+          <p className={`${SECTION_SUBTITLE_CLASS} mt-2`}>{product.category}</p>
           <div className="mt-3 flex items-center gap-2 text-sm text-muted">
             <Star className="h-4 w-4 fill-highlight text-highlight" />
             <span className="font-semibold text-foreground">{product.rating}</span>
@@ -90,14 +102,29 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
           ) : null}
           <p className="mt-5 leading-relaxed text-muted">{product.longDescription}</p>
 
-          <ul className="mt-6 space-y-2">
-            {product.features.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm text-foreground">
-                <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-                {f}
-              </li>
-            ))}
-          </ul>
+          {keyFeatures.length > 0 ? (
+            <div className="mt-6">
+              <h2 className={SUBSECTION_TITLE_CLASS}>Key features</h2>
+              <ul className="mt-3 space-y-2">
+                {keyFeatures.map((feature) => (
+                  <li
+                    key={feature}
+                    className="flex items-center gap-2 text-sm text-foreground"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {idealFor ? (
+            <div className="mt-6">
+              <h2 className={SUBSECTION_TITLE_CLASS}>Ideal for</h2>
+              <p className="mt-3 text-sm leading-relaxed text-muted">{idealFor}</p>
+            </div>
+          ) : null}
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <div className="inline-flex items-center rounded-[8px] border border-border bg-surface">
@@ -153,7 +180,10 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
 
       {related.length > 0 ? (
         <div className="mt-16">
-          <h2 className="text-2xl font-bold text-foreground">Related Products</h2>
+          <h2 className={SECTION_TITLE_CLASS}>Related products</h2>
+          <p className={SECTION_SUBTITLE_CLASS}>
+            More detergents and cleaning solutions from Frannys
+          </p>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />

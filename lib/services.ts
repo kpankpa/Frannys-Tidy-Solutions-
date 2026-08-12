@@ -1,3 +1,5 @@
+import { serviceImageForId } from "@/lib/service-images";
+
 export type Service = {
   id: string;
   title: string;
@@ -12,8 +14,10 @@ export const cleaningServices: Service[] = [
     title: "Professional Cleaning",
     description:
       "Trained teams delivering consistent, hospitality-grade cleaning standards.",
-    image:
+    image: serviceImageForId(
+      "professional",
       "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80",
+    ),
     href: "/contact?service=Professional%20Cleaning",
   },
   {
@@ -21,8 +25,10 @@ export const cleaningServices: Service[] = [
     title: "Office Cleaning",
     description:
       "Keep workspaces polished, hygienic, and ready for productive days.",
-    image:
+    image: serviceImageForId(
+      "office",
       "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=900&q=80",
+    ),
     href: "/contact?service=Office%20Cleaning",
   },
   {
@@ -30,8 +36,10 @@ export const cleaningServices: Service[] = [
     title: "Residential Cleaning",
     description:
       "Homes, apartments, and family spaces cleaned with care and reliability.",
-    image:
+    image: serviceImageForId(
+      "residential",
       "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=900&q=80",
+    ),
     href: "/contact?service=Residential%20Cleaning",
   },
   {
@@ -39,8 +47,10 @@ export const cleaningServices: Service[] = [
     title: "Deep Cleaning",
     description:
       "Intensive detail cleaning for kitchens, bathrooms, and neglected zones.",
-    image:
+    image: serviceImageForId(
+      "deep",
       "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80",
+    ),
     href: "/contact?service=Deep%20Cleaning",
   },
   {
@@ -48,8 +58,10 @@ export const cleaningServices: Service[] = [
     title: "Move In / Move Out",
     description:
       "Make handovers spotless for landlords, tenants, and property managers.",
-    image:
+    image: serviceImageForId(
+      "move",
       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=900&q=80",
+    ),
     href: "/contact?service=Move%20In%2FOut",
   },
   {
@@ -57,34 +69,45 @@ export const cleaningServices: Service[] = [
     title: "Commercial Cleaning",
     description:
       "Shops, churches, schools, and business premises, scheduled or one-off.",
-    image:
+    image: serviceImageForId(
+      "commercial",
       "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=900&q=80",
+    ),
     href: "/contact?service=Commercial%20Cleaning",
   },
 ];
 
-/** Merge CMS title/description/image overrides onto the coded service catalogue. */
+/** Build public service cards from CMS items. */
 export function resolveCleaningServices(
-  overrides: {
+  items: {
     id: string;
     title: string;
     description: string;
     image?: string;
   }[],
 ): Service[] {
-  const byId = new Map(overrides.map((item) => [item.id, item]));
-  return cleaningServices.map((service) => {
-    const override = byId.get(service.id);
-    if (!override) return service;
-    const title = override.title.trim() || service.title;
-    return {
-      ...service,
-      title,
-      description: override.description.trim() || service.description,
-      image: override.image?.trim() || service.image,
-      href: `/contact?service=${encodeURIComponent(title)}`,
-    };
-  });
+  const defaults = new Map(cleaningServices.map((service) => [service.id, service]));
+
+  return items
+    .filter((item) => item.title.trim())
+    .map((item) => {
+      const fallback = defaults.get(item.id);
+      const title = item.title.trim();
+      const mappedLocal = serviceImageForId(item.id);
+      const storedImage = item.image?.trim() || "";
+      return {
+        id: item.id,
+        title,
+        description:
+          item.description.trim() || fallback?.description || "",
+        image:
+          mappedLocal ||
+          storedImage ||
+          fallback?.image ||
+          cleaningServices[0]!.image,
+        href: `/contact?service=${encodeURIComponent(title)}`,
+      };
+    });
 }
 
 export const whyChooseUs = [

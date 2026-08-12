@@ -1,5 +1,28 @@
 /** Static catalogue used only by `db:seed`. Runtime shop reads Postgres. */
 
+import {
+  PRODUCT_IMAGE_FILES,
+  productNameForSlug,
+  publicProductImagePath,
+} from "@/lib/product-images";
+
+function catalogName(slug: string) {
+  return productNameForSlug(slug);
+}
+
+function catalogImageAlt(slug: string) {
+  return `Frannys ${catalogName(slug)}`;
+}
+
+function productImage(slug: string, fallback: string) {
+  const file = PRODUCT_IMAGE_FILES[slug];
+  return file ? publicProductImagePath(file) : fallback;
+}
+
+function buildFeatures(keyFeatures: string[], idealFor: string[]): string[] {
+  return [...keyFeatures, `Ideal for: ${idealFor.join(", ")}`];
+}
+
 export type SeedProduct = {
   id: string;
   name: string;
@@ -21,217 +44,238 @@ export type SeedProduct = {
 
 export const seedCatalog: SeedProduct[] = [
   {
-    id: "multi-surface",
-    name: "Multi-Surface Cleaner",
+    id: "fabric-softener",
+    name: catalogName("fabric-softener"),
     description:
-      "Everyday cleaner for kitchens, counters, and hard surfaces with a fresh finish.",
+      "Keeps clothes soft, fresh, and comfortable after every wash with a pleasant fragrance.",
     longDescription:
-      "Our Multi-Surface Cleaner is formulated for Ghanaian homes and workplaces. It lifts everyday dirt, grease, and fingerprints while leaving a crisp, fresh scent, without harsh residues.",
-    features: [
-      "Safe for sealed wood, tile, and laminate",
-      "Fresh citrus finish",
-      "Concentrated formula",
-      "Made for daily use",
-    ],
-    price: 45,
-    category: "Detergents",
-    rating: 4.9,
-    reviews: 128,
-    inStock: true,
-    badge: "Best Seller",
-    image:
-      "https://images.unsplash.com/photo-1585421514738-17ce1bc2d45d?auto=format&fit=crop&w=900&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1585421514738-17ce1bc2d45d?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=900&q=80",
-    ],
-    imageAlt: "Multi-surface cleaning solution bottle",
-  },
-  {
-    id: "floor-shine",
-    name: "Floor Shine Detergent",
-    description:
-      "Powerful floor wash that lifts dirt and leaves a lasting clean shine.",
-    longDescription:
-      "Engineered for tile, terrazzo, and sealed floors. Floor Shine Detergent removes dust and sticky residue while restoring a soft, polished look after mopping.",
-    features: [
-      "High-foaming clean",
-      "Low-residue shine",
-      "Works with mop & bucket",
-      "Ideal for homes and offices",
-    ],
-    price: 55,
+      "Our Fabric Softener keeps your clothes soft, fresh, and comfortable after every wash. It helps reduce wrinkles and static while leaving a pleasant fragrance on fabrics.",
+    features: buildFeatures(
+      [
+        "Long-lasting fragrance",
+        "Softens fabrics",
+        "Gentle on clothes",
+        "Helps reduce wrinkles",
+        "Suitable for all fabric types",
+      ],
+      [
+        "Laundry at home",
+        "Hotels",
+        "Laundry services",
+        "Schools",
+        "Hospitals",
+      ],
+    ),
+    price: 30,
     category: "Detergents",
     rating: 4.8,
-    reviews: 96,
+    reviews: 64,
     inStock: true,
-    image:
-      "https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=900&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80",
-    ],
-    imageAlt: "Floor shine detergent",
+    image: productImage("fabric-softener", "/flyers/fabric-softner.jpg"),
+    images: [productImage("fabric-softener", "/flyers/fabric-softner.jpg")],
+    imageAlt: catalogImageAlt("fabric-softener"),
   },
   {
-    id: "glass-sparkle",
-    name: "Glass Sparkle Spray",
+    id: "toilet-cleaner",
+    name: catalogName("toilet-cleaner"),
     description:
-      "Streak-free formula for windows, mirrors, and glass surfaces.",
+      "Removes tough stains, kills bacteria, and eliminates odours for a sparkling clean toilet.",
     longDescription:
-      "Glass Sparkle Spray delivers a crystal-clear finish on windows, mirrors, and glass partitions, perfect for homes, offices, and retail spaces.",
-    features: [
-      "Streak-free finish",
-      "Fast-drying mist",
-      "Ammonia-balanced",
-      "Professional strength",
-    ],
-    price: 35,
+      "A powerful toilet cleaner formulated to remove tough stains, kill bacteria, and eliminate unpleasant odours, leaving your toilet sparkling clean.",
+    features: buildFeatures(
+      [
+        "Kills 99.9% of germs",
+        "Removes stubborn stains",
+        "Eliminates bad odours",
+        "Thick formula for better cleaning",
+        "Leaves toilet fresh and hygienic",
+      ],
+      ["Homes", "Offices", "Hotels", "Schools", "Public washrooms"],
+    ),
+    price: 30,
     category: "Specialty",
     rating: 4.7,
-    reviews: 74,
+    reviews: 58,
     inStock: true,
-    badge: "New",
-    image:
-      "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=900&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1585421514738-17ce1bc2d45d?auto=format&fit=crop&w=900&q=80",
-    ],
-    imageAlt: "Glass sparkle spray",
+    image: productImage("toilet-cleaner", "/flyers/toilet-cleaner.jpeg"),
+    images: [productImage("toilet-cleaner", "/flyers/toilet-cleaner.jpeg")],
+    imageAlt: catalogImageAlt("toilet-cleaner"),
   },
   {
-    id: "bathroom-deep",
-    name: "Bathroom Deep Clean",
+    id: "bathroom-cleaner",
+    name: catalogName("bathroom-cleaner"),
     description:
-      "Removes soap scum, limescale, and bathroom grime for a hygienic finish.",
+      "Removes soap scum, dirt, and bathroom stains while disinfecting surfaces.",
     longDescription:
-      "A targeted bathroom formula that tackles soap scum, hard-water marks, and lingering odours on tiles, taps, and basins.",
-    features: [
-      "Limescale control",
-      "Soap-scum remover",
-      "Fresh clean scent",
-      "Thick cling formula",
-    ],
-    price: 50,
+      "Our Bathroom Cleaner easily removes soap scum, dirt, and bathroom stains while disinfecting surfaces and leaving a refreshing scent.",
+    features: buildFeatures(
+      [
+        "Removes soap scum",
+        "Kills germs",
+        "Cleans tiles and sinks",
+        "Removes stains",
+        "Fresh fragrance",
+        "Easy spray application",
+      ],
+      [
+        "Bathroom tiles",
+        "Wash basins",
+        "Shower areas",
+        "Bathtubs",
+        "Bathroom fixtures",
+      ],
+    ),
+    price: 25,
     category: "Specialty",
-    rating: 4.6,
-    reviews: 61,
-    inStock: true,
-    image:
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?auto=format&fit=crop&w=900&q=80",
-    ],
-    imageAlt: "Bathroom deep clean product",
-  },
-  {
-    id: "laundry-fresh",
-    name: "Laundry Fresh Liquid",
-    description:
-      "Effective laundry detergent that leaves clothes soft and fresh.",
-    longDescription:
-      "Laundry Fresh Liquid is designed for hand wash and machine wash. It lifts stains and leaves fabrics soft with a long-lasting fresh scent.",
-    features: [
-      "Works in cold water",
-      "Colour-safe",
-      "Soft fabric feel",
-      "Family-sized value",
-    ],
-    price: 65,
-    category: "Detergents",
-    rating: 4.9,
-    reviews: 142,
+    rating: 4.8,
+    reviews: 72,
     inStock: true,
     badge: "Best Seller",
-    image:
-      "https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?auto=format&fit=crop&w=900&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=900&q=80",
-    ],
-    imageAlt: "Laundry fresh liquid detergent",
+    image: productImage("bathroom-cleaner", "/flyers/bathroom-cleaner.jpeg"),
+    images: [productImage("bathroom-cleaner", "/flyers/bathroom-cleaner.jpeg")],
+    imageAlt: catalogImageAlt("bathroom-cleaner"),
   },
   {
-    id: "dish-power",
-    name: "Dish Power Gel",
+    id: "multi-purpose-bleach",
+    name: catalogName("multi-purpose-bleach"),
     description:
-      "Cuts through grease on pots, pans, and dishes with lasting foam.",
+      "Whitens, disinfects, and removes stains to keep your home hygienic and germ-free.",
     longDescription:
-      "Dish Power Gel cuts heavy kitchen grease quickly while remaining gentle on hands, ideal for busy households and commercial kitchens.",
-    features: [
-      "Grease-cutting power",
-      "Long-lasting foam",
-      "Gentle on hands",
-      "Concentrated drops",
-    ],
-    price: 40,
-    category: "Detergents",
-    rating: 4.5,
-    reviews: 88,
-    inStock: true,
-    image:
-      "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?auto=format&fit=crop&w=900&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1628177142898-93e36e4e3a50?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80",
-    ],
-    imageAlt: "Dish power gel",
-  },
-  {
-    id: "eco-all-purpose",
-    name: "Eco All-Purpose Cleaner",
-    description:
-      "Gentle, eco-minded formula for homes that want effective everyday cleaning.",
-    longDescription:
-      "Eco All-Purpose Cleaner balances performance with a gentler profile, great for families seeking everyday freshness with fewer harsh additives.",
-    features: [
-      "Plant-inspired scent",
-      "Gentle on surfaces",
-      "Everyday versatility",
-      "Refill-friendly bottle",
-    ],
-    price: 48,
-    category: "Eco-Friendly",
-    rating: 4.8,
-    reviews: 53,
-    inStock: true,
-    badge: "Eco",
-    image:
-      "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=900&q=80",
-    images: [
-      "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1585421514738-17ce1bc2d45d?auto=format&fit=crop&w=900&q=80",
-    ],
-    imageAlt: "Eco all-purpose cleaner",
-  },
-  {
-    id: "disinfectant",
-    name: "Home Disinfectant",
-    description:
-      "Kills germs on high-touch surfaces for healthier homes and workplaces.",
-    longDescription:
-      "Home Disinfectant is built for high-touch zones like door handles, switches, desks, and shared spaces, helping keep households and offices healthier.",
-    features: [
-      "Broad-surface use",
-      "Fast contact clean",
-      "Fresh hygienic scent",
-      "Office & home ready",
-    ],
-    price: 58,
+      "Our Multi-Purpose Bleach is specially formulated for effective whitening, disinfecting, and stain removal. It helps keep your home hygienic and germ-free.",
+    features: buildFeatures(
+      [
+        "Whitens clothes",
+        "Kills germs and bacteria",
+        "Removes stains",
+        "Disinfects surfaces",
+        "Suitable for household cleaning",
+      ],
+      [
+        "Laundry",
+        "Toilets",
+        "Bathrooms",
+        "Kitchen surfaces",
+        "Floors",
+        "General household disinfection",
+      ],
+    ),
+    price: 30,
     category: "Disinfectants",
-    rating: 4.7,
-    reviews: 67,
+    rating: 4.9,
+    reviews: 81,
     inStock: true,
     badge: "Top Rated",
-    image:
-      "https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=900&q=80",
+    image: productImage(
+      "multi-purpose-bleach",
+      "/flyers/multi-purpose-bleach.jpg",
+    ),
     images: [
-      "https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=900&q=80",
-      "https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=900&q=80",
+      productImage("multi-purpose-bleach", "/flyers/multi-purpose-bleach.jpg"),
     ],
-    imageAlt: "Home disinfectant spray",
+    imageAlt: catalogImageAlt("multi-purpose-bleach"),
+  },
+  {
+    id: "fresh-clean-liquid-soap-4-5l",
+    name: catalogName("fresh-clean-liquid-soap-4-5l"),
+    description:
+      "Advanced formula cuts grease 3x more effectively and kills 99% of germs in a 4.5L jerry can.",
+    longDescription:
+      "Our Fresh + Clean Liquid Soap is an advanced-formula cleaner that cuts through grease 3x more effectively than regular liquid soap, while killing 99% of germs. Packed in a durable 4.5L jerry can, it is a versatile all-purpose cleaner for the home, office, or shop.",
+    features: buildFeatures(
+      [
+        "Cleans 3x more greasy dishes",
+        "Kills 99% of germs",
+        "Advanced Fresh + Clean formula",
+        "Large 4.5L size for extended use",
+      ],
+      [
+        "Dish washing",
+        "Car washing",
+        "Hand washing",
+        "Washing clothes",
+        "Cleaning floors",
+      ],
+    ),
+    price: 60,
+    category: "Detergents",
+    rating: 4.9,
+    reviews: 124,
+    inStock: true,
+    badge: "Best Seller",
+    image: productImage(
+      "fresh-clean-liquid-soap-4-5l",
+      "/flyers/liquid-soap fresh +clean.jpeg",
+    ),
+    images: [
+      productImage(
+        "fresh-clean-liquid-soap-4-5l",
+        "/flyers/liquid-soap fresh +clean.jpeg",
+      ),
+    ],
+    imageAlt: catalogImageAlt("fresh-clean-liquid-soap-4-5l"),
+  },
+  {
+    id: "glass-cleaner",
+    name: catalogName("glass-cleaner"),
+    description:
+      "Fast-acting, streak-free shine safe for tinted glass, windows, and mirrors.",
+    longDescription:
+      "Our Glass Cleaner delivers a fast-acting, streak-free shine on all glass surfaces. Formulated to be safe on tinted glass, it is an easy spray-and-wipe solution for sparkling windows and mirrors.",
+    features: buildFeatures(
+      [
+        "Streak-free finish",
+        "Fast-acting formula",
+        "Safe for tinted glass",
+        "Convenient trigger spray bottle",
+        "Ingredients: Aqua, Ethanol, colourant",
+      ],
+      [
+        "Windows",
+        "Mirrors",
+        "Glass doors",
+        "Car windshields",
+        "General glass surfaces",
+      ],
+    ),
+    price: 25,
+    category: "Specialty",
+    rating: 4.7,
+    reviews: 49,
+    inStock: true,
+    image: productImage("glass-cleaner", "/flyers/glass-cleaner.jpeg"),
+    images: [productImage("glass-cleaner", "/flyers/glass-cleaner.jpeg")],
+    imageAlt: catalogImageAlt("glass-cleaner"),
+  },
+  {
+    id: "liquid-soap-750ml",
+    name: catalogName("liquid-soap-750ml"),
+    description:
+      "Travel and home-friendly Fresh + Clean liquid soap in a convenient 750ml pump bottle.",
+    longDescription:
+      "The travel and home-friendly size of our Fresh + Clean Liquid Soap. Same advanced formula that cuts grease 3x more effectively and kills 99% of germs, now in a convenient 750ml pump bottle.",
+    features: buildFeatures(
+      [
+        "Cleans 3x more greasy dishes",
+        "Kills 99% of germs",
+        "Advanced Fresh + Clean formula",
+        "Compact, easy-to-use pump bottle",
+      ],
+      [
+        "Dish washing",
+        "Car washing",
+        "Hand washing",
+        "Washing clothes",
+        "Cleaning floors",
+      ],
+    ),
+    price: 12,
+    category: "Detergents",
+    rating: 4.6,
+    reviews: 37,
+    inStock: true,
+    badge: "New",
+    image: productImage("liquid-soap-750ml", "/flyers/liquid-soap.jpeg"),
+    images: [productImage("liquid-soap-750ml", "/flyers/liquid-soap.jpeg")],
+    imageAlt: catalogImageAlt("liquid-soap-750ml"),
   },
 ];

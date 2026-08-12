@@ -1,5 +1,5 @@
-import { PageSpinner } from "@/components/ui/PageSpinner";
+import { ShopPageSkeleton } from "@/components/ui/PageSkeletons";
 
 export default function ShopLoading() {
-  return <PageSpinner label="Loading shop..." />;
+  return <ShopPageSkeleton />;
 }

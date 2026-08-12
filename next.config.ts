@@ -33,6 +33,13 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   async headers() {
+    const staticAssetCache = [
+      {
+        key: "Cache-Control",
+        value: "public, max-age=31536000, immutable",
+      },
+    ];
+
     return [
       {
         source: "/:path*",
@@ -49,7 +56,23 @@ const nextConfig: NextConfig = {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
         ],
+      },
+      {
+        source: "/flyers/:path*",
+        headers: staticAssetCache,
+      },
+      {
+        source: "/people-images/:path*",
+        headers: staticAssetCache,
+      },
+      {
+        source: "/:file(.*\\.(?:jpg|jpeg|png|webp|gif|svg|ico)$)",
+        headers: staticAssetCache,
       },
     ];
   },

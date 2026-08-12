@@ -8,6 +8,7 @@ import { Spinner } from "@/components/ui/PageSpinner";
 import { formatPrice } from "@/lib/products";
 import { isOrderCancelled, ORDER_PIPELINE } from "@/lib/order-status";
 import { trackOrderAction, type TrackedOrderView } from "@/server/orders";
+import { PAGE_SUBTITLE_CLASS, PAGE_TITLE_CLASS } from "@/lib/section-typography";
 import { cn } from "@/lib/utils";
 
 export default function TrackOrderPage() {
@@ -39,10 +40,8 @@ export default function TrackOrderPage() {
   return (
     <div className="container-page py-12 sm:py-16">
       <div className="mx-auto max-w-xl text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
-          Track Order
-        </h1>
-        <p className="mt-3 text-muted">
+        <h1 className={PAGE_TITLE_CLASS}>Track order</h1>
+        <p className={PAGE_SUBTITLE_CLASS}>
           Enter your order number and the phone used at checkout.
         </p>
       </div>

@@ -71,8 +71,27 @@ export function sanitizeLogoUrl(value: string): string | null {
 
   if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
     if (trimmed.includes("..") || trimmed.includes("\\")) return null;
-    if (!/^\/[A-Za-z0-9._/-]+$/.test(trimmed)) return null;
-    return trimmed;
+
+    const segments = trimmed.split("/").filter(Boolean);
+    for (const segment of segments) {
+      let decoded: string;
+      try {
+        decoded = decodeURIComponent(segment);
+      } catch {
+        return null;
+      }
+      if (
+        !decoded ||
+        decoded.includes("..") ||
+        decoded.includes("/") ||
+        decoded.includes("\\")
+      ) {
+        return null;
+      }
+      if (!/^[A-Za-z0-9._ -()+]+$/.test(decoded)) return null;
+    }
+
+    return `/${segments.map((segment) => encodeURIComponent(decodeURIComponent(segment))).join("/")}`;
   }
 
   return sanitizeImageUrl(trimmed);
@@ -86,6 +105,9 @@ export function explainInvalidImageUrl(value: string): string {
   }
   if (trimmed.startsWith("http://")) {
     return "Use https image URLs only (not http).";
+  }
+  if (trimmed.startsWith("/")) {
+    return "Site path looks invalid. Use /uploads/..., /flyers/..., or upload a file.";
   }
   return "Use an uploaded file path (/uploads/...) or a full https image URL.";
 }
