@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, Star } from "lucide-react";
 import { useState } from "react";
+import { ProductImage } from "@/components/shop/ProductImage";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
@@ -14,7 +14,6 @@ import {
   isLowStock,
   type Product,
 } from "@/lib/products";
-import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { cn } from "@/lib/utils";
 
 type ProductCardProps = {
@@ -42,24 +41,22 @@ export function ProductCard({ product, className }: ProductCardProps) {
         className,
       )}
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-surface-soft">
-        <Link href={`/shop/${product.id}`}>
-          <Image
+      <div className="relative aspect-square overflow-hidden bg-surface-muted">
+        <Link href={`/shop/${product.id}`} className="absolute inset-0">
+          <ProductImage
             src={product.image}
             alt={product.imageAlt}
-            fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            className="object-cover transition duration-500 group-hover:scale-105"
-            unoptimized={shouldUnoptimizeImage(product.image)}
+            hoverZoom
           />
         </Link>
         {badge ? (
-          <span className="absolute left-3 top-3 rounded-full bg-highlight px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary-dark">
+          <span className="absolute left-3 top-3 z-[1] rounded-full bg-highlight px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-primary-dark">
             {badge}
           </span>
         ) : null}
         {product.inStock && isLowStock(product.stockQuantity) ? (
-          <span className="absolute bottom-3 left-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+          <span className="absolute bottom-3 left-3 z-[1] rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-800">
             Only {product.stockQuantity} left
           </span>
         ) : null}
@@ -73,7 +70,7 @@ export function ProductCard({ product, className }: ProductCardProps) {
                 {product.name}
               </h3>
             </Link>
-            <p className="mt-1 line-clamp-1 text-xs text-muted">
+            <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted">
               {product.description}
             </p>
           </div>

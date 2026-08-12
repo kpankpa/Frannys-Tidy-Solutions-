@@ -1,16 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Minus, Plus, ShoppingCart, Star } from "lucide-react";
 import { useState } from "react";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductImage } from "@/components/shop/ProductImage";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
 import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
 import { formatPrice, isLowStock, type Product } from "@/lib/products";
-import { shouldUnoptimizeImage } from "@/lib/image-src";
 import {
   SECTION_SUBTITLE_CLASS,
   SECTION_TITLE_CLASS,
@@ -42,17 +41,14 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
     <div className="container-page py-10 sm:py-14">
       <div className="grid gap-10 lg:grid-cols-2">
         <div>
-          <div className="relative aspect-square overflow-hidden rounded-[12px] border border-border bg-surface shadow-sm">
-            <Image
+          <div className="relative aspect-square overflow-hidden rounded-[12px] border border-border bg-surface-muted shadow-sm">
+            <ProductImage
               src={gallery[activeImage] ?? product.image}
               alt={product.imageAlt}
-              fill
-              className="object-cover transition duration-300 hover:scale-105"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
-              unoptimized={shouldUnoptimizeImage(
-                gallery[activeImage] ?? product.image,
-              )}
+              paddingClassName="p-6"
+              hoverZoom
             />
           </div>
           {gallery.length > 1 ? (
@@ -62,19 +58,17 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
                   key={`${img}-${idx}`}
                   type="button"
                   onClick={() => setActiveImage(idx)}
-                  className={`relative aspect-square overflow-hidden rounded-[8px] border-2 ${
+                  className={`relative aspect-square overflow-hidden rounded-[8px] border-2 bg-surface-muted ${
                     activeImage === idx
                       ? "border-primary"
                       : "border-transparent"
                   }`}
                 >
-                  <Image
+                  <ProductImage
                     src={img}
                     alt=""
-                    fill
-                    className="object-cover"
                     sizes="120px"
-                    unoptimized={shouldUnoptimizeImage(img)}
+                    paddingClassName="p-2"
                   />
                 </button>
               ))}

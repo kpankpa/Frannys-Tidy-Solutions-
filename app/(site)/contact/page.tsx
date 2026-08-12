@@ -10,10 +10,8 @@ import { AnimatedImage } from "@/components/ui/AnimatedImage";
 import { HeroOverlay } from "@/components/ui/HeroOverlay";
 import { SectionSpinner } from "@/components/ui/PageSpinner";
 import { ContactForm } from "@/components/contact/ContactForm";
-import { TeamSlideshow } from "@/components/team/TeamSlideshow";
 import { SectionIntro } from "@/components/ui/SectionIntro";
 import { getCachedSiteConfig } from "@/lib/db/cached-public";
-import { PEOPLE_IMAGES } from "@/lib/people-images";
 import { buildWhatsAppUrl } from "@/lib/constants";
 import {
   PAGE_HERO_INNER_CLASS,
@@ -121,22 +119,6 @@ export default async function ContactPage() {
               </FadeIn>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="bg-surface-muted py-16 sm:py-20">
-        <div className="container-page grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          <FadeIn>
-            <SectionIntro
-              title="Real people, not a call center"
-              subtitle={`Who you will meet when you reach out to ${site.shortName}`}
-              body="When you call, WhatsApp, or email us, you reach people like these. Friendly faces who know the products, the services, and what it takes to keep your space fresh."
-              maxWidthClass="max-w-md"
-            />
-          </FadeIn>
-          <FadeIn delay={0.1}>
-            <TeamSlideshow images={PEOPLE_IMAGES} />
-          </FadeIn>
         </div>
       </section>
 

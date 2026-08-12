@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { ProductImage } from "@/components/shop/ProductImage";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { PageSpinner } from "@/components/ui/PageSpinner";
@@ -53,14 +53,13 @@ export default function CartPage() {
             >
               <Link
                 href={`/shop/${product.id}`}
-                className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px]"
+                className="relative h-24 w-24 shrink-0 overflow-hidden rounded-[8px] bg-surface-muted"
               >
-                <Image
+                <ProductImage
                   src={product.image}
                   alt={product.imageAlt}
-                  fill
-                  className="object-cover"
                   sizes="96px"
+                  paddingClassName="p-2"
                 />
               </Link>
               <div className="flex min-w-0 flex-1 flex-col">
