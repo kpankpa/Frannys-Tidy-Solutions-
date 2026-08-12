@@ -51,8 +51,8 @@ export function Navbar() {
         scrolled && "shadow-sm",
       )}
     >
-      <div className="container-page flex h-20 items-center gap-3 overflow-hidden md:h-24 md:gap-4">
-        <div className="flex h-full min-w-0 shrink-0 items-center">
+      <div className="container-page flex h-20 items-center justify-between gap-2 sm:h-24 sm:gap-3 md:h-28 lg:h-32">
+        <div className="min-w-0 flex-1 overflow-hidden pr-1 sm:pr-2 xl:flex-none xl:max-w-[20rem]">
           <BrandLogo href="/" size="nav" priority />
         </div>
 
@@ -81,11 +81,11 @@ export function Navbar() {
           })}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <Link
             href="/cart"
             prefetch
-            className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-surface-muted"
+            className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-foreground transition hover:bg-surface-muted sm:h-10 sm:w-10"
             aria-label={`Cart with ${count} items`}
           >
             <ShoppingBag className="h-5 w-5" />
@@ -95,12 +95,12 @@ export function Navbar() {
               </span>
             ) : null}
           </Link>
-          <Button href="/contact" size="sm" className="hidden sm:inline-flex">
+          <Button href="/contact" size="sm" className="hidden md:inline-flex">
             Contact Us
           </Button>
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-foreground xl:hidden"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-foreground xl:hidden sm:h-10 sm:w-10"
             aria-expanded={open}
             aria-label={open ? "Close menu" : "Open menu"}
             onClick={() => setOpen((v) => !v)}

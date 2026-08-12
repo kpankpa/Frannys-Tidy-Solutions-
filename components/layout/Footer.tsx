@@ -3,31 +3,35 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import type { SiteConfig } from "@/lib/db/settings";
 import { DEFAULT_LOGO_URL } from "@/lib/site-config";
+import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { FOOTER_COLUMN_TITLE_CLASS } from "@/lib/section-typography";
 import { InstagramIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 
 export function Footer({ site }: { site: SiteConfig }) {
+  const logoSrc = site.logoUrl || DEFAULT_LOGO_URL;
+
   return (
-    <footer className="mt-auto w-full bg-primary-dark text-white">
-      <div className="container-page grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:py-12">
-        <div>
-          <Link href="/" className="inline-block" aria-label={site.name}>
+    <footer className="mt-auto w-full overflow-hidden bg-primary-dark text-white">
+      <div className="container-page grid grid-cols-1 gap-10 py-10 md:grid-cols-2 md:gap-x-10 lg:grid-cols-4 lg:py-12">
+        <div className="min-w-0 space-y-4">
+          <Link
+            href="/"
+            className="inline-block max-w-full"
+            aria-label={site.name}
+          >
             <Image
-              src={site.logoUrl || DEFAULT_LOGO_URL}
+              src={logoSrc}
               alt={site.name}
-              width={180}
-              height={72}
-              unoptimized={
-                site.logoUrl.startsWith("/uploads/") ||
-                site.logoUrl.startsWith("https://")
-              }
-              className="h-16 w-auto max-w-[10rem] object-contain"
+              width={280}
+              height={112}
+              unoptimized={shouldUnoptimizeImage(logoSrc)}
+              className="h-auto max-h-20 w-auto max-w-full object-contain object-left sm:max-h-24 sm:max-w-[14rem]"
             />
           </Link>
-          <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/70">
+          <p className="max-w-sm text-sm leading-relaxed text-white/70">
             {site.aboutBlurb}
           </p>
-          <div className="mt-4 flex gap-2.5">
+          <div className="flex flex-wrap gap-2.5">
             {site.instagramUrl ? (
               <a
                 href={site.instagramUrl}
@@ -53,7 +57,7 @@ export function Footer({ site }: { site: SiteConfig }) {
           </div>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <h3 className={FOOTER_COLUMN_TITLE_CLASS}>Services</h3>
           <ul className="mt-4 space-y-2 text-sm text-white/75">
             {site.serviceItems.slice(0, 3).map((service) => (
@@ -71,7 +75,7 @@ export function Footer({ site }: { site: SiteConfig }) {
           </ul>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <h3 className={FOOTER_COLUMN_TITLE_CLASS}>Company</h3>
           <ul className="mt-4 space-y-2 text-sm text-white/75">
             <li>
@@ -92,7 +96,7 @@ export function Footer({ site }: { site: SiteConfig }) {
           </ul>
         </div>
 
-        <div>
+        <div className="min-w-0">
           <h3 className={FOOTER_COLUMN_TITLE_CLASS}>Contact</h3>
           <ul className="mt-4 space-y-3 text-sm text-white/75">
             <li className="flex items-center gap-2">
@@ -101,9 +105,9 @@ export function Footer({ site }: { site: SiteConfig }) {
                 {site.phoneDisplay}
               </a>
             </li>
-            <li className="flex items-center gap-2">
-              <Mail className="h-4 w-4 text-highlight" />
-              <a href={`mailto:${site.email}`} className="hover:text-white">
+            <li className="flex items-start gap-2 break-words">
+              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-highlight" />
+              <a href={`mailto:${site.email}`} className="min-w-0 hover:text-white">
                 {site.email}
               </a>
             </li>

@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 type BrandLogoProps = {
   href?: string;
   className?: string;
-  size?: "sm" | "nav" | "md" | "lg";
+  size?: "sm" | "nav" | "md" | "lg" | "footer";
   priority?: boolean;
 };
 
@@ -17,10 +17,15 @@ const sizes = {
   sm: { width: 120, height: 48, className: "max-h-9 w-auto max-w-[6.5rem]" },
   md: { width: 160, height: 64, className: "max-h-12 w-auto max-w-[9rem]" },
   nav: {
-    width: 280,
-    height: 112,
+    width: 360,
+    height: 144,
     className:
-      "max-h-[4.25rem] w-auto max-w-[12rem] sm:max-h-[4.75rem] sm:max-w-[13rem] md:max-h-[5.25rem] md:max-w-[15rem]",
+      "max-h-14 w-auto max-w-full sm:max-h-[5.5rem] md:max-h-[6.75rem] lg:max-h-[7.5rem]",
+  },
+  footer: {
+    width: 300,
+    height: 120,
+    className: "max-h-24 w-auto max-w-[16rem] sm:max-h-28 sm:max-w-[18rem]",
   },
   lg: { width: 200, height: 80, className: "max-h-16 w-auto max-w-[10rem]" },
 } as const;
@@ -57,7 +62,10 @@ export function BrandLogo({
   return (
     <Link
       href={href}
-      className="inline-flex h-full max-h-full shrink-0 items-center overflow-hidden"
+      className={cn(
+        "inline-flex max-w-full items-center overflow-hidden",
+        size === "nav" && "h-full max-h-full",
+      )}
       aria-label={site.name}
     >
       {image}

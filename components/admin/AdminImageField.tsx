@@ -12,7 +12,7 @@ import { explainInvalidImageUrl, sanitizeLogoUrl } from "@/lib/validation";
 const inputClass =
   "mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
 
-type AdminImageFieldProps = {
+export type AdminImageFieldProps = {
   name: string;
   label: string;
   defaultValue?: string;

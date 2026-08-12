@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { AdminImageField } from "@/components/admin/AdminImageField";
+import { AdminImageField } from "@/components/admin/AdminImageFieldDynamic";
 import { Button } from "@/components/ui/Button";
 import { saveCleaningServiceAction } from "@/server/services-admin";
 

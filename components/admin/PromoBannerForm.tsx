@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { AdminImageField } from "@/components/admin/AdminImageField";
+import { AdminImageField } from "@/components/admin/AdminImageFieldDynamic";
 import { PromoImageFraming } from "@/components/admin/PromoImageFraming";
 import { Button } from "@/components/ui/Button";
 import type { PromoBanner } from "@/lib/promotions";

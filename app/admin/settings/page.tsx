@@ -1,6 +1,6 @@
 import { getSiteConfig } from "@/lib/db/settings";
 import { saveBusinessSettingsAction } from "@/server/admin";
-import { AdminImageField } from "@/components/admin/AdminImageField";
+import { AdminImageField } from "@/components/admin/AdminImageFieldDynamic";
 import { PendingSubmitButton } from "@/components/ui/PendingSubmitButton";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 

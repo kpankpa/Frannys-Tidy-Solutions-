@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import { Footer } from "@/components/layout/Footer";
-import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { Navbar } from "@/components/layout/Navbar";
 import { WhatsAppFloat } from "@/components/layout/WhatsAppFloat";
 import { PromoRibbon } from "@/components/promo/PromoRibbon";
@@ -28,10 +27,9 @@ export default async function SiteLayout({
         </Suspense>
         <Navbar />
         <PromoRibbon promo={site.promoBanner} />
-        <main className="flex-1 pb-20 md:pb-0">{children}</main>
+        <main className="flex-1">{children}</main>
         <Footer site={site} />
         <WhatsAppFloat />
-        <MobileBottomNav />
       </div>
     </SiteConfigProvider>
   );
