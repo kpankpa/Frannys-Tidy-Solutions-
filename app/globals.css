@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  --font-manrope: "Manrope", system-ui, sans-serif;
   --primary: #0f5d7f;
   --primary-dark: #083e56;
   --secondary: #1ed3c6;

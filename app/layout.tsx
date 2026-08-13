@@ -1,16 +1,9 @@
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
 import { CartProvider } from "@/lib/cart";
 import { getCachedSiteConfig } from "@/lib/db/cached-public";
 import { getDefaultSiteConfig } from "@/lib/db/settings";
 import { SITE_BRAND_ICON } from "@/lib/constants";
 import "./globals.css";
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
 
 function siteOrigin() {
   const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
@@ -86,7 +79,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} h-full`}>
+    <html lang="en" className="h-full">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased">
         <CartProvider>{children}</CartProvider>
       </body>
