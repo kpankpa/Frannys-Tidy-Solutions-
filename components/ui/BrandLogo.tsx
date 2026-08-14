@@ -40,8 +40,6 @@ export function BrandLogo({
   const dim = sizes[size];
 
   const src = site.logoUrl || DEFAULT_LOGO_URL;
-  const unoptimized =
-    src.startsWith("/uploads/") || src.startsWith("https://");
 
   const image = (
     <Image
@@ -50,7 +48,7 @@ export function BrandLogo({
       width={dim.width}
       height={dim.height}
       priority={priority}
-      unoptimized={unoptimized}
+      unoptimized
       className={cn("h-auto w-auto object-contain object-left", dim.className, className)}
     />
   );

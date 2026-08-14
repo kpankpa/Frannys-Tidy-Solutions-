@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AboutHero } from "@/components/about/AboutHero";
 import { AboutSections } from "@/components/about/AboutSections";
 import { getCachedShopProductCount, getCachedSiteConfig } from "@/lib/db/cached-public";
+import { DEFAULT_WEBSITE_GALLERY } from "@/lib/site-config";
 
 const ESTABLISHED_YEAR = 2023;
 
@@ -69,6 +70,7 @@ export default async function AboutPage() {
         tiktokUrl={site.tiktokUrl}
         googleMapsUrl={site.googleMapsUrl}
         testimonials={site.testimonials}
+        galleryImages={site.websiteGalleryImages ?? DEFAULT_WEBSITE_GALLERY}
         productCount={productCount}
         yearsGrowing={yearsGrowing}
       />

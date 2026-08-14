@@ -42,6 +42,8 @@ export const products = pgTable("products", {
   longDescription: text("long_description").notNull(),
   features: text("features").array().notNull().default([]),
   pricePesewas: integer("price_pesewas").notNull(),
+  /** When set and lower than price_pesewas, customers pay this sale price. */
+  salePricePesewas: integer("sale_price_pesewas"),
   categoryId: uuid("category_id")
     .notNull()
     .references(() => categories.id),
@@ -64,6 +66,18 @@ export const productImages = pgTable("product_images", {
     .references(() => products.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   sortOrder: integer("sort_order").notNull().default(0),
+  ...timestamps,
+});
+
+export const productReviews = pgTable("product_reviews", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  productId: uuid("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  authorName: text("author_name").notNull(),
+  comment: text("comment").notNull().default(""),
+  rating: integer("rating").notNull(),
+  approved: boolean("approved").notNull().default(true),
   ...timestamps,
 });
 
@@ -157,11 +171,19 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     references: [categories.id],
   }),
   images: many(productImages),
+  reviews: many(productReviews),
 }));
 
 export const productImagesRelations = relations(productImages, ({ one }) => ({
   product: one(products, {
     fields: [productImages.productId],
+    references: [products.id],
+  }),
+}));
+
+export const productReviewsRelations = relations(productReviews, ({ one }) => ({
+  product: one(products, {
+    fields: [productReviews.productId],
     references: [products.id],
   }),
 }));

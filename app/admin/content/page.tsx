@@ -1,6 +1,7 @@
 import { getSiteConfig } from "@/lib/db/settings";
 import { saveSiteContentAction } from "@/server/admin";
 import { AdminImageField } from "@/components/admin/AdminImageFieldDynamic";
+import { AdminImageGallery } from "@/components/admin/AdminImageGallery";
 import { PendingSubmitButton } from "@/components/ui/PendingSubmitButton";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 
@@ -573,6 +574,13 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
             label="About products section image"
             defaultValue={site.aboutDealerImage}
             hint="Flyer or product photo beside the detergents and services section."
+          />
+          <AdminImageGallery
+            name="websiteGalleryImages"
+            label="Website photo gallery"
+            defaultItems={site.websiteGalleryImages}
+            defaultAlt={`${site.shortName} team photo`}
+            hint="Slideshow on the About page. Upload multiple team or brand photos at once."
           />
           <label className="block text-sm">
             <span className="font-medium">About intro</span>

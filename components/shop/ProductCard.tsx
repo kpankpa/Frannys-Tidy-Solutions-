@@ -1,16 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ShoppingCart, Star } from "lucide-react";
-import { useState } from "react";
 import { ProductImage } from "@/components/shop/ProductImage";
+import { ProductPrice } from "@/components/shop/ProductPrice";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
-import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
 import {
   activeProductBadge,
-  formatPrice,
   isLowStock,
   type Product,
 } from "@/lib/products";
@@ -22,16 +21,19 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, className }: ProductCardProps) {
+  const router = useRouter();
   const { addItem } = useCart();
-  const { buildWhatsAppUrl, productOrderMessage } = useWhatsAppHelpers();
-  const [added, setAdded] = useState(false);
   const badge = activeProductBadge(product.badge, product.badgeExpiresAt);
 
   function handleAdd() {
     if (!product.inStock) return;
     addItem(product.dbId, 1);
-    setAdded(true);
-    window.setTimeout(() => setAdded(false), 1400);
+  }
+
+  function handleOrder() {
+    if (!product.inStock) return;
+    addItem(product.dbId, 1);
+    router.push("/checkout");
   }
 
   return (
@@ -81,9 +83,11 @@ export function ProductCard({ product, className }: ProductCardProps) {
         </div>
 
         <div className="mt-auto flex items-center justify-between gap-3 pt-4">
-          <p className="text-base font-bold text-primary">
-            {formatPrice(product.price)}
-          </p>
+          <ProductPrice
+            price={product.price}
+            compareAtPrice={product.compareAtPrice}
+            size="sm"
+          />
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -95,14 +99,14 @@ export function ProductCard({ product, className }: ProductCardProps) {
               <ShoppingCart className="h-4 w-4" />
             </button>
             <Button
-              href={buildWhatsAppUrl(productOrderMessage(product.name))}
-              target="_blank"
-              rel="noopener noreferrer"
+              type="button"
+              onClick={handleOrder}
+              disabled={!product.inStock}
               variant="whatsapp"
               size="sm"
             >
               <WhatsAppIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">{added ? "Added" : "Order"}</span>
+              <span className="hidden sm:inline">Order</span>
             </Button>
           </div>
         </div>

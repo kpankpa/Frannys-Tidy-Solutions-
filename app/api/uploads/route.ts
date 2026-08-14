@@ -26,32 +26,56 @@ export async function POST(request: Request) {
   }
 
   const formData = await request.formData();
-  const file = formData.get("file");
+  const files = formData
+    .getAll("file")
+    .filter((entry): entry is File => entry instanceof File);
 
-  if (!(file instanceof File)) {
+  if (files.length === 0) {
+    const single = formData.get("file");
+    if (single instanceof File) {
+      files.push(single);
+    }
+  }
+
+  if (files.length === 0) {
     return NextResponse.json(
       { error: "Choose an image file to upload." },
       { status: 400 },
     );
   }
 
-  try {
-    const result = await saveUploadedImage(file);
-    return NextResponse.json(result);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Upload failed.";
-    const safe =
-      message.includes("JPEG") ||
-      message.includes("5 MB") ||
-      message.includes("writable") ||
-      message.includes("save") ||
-      message.includes("object storage") ||
-      message.includes("Neon") ||
-      message.includes("https image URL") ||
-      message.includes("STORAGE_")
-        ? message
-        : "Upload failed.";
-    return NextResponse.json({ error: safe }, { status: 400 });
+  const urls: string[] = [];
+  const errors: string[] = [];
+
+  for (const file of files) {
+    try {
+      const result = await saveUploadedImage(file);
+      urls.push(result.url);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Upload failed.";
+      errors.push(message);
+    }
   }
+
+  if (urls.length === 0) {
+    const safe =
+      errors[0]?.includes("JPEG") ||
+      errors[0]?.includes("5 MB") ||
+      errors[0]?.includes("writable") ||
+      errors[0]?.includes("save") ||
+      errors[0]?.includes("object storage") ||
+      errors[0]?.includes("Neon") ||
+      errors[0]?.includes("https image URL") ||
+      errors[0]?.includes("STORAGE_")
+        ? errors[0]
+        : "Upload failed.";
+    return NextResponse.json({ error: safe, errors }, { status: 400 });
+  }
+
+  if (urls.length === 1) {
+    return NextResponse.json({ url: urls[0], urls, errors });
+  }
+
+  return NextResponse.json({ urls, errors });
 }

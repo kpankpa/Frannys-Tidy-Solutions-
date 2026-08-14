@@ -17,7 +17,8 @@ import { AccentCircles } from "@/components/ui/AccentCircles";
 import { InstagramIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 import { TeamSlideshow } from "@/components/team/TeamSlideshow";
 import { SectionIntro } from "@/components/ui/SectionIntro";
-import { PEOPLE_IMAGES } from "@/lib/people-images";
+import type { GalleryImageItem } from "@/lib/site-config";
+import { DEFAULT_WEBSITE_GALLERY } from "@/lib/site-config";
 import {
   SECTION_BODY_CLASS,
   SECTION_SUBTITLE_CLASS,
@@ -53,6 +54,7 @@ type AboutSectionsProps = {
   tiktokUrl: string;
   googleMapsUrl?: string;
   testimonials?: TestimonialItem[];
+  galleryImages: GalleryImageItem[];
   productCount: number;
   yearsGrowing: number;
 };
@@ -93,6 +95,7 @@ export function AboutSections({
   tiktokUrl,
   googleMapsUrl = "",
   testimonials = [],
+  galleryImages = DEFAULT_WEBSITE_GALLERY,
   productCount,
   yearsGrowing,
 }: AboutSectionsProps) {
@@ -170,7 +173,7 @@ export function AboutSections({
             />
           </Reveal>
           <Reveal delay={0.1}>
-            <TeamSlideshow images={PEOPLE_IMAGES} />
+            <TeamSlideshow images={galleryImages} />
           </Reveal>
         </div>
       </section>

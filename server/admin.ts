@@ -24,8 +24,10 @@ import {
   clampText,
   sanitizeLogoUrl,
   sanitizeSocialUrl,
+  sanitizeImageUrlList,
   LIMITS,
 } from "@/lib/validation";
+import { DEFAULT_WEBSITE_GALLERY } from "@/lib/site-config";
 
 export async function updateOrderStatusAction(formData: FormData) {
   await requireAdmin();
@@ -265,6 +267,40 @@ export async function saveSiteContentAction(formData: FormData) {
     body: clampText(String(formData.get(`spaceBody${i}`) ?? ""), 400),
   })).filter((item) => item.title);
 
+  const galleryRaw = String(formData.get("websiteGalleryImages") ?? "").trim();
+  let websiteGalleryImages = DEFAULT_WEBSITE_GALLERY;
+  if (galleryRaw) {
+    try {
+      const parsed = JSON.parse(galleryRaw) as unknown;
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed
+          .map((item) => {
+            const srcRaw =
+              item && typeof item === "object" && "src" in item
+                ? String((item as { src?: string }).src ?? "")
+                : "";
+            const altRaw =
+              item && typeof item === "object" && "alt" in item
+                ? String((item as { alt?: string }).alt ?? "")
+                : "";
+            const safeList = sanitizeImageUrlList([srcRaw.trim()]);
+            const src = safeList.urls[0];
+            if (!src) return null;
+            return {
+              src,
+              alt: clampText(altRaw, 160) || "Frannys team photo",
+            };
+          })
+          .filter(Boolean) as { src: string; alt: string }[];
+        if (cleaned.length > 0) {
+          websiteGalleryImages = cleaned.slice(0, 24);
+        }
+      }
+    } catch {
+      redirect("/admin/content?error=InvalidImageUrl");
+    }
+  }
+
   const spacesImageRaw = String(formData.get("serviceSpacesImage") ?? "").trim();
   const serviceSpacesImage = sanitizeLogoUrl(spacesImageRaw);
   if (serviceSpacesImage === null) {
@@ -349,6 +385,7 @@ export async function saveSiteContentAction(formData: FormData) {
     [SETTING_KEYS.aboutStoryImage]: savedImages.aboutStoryImage,
     [SETTING_KEYS.aboutDealerImage]: savedImages.aboutDealerImage,
     [SETTING_KEYS.aboutPromiseImage]: savedImages.aboutPromiseImage,
+    [SETTING_KEYS.websiteGalleryImages]: JSON.stringify(websiteGalleryImages),
     [SETTING_KEYS.aboutValues]: JSON.stringify(aboutValues),
     [SETTING_KEYS.aboutJourney]: JSON.stringify(aboutJourney),
     [SETTING_KEYS.aboutDifference]: JSON.stringify(aboutDifference),

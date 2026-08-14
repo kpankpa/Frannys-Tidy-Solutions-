@@ -62,9 +62,8 @@ export function MediaLibraryUpload() {
         <div>
           <p className="text-sm font-semibold">Upload images</p>
           <p className="mt-0.5 text-xs text-muted">
-            JPEG, PNG, WebP, or GIF up to 5 MB. On Vercel/shared hosting, configure
-            Neon Object Storage (see Settings / docs) or paste https image URLs on
-            products.
+            JPEG, PNG, WebP, or GIF up to 5 MB each. Select multiple files at
+            once.
           </p>
         </div>
         <div>
@@ -97,6 +96,9 @@ export function MediaLibraryUpload() {
           </Button>
         </div>
       </div>
+      <p className="text-xs text-muted">
+        Tip: hold Ctrl (Windows) or Cmd (Mac) to pick many photos in one go.
+      </p>
       {message ? <p className="mt-3 text-sm text-success">{message}</p> : null}
       {error ? <p className="mt-3 text-sm text-danger">{error}</p> : null}
     </div>

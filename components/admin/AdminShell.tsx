@@ -207,9 +207,7 @@ export function AdminShell({
               alt={brandName}
               width={140}
               height={56}
-              unoptimized={
-                logoUrl.startsWith("/uploads/") || logoUrl.startsWith("https://")
-              }
+              unoptimized
               className="h-11 w-auto max-w-[8rem] object-contain"
             />
             <span>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductForm } from "@/components/admin/ProductForm";
+import { ProductReviewAdminList } from "@/components/admin/ProductReviewAdminList";
 import { getProductByDbId, listCategories } from "@/lib/db/products";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 
@@ -38,7 +39,8 @@ export default async function EditProductPage({ params }: PageProps) {
           description: product.description,
           longDescription: product.longDescription,
           features: product.features,
-          priceCedis: product.price,
+          priceCedis: product.compareAtPrice ?? product.price,
+          salePriceCedis: product.compareAtPrice ? product.price : null,
           categoryName: product.category,
           rating: product.rating,
           reviewsCount: product.reviews,
@@ -50,6 +52,7 @@ export default async function EditProductPage({ params }: PageProps) {
           imageUrls: product.images,
         }}
       />
+      <ProductReviewAdminList productDbId={product.dbId} />
       <p className="text-center text-sm text-muted">
         <Link
           href={`/shop/${product.id}`}

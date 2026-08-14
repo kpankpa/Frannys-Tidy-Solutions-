@@ -8,8 +8,10 @@ export type Product = {
   description: string;
   longDescription: string;
   features: string[];
-  /** Price in Ghana cedis (UI). DB stores pesewas. */
+  /** Price in Ghana cedis (UI). DB stores pesewas. This is what the customer pays. */
   price: number;
+  /** Original price in cedis when on sale (shown crossed out). */
+  compareAtPrice?: number;
   category: string;
   rating: number;
   reviews: number;
@@ -49,6 +51,24 @@ export type ProductFilters = {
 
 export function formatPrice(amount: number): string {
   return formatPriceFromCedis(amount);
+}
+
+export function isProductOnSale(product: {
+  price: number;
+  compareAtPrice?: number;
+}): boolean {
+  return (
+    product.compareAtPrice != null && product.compareAtPrice > product.price
+  );
+}
+
+export function saleDiscountPercent(product: {
+  price: number;
+  compareAtPrice?: number;
+}): number | null {
+  if (!isProductOnSale(product)) return null;
+  const original = product.compareAtPrice!;
+  return Math.round(((original - product.price) / original) * 100);
 }
 
 export function isLowStock(stockQuantity: number): boolean {

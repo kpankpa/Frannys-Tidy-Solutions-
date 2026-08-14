@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { countProducts, listCategories, listProducts } from "@/lib/db/products";
-import { formatPrice, isLowStock } from "@/lib/products";
+import { isLowStock, isProductOnSale } from "@/lib/products";
+import { ProductPrice } from "@/components/shop/ProductPrice";
 import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { Button } from "@/components/ui/Button";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
@@ -149,8 +150,17 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                     </div>
                   </td>
                   <td className="px-4 py-3">{p.category}</td>
-                  <td className="px-4 py-3 font-semibold">
-                    {formatPrice(p.price)}
+                  <td className="px-4 py-3">
+                    <ProductPrice
+                      price={p.price}
+                      compareAtPrice={p.compareAtPrice}
+                      size="sm"
+                    />
+                    {isProductOnSale(p) ? (
+                      <span className="mt-0.5 block text-[10px] font-semibold uppercase tracking-wide text-highlight">
+                        On sale
+                      </span>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3">
                     {!p.inStock || p.stockQuantity <= 0 ? (

@@ -81,10 +81,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             alt={site.name}
             width={180}
             height={72}
-            unoptimized={
-              site.logoUrl.startsWith("/uploads/") ||
-              site.logoUrl.startsWith("https://")
-            }
+            unoptimized
             className="h-20 w-auto max-w-[11rem] object-contain"
             priority
           />

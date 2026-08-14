@@ -17,6 +17,7 @@ import { MediaPicker } from "@/components/admin/MediaPicker";
 import { Spinner } from "@/components/ui/PageSpinner";
 import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { LOW_STOCK_THRESHOLD } from "@/lib/products";
+import { uploadImageFiles } from "@/lib/admin-upload-client";
 import {
   explainInvalidImageUrl,
   sanitizeImageUrl,
@@ -36,9 +37,10 @@ type ProductFormValues = {
   longDescription: string;
   features: string[];
   priceCedis: number;
+  salePriceCedis?: number | null;
   categoryName: string;
-  rating: number;
-  reviewsCount: number;
+  rating?: number;
+  reviewsCount?: number;
   inStock: boolean;
   stockQuantity: number;
   badge: string;
@@ -55,7 +57,7 @@ type ProductFormProps = {
 const fieldClass =
   "mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-4 focus:ring-primary/10";
 
-const MAX_IMAGES = 8;
+const MAX_IMAGES = 20;
 
 export function ProductForm({ categories, product }: ProductFormProps) {
   const router = useRouter();
@@ -94,24 +96,9 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     setUploadMessage("");
     setUploading(true);
     const toUpload = files.slice(0, room);
-    const uploaded: string[] = [];
-    const failures: string[] = [];
 
     try {
-      for (const file of toUpload) {
-        const body = new FormData();
-        body.append("file", file);
-        const response = await fetch("/api/uploads", {
-          method: "POST",
-          body,
-        });
-        const data = (await response.json()) as { url?: string; error?: string };
-        if (!response.ok || !data.url) {
-          failures.push(data.error || file.name);
-          continue;
-        }
-        uploaded.push(data.url);
-      }
+      const { uploaded, failures } = await uploadImageFiles(toUpload);
 
       if (uploaded.length) {
         setImageUrls((prev) => [...uploaded, ...prev].slice(0, MAX_IMAGES));
@@ -229,7 +216,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="text-sm font-medium">Price (GH₵)</span>
+          <span className="text-sm font-medium">Regular price (GH₵)</span>
           <input
             name="priceCedis"
             type="number"
@@ -239,9 +226,37 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             defaultValue={product?.priceCedis ?? 45}
             className={fieldClass}
           />
+          <span className="mt-1 block text-xs text-muted">
+            Full price before any discount. Customers see this crossed out when
+            the product is on sale.
+          </span>
         </label>
 
         <label className="block">
+          <span className="text-sm font-medium">Sale price (GH₵)</span>
+          <input
+            name="salePriceCedis"
+            type="number"
+            step="0.01"
+            min="0"
+            defaultValue={
+              product?.salePriceCedis != null && product.salePriceCedis > 0
+                ? product.salePriceCedis
+                : ""
+            }
+            placeholder="Optional"
+            className={fieldClass}
+          />
+          <span className="mt-1 block text-xs text-muted">
+            Use this when you want to discount the product. Leave empty for no
+            sale. Must be lower than regular price. Shop shows the sale price
+            with the regular price crossed out.
+          </span>
+        </label>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="block sm:col-span-2">
           <span className="text-sm font-medium">Category</span>
           {categories.length === 0 ? (
             <p className="mt-1.5 text-sm text-danger">
@@ -283,9 +298,9 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         <span className="text-sm font-medium">Long description</span>
         <textarea
           name="longDescription"
-          required
           rows={4}
           defaultValue={product?.longDescription}
+          placeholder="Optional. Extra detail for the product page."
           className={fieldClass}
         />
       </label>
@@ -482,7 +497,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         />
       </label>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="text-sm font-medium">Badge</span>
           <input
@@ -508,29 +523,19 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             Optional. Leave empty for no end date.
           </span>
         </label>
-        <label className="block">
-          <span className="text-sm font-medium">Rating</span>
-          <input
-            name="rating"
-            type="number"
-            step="0.1"
-            min="0"
-            max="5"
-            defaultValue={product?.rating ?? 4.8}
-            className={fieldClass}
-          />
-        </label>
-        <label className="block">
-          <span className="text-sm font-medium">Reviews</span>
-          <input
-            name="reviewsCount"
-            type="number"
-            min="0"
-            defaultValue={product?.reviewsCount ?? 0}
-            className={fieldClass}
-          />
-        </label>
       </div>
+
+      {product?.rating != null && product.reviewsCount != null ? (
+        <p className="rounded-[8px] border border-border bg-surface-muted/40 px-4 py-3 text-sm text-muted">
+          Shop rating:{" "}
+          <span className="font-semibold text-foreground">
+            {product.rating} ({product.reviewsCount} review
+            {product.reviewsCount === 1 ? "" : "s"})
+          </span>
+          . Updated automatically when customers post reviews on the product
+          page.
+        </p>
+      ) : null}
 
       <label className="block">
         <span className="text-sm font-medium">Stock quantity</span>

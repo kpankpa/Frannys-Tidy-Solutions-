@@ -5,6 +5,7 @@ import {
   getCachedProductBySlug,
   getCachedRelatedProducts,
 } from "@/lib/db/cached-public";
+import { listApprovedProductReviews } from "@/lib/db/product-reviews";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -39,6 +40,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
   }
 
   const related = await getCachedRelatedProducts(product.id);
+  const reviewRows = await listApprovedProductReviews(product.dbId);
+  const reviews = reviewRows.map((review) => ({
+    id: review.id,
+    authorName: review.authorName,
+    comment: review.comment,
+    rating: review.rating,
+    createdAt: review.createdAt.toISOString(),
+  }));
 
-  return <ProductDetail product={product} related={related} />;
+  return <ProductDetail product={product} related={related} reviews={reviews} />;
 }

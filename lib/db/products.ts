@@ -23,6 +23,13 @@ export function mapDbProduct(row: ProductWithRelations): Product {
   const fallback =
     "https://images.unsplash.com/photo-1585421514738-17ce1bc2d45d?auto=format&fit=crop&w=900&q=80";
   const stockQuantity = Math.max(0, row.stockQuantity ?? 0);
+  const regularCedis = pesewasToCedis(row.pricePesewas);
+  const saleCedis =
+    row.salePricePesewas != null
+      ? pesewasToCedis(row.salePricePesewas)
+      : null;
+  const onSale =
+    saleCedis != null && saleCedis > 0 && saleCedis < regularCedis;
 
   return {
     id: row.slug,
@@ -31,7 +38,8 @@ export function mapDbProduct(row: ProductWithRelations): Product {
     description: row.description,
     longDescription: row.longDescription,
     features: row.features ?? [],
-    price: pesewasToCedis(row.pricePesewas),
+    price: onSale ? saleCedis : regularCedis,
+    compareAtPrice: onSale ? regularCedis : undefined,
     category: row.category?.name ?? "Uncategorized",
     rating: Number(row.rating),
     reviews: row.reviewsCount,
@@ -154,6 +162,7 @@ export type ProductInput = {
   longDescription: string;
   features: string[];
   priceCedis: number;
+  salePriceCedis?: number | null;
   categoryId: string;
   rating?: number;
   reviewsCount?: number;
@@ -186,9 +195,23 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function normalizeSalePricePesewas(regularCedis: number, saleCedis?: number | null) {
+  if (saleCedis == null || !Number.isFinite(saleCedis) || saleCedis <= 0) {
+    return null;
+  }
+  const regularPesewas = cedisToPesewas(regularCedis);
+  const salePesewas = cedisToPesewas(saleCedis);
+  if (salePesewas >= regularPesewas) return null;
+  return salePesewas;
+}
+
 export async function createProduct(input: ProductInput) {
   const slug = input.slug.trim() || slugify(input.name);
   const stock = normalizeStock(input.stockQuantity);
+  const salePricePesewas = normalizeSalePricePesewas(
+    input.priceCedis,
+    input.salePriceCedis,
+  );
 
   const [created] = await db
     .insert(products)
@@ -199,6 +222,7 @@ export async function createProduct(input: ProductInput) {
       longDescription: input.longDescription.trim(),
       features: input.features,
       pricePesewas: cedisToPesewas(input.priceCedis),
+      salePricePesewas,
       categoryId: input.categoryId,
       rating: String(input.rating ?? 0),
       reviewsCount: input.reviewsCount ?? 0,
@@ -226,6 +250,10 @@ export async function createProduct(input: ProductInput) {
 export async function updateProduct(dbId: string, input: ProductInput) {
   const slug = input.slug.trim() || slugify(input.name);
   const stock = normalizeStock(input.stockQuantity);
+  const salePricePesewas = normalizeSalePricePesewas(
+    input.priceCedis,
+    input.salePriceCedis,
+  );
 
   await db.transaction(async (tx) => {
     await tx
@@ -237,9 +265,8 @@ export async function updateProduct(dbId: string, input: ProductInput) {
         longDescription: input.longDescription.trim(),
         features: input.features,
         pricePesewas: cedisToPesewas(input.priceCedis),
+        salePricePesewas,
         categoryId: input.categoryId,
-        rating: String(input.rating ?? 0),
-        reviewsCount: input.reviewsCount ?? 0,
         inStock: stock.inStock,
         stockQuantity: stock.stockQuantity,
         badge: input.badge || null,
@@ -315,7 +342,8 @@ export async function duplicateProduct(dbId: string) {
     description: source.description,
     longDescription: source.longDescription,
     features: source.features,
-    priceCedis: source.price,
+    priceCedis: source.compareAtPrice ?? source.price,
+    salePriceCedis: source.compareAtPrice ? source.price : null,
     categoryId: category.id,
     rating: source.rating,
     reviewsCount: source.reviews,

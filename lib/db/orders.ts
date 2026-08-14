@@ -115,7 +115,12 @@ export async function createOrderFromCart(
       pricedLines.push({
         productId: product.id,
         productName: product.name,
-        unitPricePesewas: product.pricePesewas,
+        unitPricePesewas:
+          product.salePricePesewas != null &&
+          product.salePricePesewas > 0 &&
+          product.salePricePesewas < product.pricePesewas
+            ? product.salePricePesewas
+            : product.pricePesewas,
         quantity: item.quantity,
         stockAfter: product.stockQuantity - item.quantity,
       });

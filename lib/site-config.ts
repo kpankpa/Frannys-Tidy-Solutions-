@@ -31,6 +31,7 @@ import {
   type PromoBanner,
 } from "@/lib/promotions";
 import { FLYERS } from "@/lib/flyers";
+import { PEOPLE_IMAGES } from "@/lib/people-images";
 
 export type {
   HowItWorksItem,
@@ -125,9 +126,10 @@ export const SETTING_KEYS = {
   homeServicesTitle: "home_services_title",
   homeServicesDescription: "home_services_description",
   promoBanner: "promo_banner",
+  websiteGalleryImages: "website_gallery_images",
 } as const;
 
-export const DEFAULT_LOGO_URL = "/frannystidy.png";
+export const DEFAULT_LOGO_URL = "/frannys-logo.jpg";
 export const DEFAULT_HERO_HOME_IMAGE = "/hero-home.png";
 export const DEFAULT_SHOP_HERO_IMAGE = FLYERS.productLineup.src;
 export const DEFAULT_SERVICES_HERO_IMAGE = FLYERS.brandProducts.src;
@@ -163,6 +165,18 @@ export type ServicePackageItem = {
   description: string;
   priceFromCedis: number;
 };
+
+export type GalleryImageItem = {
+  src: string;
+  alt: string;
+};
+
+export const DEFAULT_WEBSITE_GALLERY: GalleryImageItem[] = PEOPLE_IMAGES.map(
+  (item) => ({
+    src: item.src,
+    alt: item.alt,
+  }),
+);
 
 const DEFAULT_WHY_CHOOSE: ContentItem[] = whyChooseUs.map((item) => ({
   title: item.title,
@@ -310,6 +324,7 @@ export const SETTINGS_DEFAULTS: Record<SettingKey, string> = {
   home_services_description:
     "Homes, offices, hotels, schools, churches, and commercial spaces across Ghana.",
   promo_banner: JSON.stringify(DEFAULT_PROMO_BANNER),
+  website_gallery_images: JSON.stringify(DEFAULT_WEBSITE_GALLERY),
 };
 
 function parseJsonArray<T>(raw: string | undefined, fallback: T[]): T[] {
@@ -333,6 +348,20 @@ function parseStringList(raw: string | undefined, fallback: string[]): string[] 
     .map((line) => line.trim())
     .filter(Boolean);
   return lines.length > 0 ? lines : fallback;
+}
+
+function parseGalleryImages(
+  raw: string | undefined,
+  fallback: GalleryImageItem[] = DEFAULT_WEBSITE_GALLERY,
+): GalleryImageItem[] {
+  const items = parseJsonArray<{ src?: string; alt?: string }>(raw, []);
+  const cleaned = items
+    .map((item) => ({
+      src: String(item?.src ?? "").trim(),
+      alt: String(item?.alt ?? "").trim().slice(0, 160),
+    }))
+    .filter((item) => item.src);
+  return cleaned.length > 0 ? cleaned : fallback;
 }
 
 function parseWhyChoose(raw: string | undefined): ContentItem[] {
@@ -485,6 +514,7 @@ export type SiteConfig = {
   homeServicesTitle: string;
   homeServicesDescription: string;
   promoBanner: PromoBanner;
+  websiteGalleryImages: GalleryImageItem[];
 };
 
 function textOrDefault(raw: string | undefined, fallback: string) {
@@ -692,7 +722,13 @@ export function siteConfigFromMap(s: Record<string, string>): SiteConfig {
     servicePackages: parseServicePackages(s[SETTING_KEYS.servicePackages]),
     testimonials: parseTestimonials(s[SETTING_KEYS.testimonials]),
     googleMapsUrl: (s[SETTING_KEYS.googleMapsUrl] ?? "").trim(),
-    logoUrl: (s[SETTING_KEYS.logoUrl] ?? "").trim() || DEFAULT_LOGO_URL,
+    logoUrl: (() => {
+      const trimmed = (s[SETTING_KEYS.logoUrl] ?? "").trim();
+      if (!trimmed) return DEFAULT_LOGO_URL;
+      // Ignore broken legacy paths saved in older admin sessions.
+      if (trimmed === "/frannystidy.png") return DEFAULT_LOGO_URL;
+      return trimmed;
+    })(),
     receiptTitle:
       (s[SETTING_KEYS.receiptTitle] ?? "").trim() ||
       SETTINGS_DEFAULTS.receipt_title,
@@ -707,6 +743,9 @@ export function siteConfigFromMap(s: Record<string, string>): SiteConfig {
       s[SETTING_KEYS.homeServicesDescription] ||
       SETTINGS_DEFAULTS.home_services_description,
     promoBanner: parsePromoBanner(s[SETTING_KEYS.promoBanner]),
+    websiteGalleryImages: parseGalleryImages(
+      s[SETTING_KEYS.websiteGalleryImages],
+    ),
   };
 }
 

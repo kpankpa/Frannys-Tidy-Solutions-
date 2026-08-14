@@ -35,7 +35,7 @@ function parseImageUrls(raw: string): {
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean)
-      .slice(0, 8),
+      .slice(0, 20),
   );
 }
 
@@ -55,11 +55,9 @@ export async function saveProductAction(formData: FormData) {
 
   const dbId = String(formData.get("dbId") ?? "").trim();
   const priceCedis = Number(formData.get("priceCedis") ?? 0);
-  const rating = Math.min(5, Math.max(0, Number(formData.get("rating") ?? 0)));
-  const reviewsCount = Math.max(
-    0,
-    Math.floor(Number(formData.get("reviewsCount") ?? 0)),
-  );
+  const salePriceRaw = String(formData.get("salePriceCedis") ?? "").trim();
+  const salePriceCedis =
+    salePriceRaw === "" ? null : Number(salePriceRaw);
   const stockQuantity = Math.max(
     0,
     Math.floor(Number(formData.get("stockQuantity") ?? 0)),
@@ -76,9 +74,8 @@ export async function saveProductAction(formData: FormData) {
     ),
     features: parseFeatures(String(formData.get("features") ?? "")),
     priceCedis,
+    salePriceCedis,
     categoryId: String(formData.get("categoryId") ?? ""),
-    rating,
-    reviewsCount,
     stockQuantity,
     badge: clampText(String(formData.get("badge") ?? ""), 40) || null,
     badgeExpiresAt: String(formData.get("badgeExpiresAt") ?? "").trim() || null,
@@ -90,6 +87,18 @@ export async function saveProductAction(formData: FormData) {
     return {
       ok: false as const,
       error: "Name, category, and a valid price are required.",
+    };
+  }
+
+  if (
+    salePriceCedis != null &&
+    (!Number.isFinite(salePriceCedis) ||
+      salePriceCedis <= 0 ||
+      salePriceCedis >= priceCedis)
+  ) {
+    return {
+      ok: false as const,
+      error: "Sale price must be greater than 0 and less than the regular price.",
     };
   }
 

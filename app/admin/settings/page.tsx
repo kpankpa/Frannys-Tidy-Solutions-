@@ -38,7 +38,7 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
       ) : null}
       {params.error === "InvalidLogoUrl" ? (
         <p className="max-w-2xl rounded-[8px] bg-danger/10 px-3 py-2 text-sm text-danger">
-          Logo must be a site path (for example /frannystidy.png or
+          Logo must be a site path (for example /frannys-logo.jpg or
           /uploads/...), a https image URL, or blank for the default logo.
         </p>
       ) : null}
@@ -77,7 +77,7 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
             label="Logo"
             defaultValue={site.logoUrl}
             hint="Used on the website, admin hub, and printable receipts. Upload, pick from library, or paste a URL."
-            placeholder="/frannystidy.png"
+            placeholder="/frannys-logo.jpg"
           />
         </div>
 

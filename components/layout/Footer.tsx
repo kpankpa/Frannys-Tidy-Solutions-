@@ -3,7 +3,6 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import type { SiteConfig } from "@/lib/db/settings";
 import { DEFAULT_LOGO_URL } from "@/lib/site-config";
-import { shouldUnoptimizeImage } from "@/lib/image-src";
 import { FOOTER_COLUMN_TITLE_CLASS } from "@/lib/section-typography";
 import { InstagramIcon, TikTokIcon } from "@/components/ui/SocialIcons";
 
@@ -24,7 +23,7 @@ export function Footer({ site }: { site: SiteConfig }) {
               alt={site.name}
               width={280}
               height={112}
-              unoptimized={shouldUnoptimizeImage(logoSrc)}
+              unoptimized
               className="h-auto max-h-20 w-auto max-w-full object-contain object-left sm:max-h-24 sm:max-w-[14rem]"
             />
           </Link>

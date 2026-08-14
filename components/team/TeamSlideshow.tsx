@@ -5,17 +5,20 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { shouldUnoptimizeImage } from "@/lib/image-src";
-import type { PeopleImage } from "@/lib/people-images";
+import type { GalleryImageItem } from "@/lib/site-config";
 import { cn } from "@/lib/utils";
 
 const AUTO_ADVANCE_MS = 6000;
 
 type TeamSlideshowProps = {
-  images: PeopleImage[];
+  images: GalleryImageItem[];
   className?: string;
 };
 
-export function TeamSlideshow({ images, className }: TeamSlideshowProps) {
+export function TeamSlideshow({
+  images = [],
+  className,
+}: TeamSlideshowProps) {
   const reduceMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
   const count = images.length;

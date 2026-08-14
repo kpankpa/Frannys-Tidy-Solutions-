@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Minus, Plus, ShoppingCart, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { useState } from "react";
+import { ProductReviews, type ProductReviewView } from "@/components/shop/ProductReviews";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductImage } from "@/components/shop/ProductImage";
+import { ProductPrice } from "@/components/shop/ProductPrice";
+import { StarRating } from "@/components/shop/StarRating";
 import { Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/WhatsAppIcon";
 import { useCart } from "@/lib/cart";
-import { useWhatsAppHelpers } from "@/components/providers/SiteConfigProvider";
-import { formatPrice, isLowStock, type Product } from "@/lib/products";
+import { isLowStock, type Product } from "@/lib/products";
 import {
   SECTION_SUBTITLE_CLASS,
   SECTION_TITLE_CLASS,
@@ -19,11 +22,12 @@ import {
 type ProductDetailProps = {
   product: Product;
   related: Product[];
+  reviews: ProductReviewView[];
 };
 
-export function ProductDetail({ product, related }: ProductDetailProps) {
+export function ProductDetail({ product, related, reviews }: ProductDetailProps) {
+  const router = useRouter();
   const { addItem } = useCart();
-  const { buildWhatsAppUrl, productOrderMessage } = useWhatsAppHelpers();
   const [qty, setQty] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const gallery =
@@ -36,6 +40,12 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
     feature.startsWith("Ideal for:"),
   );
   const idealFor = idealForLine?.replace(/^Ideal for:\s*/, "");
+
+  function handleOrder() {
+    if (!product.inStock) return;
+    addItem(product.dbId, qty);
+    router.push("/checkout");
+  }
 
   return (
     <div className="container-page py-10 sm:py-14">
@@ -81,20 +91,28 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
             {product.name}
           </h1>
           <p className={`${SECTION_SUBTITLE_CLASS} mt-2`}>{product.category}</p>
-          <div className="mt-3 flex items-center gap-2 text-sm text-muted">
-            <Star className="h-4 w-4 fill-highlight text-highlight" />
+          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <StarRating value={product.rating} size="md" />
             <span className="font-semibold text-foreground">{product.rating}</span>
-            <span>({product.reviews} reviews)</span>
+            <span>({product.reviews} review{product.reviews === 1 ? "" : "s"})</span>
           </div>
-          <p className="mt-5 text-3xl font-bold text-primary">
-            {formatPrice(product.price)}
-          </p>
+          <div className="mt-5">
+            <ProductPrice
+              price={product.price}
+              compareAtPrice={product.compareAtPrice}
+              size="lg"
+            />
+          </div>
           {product.inStock && isLowStock(product.stockQuantity) ? (
             <p className="mt-2 text-sm font-semibold text-amber-700">
               Only {product.stockQuantity} left in stock
             </p>
           ) : null}
-          <p className="mt-5 leading-relaxed text-muted">{product.longDescription}</p>
+          {product.longDescription.trim() ? (
+            <p className="mt-5 leading-relaxed text-muted">
+              {product.longDescription}
+            </p>
+          ) : null}
 
           {keyFeatures.length > 0 ? (
             <div className="mt-6">
@@ -152,9 +170,9 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
           </div>
 
           <Button
-            href={buildWhatsAppUrl(productOrderMessage(product.name, qty))}
-            target="_blank"
-            rel="noopener noreferrer"
+            type="button"
+            onClick={handleOrder}
+            disabled={!product.inStock}
             variant="whatsapp"
             size="lg"
             className="mt-3 w-full sm:w-auto"
@@ -171,6 +189,12 @@ export function ProductDetail({ product, related }: ProductDetailProps) {
           </p>
         </div>
       </div>
+
+      <ProductReviews
+        productId={product.dbId}
+        productSlug={product.id}
+        reviews={reviews}
+      />
 
       {related.length > 0 ? (
         <div className="mt-16">
