@@ -15,6 +15,7 @@ import {
 } from "../lib/object-storage";
 import { saveUploadedImage } from "../lib/uploads";
 import { listProducts } from "../lib/db/products";
+import { sanitizeLogoUrl } from "../lib/validation";
 
 const TEST_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
@@ -166,14 +167,8 @@ async function main() {
   console.log(`  Business:   ${site.name}`);
   console.log(`  Products:   ${catalog.length}`);
 
-  const heroBroken =
-    site.heroHomeImage.startsWith("/") &&
-    !site.heroHomeImage.startsWith("/uploads/") &&
-    !site.heroHomeImage.startsWith("http");
-  const logoBroken =
-    site.logoUrl.startsWith("/") &&
-    !site.logoUrl.startsWith("/uploads/") &&
-    !site.logoUrl.startsWith("http");
+  const heroBroken = sanitizeLogoUrl(site.heroHomeImage) === null;
+  const logoBroken = sanitizeLogoUrl(site.logoUrl) === null;
 
   if (heroBroken) {
     fail(

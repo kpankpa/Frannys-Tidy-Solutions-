@@ -320,8 +320,9 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           <div>
             <p className="text-sm font-medium">Product images</p>
             <p className="mt-0.5 text-xs text-muted">
-              First image is the shop cover. Upload files or paste https URLs
-              ({imageUrls.length}/{MAX_IMAGES}).
+              First image is the shop cover. Upload files, pick from the
+              library, or paste a site path / https URL (
+              {imageUrls.length}/{MAX_IMAGES}).
             </p>
           </div>
           {product?.slug ? (
@@ -357,7 +358,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             <input
               value={urlDraft}
               onChange={(e) => setUrlDraft(e.target.value)}
-              placeholder="https://... or /uploads/..."
+              placeholder="https://... or /flyers/... or /uploads/..."
               className={fieldClass}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -482,7 +483,8 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           <div className="flex flex-col items-center justify-center gap-2 rounded-[8px] border border-dashed border-border bg-surface px-4 py-8 text-center">
             <Upload className="h-6 w-6 text-muted" />
             <p className="text-sm text-muted">
-              No images yet. Upload from your device or paste a https URL.
+              No images yet. Upload from your device, pick from the library, or
+              paste a site path / https URL.
             </p>
           </div>
         )}

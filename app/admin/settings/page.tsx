@@ -38,8 +38,9 @@ export default async function AdminSettingsPage({ searchParams }: PageProps) {
       ) : null}
       {params.error === "InvalidLogoUrl" ? (
         <p className="max-w-2xl rounded-[8px] bg-danger/10 px-3 py-2 text-sm text-danger">
-          Logo must be a site path (for example /frannys-logo.jpg or
-          /uploads/...), a https image URL, or blank for the default logo.
+          Logo or home hero image must be a site path (for example
+          /frannys-logo.jpg, /hero-home.png, /flyers/..., /uploads/...), a https
+          image URL, or blank for the default.
         </p>
       ) : null}
 

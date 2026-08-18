@@ -15,7 +15,7 @@ import {
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const UPLOAD_DIR = path.join(process.cwd(), "public", "uploads");
-const SAFE_FILENAME = /^[A-Za-z0-9._-]+$/;
+const SAFE_FILENAME = /^[A-Za-z0-9._+()[\]' ,&@-]+$/;
 const SAFE_STORAGE_KEY = /^media\/[A-Za-z0-9._-]+$/;
 
 export type UploadResult = {
@@ -200,20 +200,23 @@ export async function listUploadedMedia(): Promise<MediaLibraryItem[]> {
 
   const items: MediaLibraryItem[] = [];
   for (const name of names) {
-    if (name.startsWith(".") || !SAFE_FILENAME.test(name)) continue;
+    if (name.startsWith(".") || name.includes("..") || !SAFE_FILENAME.test(name)) {
+      continue;
+    }
     if (!/\.(jpe?g|png|gif|webp)$/i.test(name)) continue;
 
     const fullPath = path.join(UPLOAD_DIR, name);
     try {
       const info = await stat(fullPath);
       if (!info.isFile()) continue;
-      const url = `/uploads/${name}`;
+      const url = `/uploads/${encodeURIComponent(name)}`;
+      const rawUrl = `/uploads/${name}`;
       items.push({
         filename: name,
         url,
         sizeBytes: info.size,
         modifiedAt: info.mtime.toISOString(),
-        usedByProducts: usage.get(url) ?? 0,
+        usedByProducts: (usage.get(url) ?? 0) + (usage.get(rawUrl) ?? 0),
       });
     } catch {
       // skip unreadable entries
@@ -258,14 +261,23 @@ export async function deleteUploadedMedia(filename: string): Promise<void> {
     throw new Error("Invalid file name.");
   }
 
-  const url = `/uploads/${key}`;
+  const url = `/uploads/${encodeURIComponent(key)}`;
+  const rawUrl = `/uploads/${key}`;
   const [inUse] = await db
     .select({ id: productImages.id })
     .from(productImages)
     .where(eq(productImages.url, url))
     .limit(1);
+  const [inUseRaw] =
+    rawUrl === url
+      ? [undefined]
+      : await db
+          .select({ id: productImages.id })
+          .from(productImages)
+          .where(eq(productImages.url, rawUrl))
+          .limit(1);
 
-  if (inUse) {
+  if (inUse || inUseRaw) {
     throw new Error(
       "This image is used by a product. Remove it from products first.",
     );

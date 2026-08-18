@@ -42,7 +42,11 @@ export async function saveCleaningServiceAction(
   const image = sanitizeLogoUrl(imageRaw);
 
   if (imageRaw && !image) {
-    return { ok: false, error: "Image URL is invalid." };
+    return {
+      ok: false,
+      error:
+        "Image URL is invalid. Use a site photo such as /professional-cleaning.jpg or /uploads/..., or a https image URL.",
+    };
   }
 
   const item = sanitizeServiceItem({

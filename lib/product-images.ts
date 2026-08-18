@@ -58,7 +58,11 @@ export function productNameForSlug(slug: string): string {
 }
 
 export function publicProductImagePath(relativePath: string) {
-  return `/${relativePath.replace(/^\/+/, "")}`;
+  return `/${relativePath
+    .replace(/^\/+/, "")
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/")}`;
 }
 
 export function mimeForProductFile(filePath: string) {

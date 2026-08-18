@@ -176,7 +176,7 @@ export function AdminImageGallery({
           <input
             value={urlDraft}
             onChange={(e) => setUrlDraft(e.target.value)}
-            placeholder="https://... or /uploads/..."
+            placeholder="https://... or /flyers/... or /uploads/..."
             className={fieldClass}
             onKeyDown={(e) => {
               if (e.key === "Enter") {

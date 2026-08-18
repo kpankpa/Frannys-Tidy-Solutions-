@@ -105,8 +105,8 @@ export async function saveProductAction(formData: FormData) {
   if (input.imageUrls.length === 0) {
     const hint =
       parsedImages.rejected.length > 0
-        ? ` ${parsedImages.rejected.length} URL(s) were rejected. Upload a file or paste a https image link.`
-        : " Upload a file or paste a https image URL.";
+        ? ` ${parsedImages.rejected.length} URL(s) were rejected. Upload a file or use a site path / https image link.`
+        : " Upload a file or use a site path / https image URL.";
     return {
       ok: false as const,
       error: `Add at least one image.${hint}`,

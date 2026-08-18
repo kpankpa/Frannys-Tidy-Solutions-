@@ -297,7 +297,7 @@ export async function saveSiteContentAction(formData: FormData) {
         }
       }
     } catch {
-      redirect("/admin/content?error=InvalidImageUrl");
+      redirect("/admin/content?error=InvalidGallery");
     }
   }
 

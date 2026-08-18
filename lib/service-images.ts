@@ -9,7 +9,11 @@ export const SERVICE_IMAGE_FILES: Record<string, string> = {
 };
 
 export function publicServiceImagePath(relativePath: string) {
-  return `/${relativePath.replace(/^\/+/, "")}`;
+  return `/${relativePath
+    .replace(/^\/+/, "")
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/")}`;
 }
 
 export function serviceImageForId(serviceId: string, fallback = ""): string {

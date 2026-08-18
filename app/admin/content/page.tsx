@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getSiteConfig } from "@/lib/db/settings";
 import { saveSiteContentAction } from "@/server/admin";
 import { AdminImageField } from "@/components/admin/AdminImageFieldDynamic";
@@ -27,39 +28,48 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
   );
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Site content</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted">
-          Edit marketing copy across Home, Shop, Services, Contact, and About.
-          Home hero image is under{" "}
-          <a href="/admin/settings" className="font-medium text-primary hover:underline">
-            Settings
-          </a>
-          . Business details (phone, email, hours, logo, receipt) also live under{" "}
-          <a href="/admin/settings" className="font-medium text-primary hover:underline">
-            Settings
-          </a>
-          . Product names and prices are under{" "}
-          <a href="/admin/products" className="font-medium text-primary hover:underline">
-            Products
-          </a>
-          . Cleaning service cards and packages are under{" "}
-          <a href="/admin/services" className="font-medium text-primary hover:underline">
-            Cleaning services
-          </a>
-          .
-        </p>
+    <form action={saveSiteContentAction} className="max-w-3xl space-y-6">
+      <div className="sticky top-16 z-[9] flex flex-col gap-3 border-b border-border bg-surface-muted/95 py-3 backdrop-blur sm:flex-row sm:items-start sm:justify-between md:top-[4.5rem]">
+        <div>
+          <h1 className="text-2xl font-bold">Site content</h1>
+          <p className="mt-1 max-w-2xl text-sm text-muted">
+            Edit marketing copy across Home, Shop, Services, Contact, and About.
+            Home hero image is under{" "}
+            <Link href="/admin/settings" className="font-medium text-primary hover:underline">
+              Settings
+            </Link>
+            . Business details (phone, email, hours, logo, receipt) also live under{" "}
+            <Link href="/admin/settings" className="font-medium text-primary hover:underline">
+              Settings
+            </Link>
+            . Product names and prices are under{" "}
+            <Link href="/admin/products" className="font-medium text-primary hover:underline">
+              Products
+            </Link>
+            . Cleaning service cards and packages are under{" "}
+            <Link href="/admin/services" className="font-medium text-primary hover:underline">
+              Cleaning services
+            </Link>
+            .
+          </p>
+        </div>
+        <PendingSubmitButton className="shrink-0 self-start">
+          Save all content
+        </PendingSubmitButton>
       </div>
 
       {params.error === "InvalidImageUrl" ? (
-        <p className="max-w-3xl rounded-[8px] bg-danger/10 px-3 py-2 text-sm text-danger">
-          One of the image URLs is invalid. Use a site path, /uploads/... path,
-          or https image URL.
+        <p className="rounded-[8px] bg-danger/10 px-3 py-2 text-sm text-danger">
+          One of the image URLs is invalid. Use a site photo such as
+          /flyers/..., /people-images/..., /uploads/..., or a https image URL.
         </p>
       ) : null}
-
-      <form action={saveSiteContentAction} className="max-w-3xl space-y-6">
+      {params.error === "InvalidGallery" ? (
+        <p className="rounded-[8px] bg-danger/10 px-3 py-2 text-sm text-danger">
+          The photo gallery could not be saved. Remove any broken photos and
+          try again.
+        </p>
+      ) : null}
         <section className={sectionClass}>
           <h2 className="font-bold">Home</h2>
           <label className="block text-sm">
@@ -342,9 +352,9 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
           </label>
           <p className="rounded-[8px] bg-surface-muted px-3 py-2 text-sm text-muted">
             Service cards, images, and fixed-price packages are managed under{" "}
-            <a href="/admin/services" className="font-medium text-primary hover:underline">
+            <Link href="/admin/services" className="font-medium text-primary hover:underline">
               Cleaning services
-            </a>
+            </Link>
             .
           </p>
           <label className="block text-sm">
@@ -858,8 +868,14 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
           </div>
         </section>
 
-        <PendingSubmitButton>Save all content</PendingSubmitButton>
-      </form>
-    </div>
+        <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted">
+            Saves Home, Shop, Services, Contact, About, and reviews.
+          </p>
+          <PendingSubmitButton className="shrink-0 self-start">
+            Save all content
+          </PendingSubmitButton>
+        </div>
+    </form>
   );
 }

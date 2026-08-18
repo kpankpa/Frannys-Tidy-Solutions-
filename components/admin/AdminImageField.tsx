@@ -26,7 +26,7 @@ export function AdminImageField({
   label,
   defaultValue = "",
   hint,
-  placeholder = "https://... or /uploads/...",
+  placeholder = "https://... or /flyers/... or /uploads/...",
   onChange,
 }: AdminImageFieldProps) {
   const fileRef = useRef<HTMLInputElement>(null);

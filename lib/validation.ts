@@ -40,20 +40,52 @@ export function sanitizeSocialUrl(value: string): string | null {
   }
 }
 
-/**
- * Product image URLs: site-relative /uploads/... or https (admin-only saves).
- * Blocks javascript/data and path traversal.
- */
-export function sanitizeImageUrl(value: string): string | null {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
+/** Hyphen is last so it is literal, not a character-class range. */
+const SAFE_PATH_SEGMENT = /^[A-Za-z0-9._+()[\]' ,&@-]+$/;
+const IMAGE_FILE_EXT = /\.(?:jpe?g|png|gif|webp|svg|avif)$/i;
 
-  if (trimmed.startsWith("/uploads/")) {
-    if (trimmed.includes("..") || trimmed.includes("\\")) return null;
-    if (!/^\/uploads\/[A-Za-z0-9._-]+$/.test(trimmed)) return null;
-    return trimmed;
+function decodePathSegment(segment: string): string | null {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Site-relative image path: /flyers/..., /people-images/..., /uploads/...,
+ * /move-in/..., or a root public file such as /frannys-logo.jpg.
+ */
+function sanitizeSiteImagePath(trimmed: string): string | null {
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return null;
+  if (trimmed.includes("..") || trimmed.includes("\\")) return null;
+
+  const pathOnly = trimmed.split(/[?#]/, 1)[0] ?? "";
+  const segments = pathOnly.split("/").filter(Boolean);
+  if (segments.length === 0 || segments.length > 8) return null;
+
+  const cleaned: string[] = [];
+  for (const segment of segments) {
+    const decoded = decodePathSegment(segment);
+    if (
+      !decoded ||
+      decoded.includes("..") ||
+      decoded.includes("/") ||
+      decoded.includes("\\")
+    ) {
+      return null;
+    }
+    if (!SAFE_PATH_SEGMENT.test(decoded)) return null;
+    cleaned.push(encodeURIComponent(decoded));
   }
 
+  const last = decodePathSegment(cleaned[cleaned.length - 1] ?? "");
+  if (!last || !IMAGE_FILE_EXT.test(last)) return null;
+
+  return `/${cleaned.join("/")}`;
+}
+
+function sanitizeHttpsImageUrl(trimmed: string): string | null {
   try {
     const url = new URL(trimmed);
     if (url.protocol !== "https:") return null;
@@ -64,52 +96,33 @@ export function sanitizeImageUrl(value: string): string | null {
   }
 }
 
-/** Logo / receipt image: site-relative public path, /uploads/..., or https. */
+/**
+ * Image URLs used in admin saves: site-relative public path or https.
+ * Blocks javascript/data, http, and path traversal.
+ */
+export function sanitizeImageUrl(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return sanitizeSiteImagePath(trimmed) ?? sanitizeHttpsImageUrl(trimmed);
+}
+
+/** Same rules as sanitizeImageUrl; empty string means "use the default". */
 export function sanitizeLogoUrl(value: string): string | null {
   const trimmed = value.trim();
   if (!trimmed) return "";
-
-  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
-    if (trimmed.includes("..") || trimmed.includes("\\")) return null;
-
-    const segments = trimmed.split("/").filter(Boolean);
-    for (const segment of segments) {
-      let decoded: string;
-      try {
-        decoded = decodeURIComponent(segment);
-      } catch {
-        return null;
-      }
-      if (
-        !decoded ||
-        decoded.includes("..") ||
-        decoded.includes("/") ||
-        decoded.includes("\\")
-      ) {
-        return null;
-      }
-      if (!/^[A-Za-z0-9._ -()+]+$/.test(decoded)) return null;
-    }
-
-    return `/${segments.map((segment) => encodeURIComponent(decodeURIComponent(segment))).join("/")}`;
-  }
-
   return sanitizeImageUrl(trimmed);
 }
 
 export function explainInvalidImageUrl(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return "URL is empty.";
-  if (trimmed.startsWith("/uploads/")) {
-    return "Upload path looks invalid. Use a file uploaded through this form.";
-  }
   if (trimmed.startsWith("http://")) {
     return "Use https image URLs only (not http).";
   }
-  if (trimmed.startsWith("/")) {
-    return "Site path looks invalid. Use /uploads/..., /flyers/..., or upload a file.";
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return "Site path looks invalid. Use a public file such as /flyers/..., /uploads/..., or upload a file.";
   }
-  return "Use an uploaded file path (/uploads/...) or a full https image URL.";
+  return "Use a site path (/flyers/..., /uploads/...) or a full https image URL.";
 }
 
 export function sanitizeImageUrlList(rawLines: string[]): {
