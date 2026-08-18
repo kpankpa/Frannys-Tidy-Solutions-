@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { settings } from "@/lib/db/schema";
 import {
@@ -39,23 +39,29 @@ export async function getSetting(key: SettingKey): Promise<string> {
 }
 
 export async function upsertSetting(key: string, value: string) {
-  const existing = await db.query.settings.findFirst({
-    where: eq(settings.key, key),
-  });
-  if (existing) {
-    await db
-      .update(settings)
-      .set({ value, updatedAt: new Date() })
-      .where(eq(settings.id, existing.id));
-  } else {
-    await db.insert(settings).values({ key, value });
-  }
+  await upsertSettings({ [key]: value });
 }
 
+/** One round-trip for the whole payload. Skips keys that already match. */
 export async function upsertSettings(entries: Record<string, string>) {
-  for (const [key, value] of Object.entries(entries)) {
-    await upsertSetting(key, value);
-  }
+  const pairs = Object.entries(entries);
+  if (pairs.length === 0) return;
+
+  const current = await getAllSettings();
+  const changed = pairs.filter(([key, value]) => current[key] !== value);
+  if (changed.length === 0) return;
+
+  const now = new Date();
+  await db
+    .insert(settings)
+    .values(changed.map(([key, value]) => ({ key, value, updatedAt: now })))
+    .onConflictDoUpdate({
+      target: settings.key,
+      set: {
+        value: sql`excluded.value`,
+        updatedAt: now,
+      },
+    });
 }
 
 export async function getSiteConfig(): Promise<SiteConfig> {

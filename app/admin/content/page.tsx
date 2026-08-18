@@ -13,7 +13,7 @@ const sectionClass =
   "space-y-4 rounded-[10px] border border-border bg-surface p-6 shadow-sm";
 
 type PageProps = {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; saved?: string }>;
 };
 
 export default async function AdminContentPage({ searchParams }: PageProps) {
@@ -58,6 +58,12 @@ export default async function AdminContentPage({ searchParams }: PageProps) {
         </PendingSubmitButton>
       </div>
 
+      {params.saved === "1" ? (
+        <p className="rounded-[8px] bg-success/10 px-3 py-2 text-sm text-success">
+          Content saved. Home, Shop, Services, Contact, and About now use the
+          new copy.
+        </p>
+      ) : null}
       {params.error === "InvalidImageUrl" ? (
         <p className="rounded-[8px] bg-danger/10 px-3 py-2 text-sm text-danger">
           One of the image URLs is invalid. Use a site photo such as

@@ -1,10 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import {
-  revalidateAllPublicCaches,
-  revalidatePublicSiteCache,
-} from "@/lib/cache";
+import { revalidatePublicSiteCache } from "@/lib/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { updateOrderStatus, updateOrderDeliveryFee } from "@/lib/db/orders";
@@ -12,7 +9,6 @@ import { updateBookingStatus } from "@/lib/db/bookings";
 import { createComplaint, setComplaintStatus } from "@/lib/db/complaints";
 import {
   SETTING_KEYS,
-  getSiteConfig,
   upsertSettings,
   type SettingKey,
 } from "@/lib/db/settings";
@@ -196,7 +192,6 @@ export async function saveBusinessSettingsAction(formData: FormData) {
 
 export async function saveSiteContentAction(formData: FormData) {
   await requireAdmin();
-  const current = await getSiteConfig();
 
   const whyChooseItems = [0, 1, 2, 3].map((i) => ({
     title: clampText(String(formData.get(`whyTitle${i}`) ?? ""), 80),
@@ -503,9 +498,7 @@ export async function saveSiteContentAction(formData: FormData) {
       String(formData.get("testimonialsDescription") ?? ""),
       240,
     ),
-    [SETTING_KEYS.serviceItems]: JSON.stringify(current.serviceItems),
     [SETTING_KEYS.servicePromises]: JSON.stringify(servicePromises),
-    [SETTING_KEYS.servicePackages]: JSON.stringify(current.servicePackages),
     [SETTING_KEYS.testimonials]: JSON.stringify(testimonials),
     [SETTING_KEYS.homeServicesTitle]: clampText(
       String(formData.get("homeServicesTitle") ?? ""),
@@ -517,14 +510,14 @@ export async function saveSiteContentAction(formData: FormData) {
     ),
   });
 
-  revalidateAllPublicCaches();
+  revalidatePublicSiteCache();
   revalidatePath("/");
   revalidatePath("/about");
   revalidatePath("/contact");
   revalidatePath("/services");
   revalidatePath("/shop");
   revalidatePath("/admin/content");
-  revalidatePath("/admin/services");
+  redirect("/admin/content?saved=1");
 }
 
 export async function createComplaintAction(formData: FormData) {
