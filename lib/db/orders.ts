@@ -10,6 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { cedisToPesewas, pesewasToCedis } from "@/lib/money";
 import {
+  isOrderCancelled,
   orderStatusIndex,
   orderStatusLabel,
 } from "@/lib/order-status";
@@ -426,6 +427,63 @@ export async function listRecentOrders(
   }));
 }
 
+/** Restore stock when cancelling; re-reserve when un-cancelling. */
+async function adjustStockForOrderStatusChange(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tx: any,
+  orderId: string,
+  previousStatus: string,
+  nextStatus: string,
+) {
+  const wasCancelled = isOrderCancelled(previousStatus);
+  const nowCancelled = isOrderCancelled(nextStatus);
+
+  if (wasCancelled === nowCancelled) return;
+
+  const items = await tx.query.orderItems.findMany({
+    where: eq(orderItems.orderId, orderId),
+  });
+
+  for (const item of items) {
+    if (!item.productId || item.quantity <= 0) continue;
+
+    const product = await tx.query.products.findFirst({
+      where: eq(products.id, item.productId),
+      columns: { id: true, name: true, stockQuantity: true },
+    });
+    if (!product) continue;
+
+    if (nowCancelled) {
+      // Order cancelled: put reserved units back on the shelf.
+      const stockAfter = product.stockQuantity + item.quantity;
+      await tx
+        .update(products)
+        .set({
+          stockQuantity: stockAfter,
+          inStock: stockAfter > 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, product.id));
+    } else {
+      // Order un-cancelled: reserve stock again like a new order.
+      if (product.stockQuantity < item.quantity) {
+        throw new Error(
+          `Cannot reopen this order. ${product.name} only has ${product.stockQuantity} left in stock.`,
+        );
+      }
+      const stockAfter = product.stockQuantity - item.quantity;
+      await tx
+        .update(products)
+        .set({
+          stockQuantity: stockAfter,
+          inStock: stockAfter > 0,
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, product.id));
+    }
+  }
+}
+
 export async function updateOrderStatus(
   orderNumber: string,
   status: string,
@@ -440,15 +498,31 @@ export async function updateOrderStatus(
   }
 
   await db.transaction(async (tx) => {
+    await adjustStockForOrderStatusChange(
+      tx,
+      order.id,
+      order.status,
+      normalized,
+    );
+
     await tx
       .update(orders)
       .set({ status: normalized, updatedAt: new Date() })
       .where(eq(orders.id, order.id));
 
+    const stockNote =
+      !isOrderCancelled(order.status) && isOrderCancelled(normalized)
+        ? " Stock returned to inventory."
+        : isOrderCancelled(order.status) && !isOrderCancelled(normalized)
+          ? " Stock reserved again for this order."
+          : "";
+
     await tx.insert(orderEvents).values({
       orderId: order.id,
       status: normalized,
-      note: note.trim() || `Status updated to ${orderStatusLabel(normalized)}.`,
+      note:
+        note.trim() ||
+        `Status updated to ${orderStatusLabel(normalized)}.${stockNote}`,
     });
   });
 

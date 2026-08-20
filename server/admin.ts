@@ -1,7 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { revalidatePublicSiteCache } from "@/lib/cache";
+import {
+  revalidatePublicCatalogCache,
+  revalidatePublicSiteCache,
+} from "@/lib/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { updateOrderStatus, updateOrderDeliveryFee } from "@/lib/db/orders";
@@ -35,6 +38,12 @@ export async function updateOrderStatusAction(formData: FormData) {
   if (!orderNumber || !allowed) return;
 
   await updateOrderStatus(orderNumber, status, note);
+
+  // Cancel / reopen adjusts product stock for the shop.
+  revalidatePublicCatalogCache();
+  revalidatePath("/shop");
+  revalidatePath("/");
+  revalidatePath("/admin/products");
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
   revalidatePath(`/admin/orders/${orderNumber.trim().toUpperCase()}`);

@@ -119,8 +119,13 @@ export function Footer({ site }: { site: SiteConfig }) {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="container-page py-5 text-center text-sm text-white/55">
-          © 2026 {site.name}. {site.tagline}
+        <div className="container-page space-y-1.5 py-5 text-center text-sm text-white/55">
+          <p>
+            © 2026 {site.name}. {site.tagline}
+          </p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c4783a]">
+            White Beam Concepts Limited
+          </p>
         </div>
       </div>
     </footer>
