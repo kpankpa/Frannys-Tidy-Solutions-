@@ -123,9 +123,6 @@ export function Footer({ site }: { site: SiteConfig }) {
           <p>
             © 2026 {site.name}. {site.tagline}
           </p>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#c4783a]">
-            White Beam Concepts Limited
-          </p>
         </div>
       </div>
     </footer>
