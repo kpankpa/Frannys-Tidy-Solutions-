@@ -7,7 +7,11 @@ import {
 } from "@/lib/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { updateOrderStatus, updateOrderDeliveryFee } from "@/lib/db/orders";
+import {
+  createManualOrder,
+  updateOrderStatus,
+  updateOrderDeliveryFee,
+} from "@/lib/db/orders";
 import { updateBookingStatus } from "@/lib/db/bookings";
 import { createComplaint, setComplaintStatus } from "@/lib/db/complaints";
 import {
@@ -49,6 +53,63 @@ export async function updateOrderStatusAction(formData: FormData) {
   revalidatePath(`/admin/orders/${orderNumber.trim().toUpperCase()}`);
   revalidatePath("/admin/customers");
   revalidatePath("/track-order");
+}
+
+export type CreateManualOrderState =
+  | { ok: true; orderNumber: string }
+  | { ok: false; error: string };
+
+export async function createManualOrderAction(
+  formData: FormData,
+): Promise<CreateManualOrderState> {
+  await requireAdmin();
+
+  const productIds = formData
+    .getAll("productId")
+    .map((value) => String(value).trim());
+  const quantities = formData.getAll("quantity").map((value) => Number(value));
+  const items = productIds
+    .map((productId, index) => ({
+      productId,
+      quantity: quantities[index] ?? 0,
+    }))
+    .filter((item) => item.productId);
+
+  try {
+    const result = await createManualOrder({
+      name: String(formData.get("name") ?? ""),
+      phone: String(formData.get("phone") ?? ""),
+      address: String(formData.get("address") ?? ""),
+      notes: String(formData.get("notes") ?? ""),
+      status: String(formData.get("status") ?? "confirmed"),
+      deliveryFeeCedis: Number(formData.get("deliveryFeeCedis") ?? 0),
+      items,
+    });
+
+    // New order reserved stock, so the shop and dashboards must refresh.
+    revalidatePublicCatalogCache();
+    revalidatePath("/shop");
+    revalidatePath("/");
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${result.orderNumber}`);
+    revalidatePath("/admin/customers");
+
+    return { ok: true, orderNumber: result.orderNumber };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Could not create the order.";
+    const safe =
+      message.includes("stock") ||
+      message.includes("cart") ||
+      message.includes("phone") ||
+      message.includes("address") ||
+      message.includes("available") ||
+      message.includes("valid")
+        ? message
+        : "Could not create the order.";
+    return { ok: false, error: safe };
+  }
 }
 
 export async function updateOrderDeliveryFeeAction(formData: FormData) {

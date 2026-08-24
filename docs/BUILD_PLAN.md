@@ -560,3 +560,4 @@ Write a short note under the phase:
 | 2026-07-31 | Admin gaps closed: order cancelled status, customer order links + bookings + WhatsApp, media page upload, order notes on list. |
 | 2026-07-31 | Ops pack: Neon setup docs, testimonials + service packages CMS, WA message templates, Maps URL setting, printable order receipt, badge end dates, backup CSV zip, low-stock WhatsApp/email alerts. |
 | 2026-07-31 | Dashboard CMS expanded: logo/receipt, short name, location blurb, hero image/CTAs, About blocks, Home shop/how-it-works/CTA, Services process/spaces/packages chrome, service card images, review section titles. |
+| 2026-08-24 | Admin order creation: "New Order" page on the dashboard builds orders for phone/walk-in customers. Shares the checkout pipeline (stock checks, customer upsert, timeline event); admin sets starting status and delivery fee. |

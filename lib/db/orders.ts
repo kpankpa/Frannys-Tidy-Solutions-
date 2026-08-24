@@ -11,6 +11,8 @@ import {
 import { cedisToPesewas, pesewasToCedis } from "@/lib/money";
 import {
   isOrderCancelled,
+  normalizeOrderStatus,
+  ORDER_ADMIN_STATUSES,
   orderStatusIndex,
   orderStatusLabel,
 } from "@/lib/order-status";
@@ -32,6 +34,17 @@ export type CreateOrderInput = {
   website?: string;
 };
 
+/** Order created by an admin from the dashboard (e.g. phone or walk-in sale). */
+export type ManualOrderInput = {
+  name: string;
+  phone: string;
+  address: string;
+  notes?: string;
+  items: CreateOrderItemInput[];
+  status: string;
+  deliveryFeeCedis: number;
+};
+
 export type CreateOrderResult = {
   orderNumber: string;
   subtotalCedis: number;
@@ -48,29 +61,9 @@ function generateOrderNumber() {
   return `FTS-${randomBytes(4).toString("hex").toUpperCase()}`;
 }
 
-export async function createOrderFromCart(
-  input: CreateOrderInput,
-): Promise<CreateOrderResult> {
-  if (input.website?.trim()) {
-    throw new Error("Could not place your order.");
-  }
-
-  const name = clampText(input.name, LIMITS.name);
-  const phone = normalizeGhanaPhone(input.phone);
-  const address = clampText(input.address, LIMITS.address);
-  const notes = clampText(input.notes ?? "", LIMITS.notes);
-
-  if (!name || !phone || !address) {
-    throw new Error(
-      "Enter a valid name, Ghana phone number (e.g. 0201234567), and delivery address.",
-    );
-  }
-
-  if (!input.items.length) {
-    throw new Error("Your cart is empty.");
-  }
-
-  const cleanedItems = input.items
+/** Shared item cleanup for website checkout and admin-created orders. */
+function cleanOrderItems(items: CreateOrderItemInput[]) {
+  return items
     .map((item) => ({
       productId: item.productId.trim(),
       quantity: Math.min(
@@ -80,12 +73,62 @@ export async function createOrderFromCart(
     }))
     .filter((item) => item.productId && item.quantity > 0)
     .slice(0, LIMITS.maxCartLines);
+}
+
+/** Shared customer field parsing and validation. */
+function parseCustomerDetails(
+  name: string,
+  phone: string,
+  address: string,
+  notes: string,
+) {
+  const cleanName = clampText(name, LIMITS.name);
+  const cleanPhone = normalizeGhanaPhone(phone);
+  const cleanAddress = clampText(address, LIMITS.address);
+  const cleanNotes = clampText(notes, LIMITS.notes);
+
+  if (!cleanName || !cleanPhone || !cleanAddress) {
+    throw new Error(
+      "Enter a valid name, Ghana phone number (e.g. 0201234567), and delivery address.",
+    );
+  }
+
+  return { cleanName, cleanPhone, cleanAddress, cleanNotes };
+}
+
+type SaveNewOrderOptions = {
+  name: string;
+  phone: string;
+  address: string;
+  notes: string;
+  items: CreateOrderItemInput[];
+  status: string;
+  deliveryPesewas: number;
+  orderEventNote: string;
+  /** Admin-created orders may correct the stored customer name. Public checkout cannot prove identity by phone, so it never renames. */
+  syncCustomerName: boolean;
+};
+
+/** Prices line items, checks stock, saves order + items + first timeline event. */
+async function saveNewOrder(
+  options: SaveNewOrderOptions,
+): Promise<CreateOrderResult> {
+  if (!options.items.length) {
+    throw new Error("Your cart is empty.");
+  }
+
+  const cleanedItems = cleanOrderItems(options.items);
 
   if (!cleanedItems.length) {
     throw new Error("Your cart has no valid items.");
   }
 
-  const deliveryPesewas = 0;
+  const name = options.name;
+  const phone = options.phone;
+  const address = options.address;
+  const notes = options.notes;
+  const status = options.status;
+  const deliveryPesewas = options.deliveryPesewas;
 
   return db.transaction(async (tx) => {
     const pricedLines: Array<{
@@ -139,8 +182,15 @@ export async function createOrderFromCart(
 
     let customerId: string;
     if (existingCustomer) {
-      // Do not overwrite CRM name from public checkout (phone is not proof of identity).
       customerId = existingCustomer.id;
+      // Only admin-created orders may correct the stored CRM name.
+      // Public checkout cannot prove identity by phone alone.
+      if (options.syncCustomerName && existingCustomer.name !== name) {
+        await tx
+          .update(customers)
+          .set({ name })
+          .where(eq(customers.id, customerId));
+      }
     } else {
       const [createdCustomer] = await tx
         .insert(customers)
@@ -159,7 +209,7 @@ export async function createOrderFromCart(
           .values({
             orderNumber,
             customerId,
-            status: "pending",
+            status,
             subtotalPesewas,
             deliveryPesewas,
             totalPesewas,
@@ -205,8 +255,8 @@ export async function createOrderFromCart(
 
     await tx.insert(orderEvents).values({
       orderId: createdOrder.id,
-      status: "pending",
-      note: "Order placed via website checkout.",
+      status,
+      note: options.orderEventNote,
     });
 
     return {
@@ -221,6 +271,73 @@ export async function createOrderFromCart(
       })),
     };
   });
+}
+
+/** Website checkout: honeypot check, pending status, no delivery fee yet. */
+export async function createOrderFromCart(
+  input: CreateOrderInput,
+): Promise<CreateOrderResult> {
+  if (input.website?.trim()) {
+    throw new Error("Could not place your order.");
+  }
+
+  const details = parseCustomerDetails(
+    input.name,
+    input.phone,
+    input.address,
+    input.notes ?? "",
+  );
+
+  return saveNewOrder({
+    name: details.cleanName,
+    phone: details.cleanPhone,
+    address: details.cleanAddress,
+    notes: details.cleanNotes,
+    items: input.items,
+    status: "pending",
+    deliveryPesewas: 0,
+    orderEventNote: "Order placed via website checkout.",
+    syncCustomerName: false,
+  });
+}
+
+/**
+ * Admin-created order from the dashboard (phone or walk-in sale).
+ * Admin picks the starting status and delivery fee.
+ */
+export async function createManualOrder(
+  input: ManualOrderInput,
+): Promise<{ orderNumber: string }> {
+  const details = parseCustomerDetails(
+    input.name,
+    input.phone,
+    input.address,
+    input.notes ?? "",
+  );
+
+  const statusKey = normalizeOrderStatus(input.status);
+  const status = ORDER_ADMIN_STATUSES.some((step) => step.key === statusKey)
+    ? statusKey
+    : "confirmed";
+
+  if (!Number.isFinite(input.deliveryFeeCedis) || input.deliveryFeeCedis < 0) {
+    throw new Error("Enter a valid delivery fee.");
+  }
+  const roundedDeliveryCedis = Math.round(input.deliveryFeeCedis * 100) / 100;
+
+  const result = await saveNewOrder({
+    name: details.cleanName,
+    phone: details.cleanPhone,
+    address: details.cleanAddress,
+    notes: details.cleanNotes,
+    items: input.items,
+    status,
+    deliveryPesewas: cedisToPesewas(roundedDeliveryCedis),
+    orderEventNote: "Order created from admin dashboard.",
+    syncCustomerName: true,
+  });
+
+  return { orderNumber: result.orderNumber };
 }
 
 const FALLBACK_IMAGE =

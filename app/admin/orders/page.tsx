@@ -29,9 +29,14 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
             Fulfilment queue. Status changes update customer track-order.
           </p>
         </div>
-        <Button href={exportHref} variant="outline" size="sm">
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button href="/admin/orders/new" variant="outline" size="sm">
+            New Order
+          </Button>
+          <Button href={exportHref} variant="outline" size="sm">
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
