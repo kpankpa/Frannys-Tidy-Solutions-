@@ -2,8 +2,7 @@ import Link from "next/link";
 import { listRecentOrders } from "@/lib/db/orders";
 import { formatPrice } from "@/lib/products";
 import { ORDER_ADMIN_STATUSES } from "@/lib/order-status";
-import { updateOrderStatusAction } from "@/server/admin";
-import { PendingSaveButton } from "@/components/admin/PendingSaveButton";
+import { UpdateOrderStatusForm } from "@/components/admin/UpdateOrderStatusForm";
 import { Button } from "@/components/ui/Button";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 
@@ -96,41 +95,13 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
                     {formatPrice(o.totalCedis)}
                   </td>
                   <td className="px-4 py-3">
-                    <form
-                      action={updateOrderStatusAction}
-                      className="flex min-w-[16rem] flex-col gap-2"
-                    >
-                      <input type="hidden" name="orderNumber" value={o.orderNumber} />
-                      <div className="flex flex-wrap items-center gap-2">
-                        <select
-                          name="status"
-                          defaultValue={
-                            ORDER_ADMIN_STATUSES.some((s) => s.key === o.status)
-                              ? o.status
-                              : "pending"
-                          }
-                          className="rounded-[8px] border border-border px-2 py-1.5 text-xs"
-                        >
-                          {ORDER_ADMIN_STATUSES.map((step) => (
-                            <option key={step.key} value={step.key}>
-                              {step.label}
-                            </option>
-                          ))}
-                        </select>
-                        <PendingSaveButton />
-                        <Link
-                          href={`/admin/orders/${o.orderNumber}`}
-                          className="text-xs text-muted hover:text-primary hover:underline"
-                        >
-                          Details
-                        </Link>
-                      </div>
-                      <input
-                        name="note"
-                        placeholder="Optional note for timeline"
-                        className="w-full rounded-[8px] border border-border px-2 py-1.5 text-xs"
-                      />
-                    </form>
+                    <UpdateOrderStatusForm
+                      orderNumber={o.orderNumber}
+                      currentStatus={o.status}
+                      variant="compact"
+                      activeStatusFilter={status}
+                      showDetailsLink
+                    />
                   </td>
                 </tr>
               ))}

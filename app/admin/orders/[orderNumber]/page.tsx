@@ -3,19 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Printer } from "lucide-react";
 import { AdminWhatsAppTemplates } from "@/components/admin/AdminWhatsAppTemplates";
-import { PendingSaveButton } from "@/components/admin/PendingSaveButton";
+import { UpdateOrderDeliveryFeeForm } from "@/components/admin/UpdateOrderDeliveryFeeForm";
+import { UpdateOrderStatusForm } from "@/components/admin/UpdateOrderStatusForm";
 import { Button } from "@/components/ui/Button";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
 import { findOrderByNumber } from "@/lib/db/orders";
 import { getSiteConfig } from "@/lib/db/settings";
 import { shouldUnoptimizeImage } from "@/lib/image-src";
-import { ORDER_ADMIN_STATUSES } from "@/lib/order-status";
 import { formatPrice } from "@/lib/products";
 import { customerOrderWaTemplates } from "@/lib/wa-templates";
-import {
-  updateOrderDeliveryFeeAction,
-  updateOrderStatusAction,
-} from "@/server/admin";
 
 type PageProps = {
   params: Promise<{ orderNumber: string }>;
@@ -121,27 +117,11 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               </dd>
             </div>
           </dl>
-          <form action={updateOrderDeliveryFeeAction} className="mt-4 space-y-3 border-t border-border pt-4">
-            <input type="hidden" name="orderNumber" value={order.orderNumber} />
-            <label className="block">
-              <span className="text-sm font-medium">Set delivery fee (GH₵)</span>
-              <p className="mt-1 text-xs text-muted">
-                Enter the fee you agreed with the customer on WhatsApp.
-              </p>
-              <input
-                name="deliveryFeeCedis"
-                type="number"
-                step="0.01"
-                min="0"
-                required
-                defaultValue={
-                  order.deliveryCedis > 0 ? order.deliveryCedis : site.deliveryFee
-                }
-                className="mt-2 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm"
-              />
-            </label>
-            <PendingSaveButton label="Save delivery fee" />
-          </form>
+          <UpdateOrderDeliveryFeeForm
+            orderNumber={order.orderNumber}
+            deliveryCedis={order.deliveryCedis}
+            defaultDeliveryFeeCedis={site.deliveryFee}
+          />
         </div>
       </div>
 
@@ -182,32 +162,10 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         <p className="mt-1 text-sm text-muted">
           Changes appear on the customer track-order page.
         </p>
-        <form action={updateOrderStatusAction} className="mt-4 space-y-3">
-          <input type="hidden" name="orderNumber" value={order.orderNumber} />
-          <label className="block">
-            <span className="text-sm font-medium">Status</span>
-            <select
-              name="status"
-              defaultValue={order.status}
-              className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm"
-            >
-              {ORDER_ADMIN_STATUSES.map((step) => (
-                <option key={step.key} value={step.key}>
-                  {step.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block">
-            <span className="text-sm font-medium">Internal note (optional)</span>
-            <input
-              name="note"
-              placeholder="e.g. Called customer, payment confirmed"
-              className="mt-1.5 w-full rounded-[8px] border border-border px-3 py-2.5 text-sm"
-            />
-          </label>
-          <PendingSaveButton />
-        </form>
+        <UpdateOrderStatusForm
+          orderNumber={order.orderNumber}
+          currentStatus={order.status}
+        />
       </div>
 
       <div className="rounded-[10px] border border-border bg-surface p-5 shadow-sm">

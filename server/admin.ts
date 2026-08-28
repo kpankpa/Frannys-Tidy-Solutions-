@@ -20,8 +20,8 @@ import {
   type SettingKey,
 } from "@/lib/db/settings";
 import { cedisToPesewas } from "@/lib/money";
-import { ORDER_ADMIN_STATUSES } from "@/lib/order-status";
-import { BOOKING_PIPELINE } from "@/lib/booking-status";
+import { ORDER_ADMIN_STATUSES, orderStatusLabel } from "@/lib/order-status";
+import { BOOKING_PIPELINE, bookingStatusLabel } from "@/lib/booking-status";
 import { toWhatsAppE164, normalizeGhanaPhone } from "@/lib/phone";
 import {
   clampText,
@@ -32,27 +32,126 @@ import {
 } from "@/lib/validation";
 import { DEFAULT_WEBSITE_GALLERY } from "@/lib/site-config";
 
-export async function updateOrderStatusAction(formData: FormData) {
-  await requireAdmin();
-  const orderNumber = String(formData.get("orderNumber") ?? "");
-  const status = String(formData.get("status") ?? "");
-  const note = clampText(String(formData.get("note") ?? ""), 240);
-
-  const allowed = ORDER_ADMIN_STATUSES.some((s) => s.key === status);
-  if (!orderNumber || !allowed) return;
-
-  await updateOrderStatus(orderNumber, status, note);
-
-  // Cancel / reopen adjusts product stock for the shop.
+function revalidateAfterOrderChange(orderNumber: string) {
+  const normalizedNumber = orderNumber.trim().toUpperCase();
   revalidatePublicCatalogCache();
   revalidatePath("/shop");
   revalidatePath("/");
   revalidatePath("/admin/products");
   revalidatePath("/admin");
   revalidatePath("/admin/orders");
-  revalidatePath(`/admin/orders/${orderNumber.trim().toUpperCase()}`);
+  revalidatePath(`/admin/orders/${normalizedNumber}`);
+  revalidatePath(`/admin/orders/${normalizedNumber}/print`);
   revalidatePath("/admin/customers");
   revalidatePath("/track-order");
+}
+
+export type UpdateOrderStatusState =
+  | {
+      ok: true;
+      orderNumber: string;
+      statusLabel: string;
+      unchanged?: boolean;
+      leftFilter?: boolean;
+    }
+  | { ok: false; error: string };
+
+export async function updateOrderStatusAction(
+  _prev: UpdateOrderStatusState | null,
+  formData: FormData,
+): Promise<UpdateOrderStatusState> {
+  await requireAdmin();
+
+  const orderNumber = String(formData.get("orderNumber") ?? "").trim();
+  const status = String(formData.get("status") ?? "").trim();
+  const note = clampText(String(formData.get("note") ?? ""), 240);
+  const activeStatusFilter = String(
+    formData.get("activeStatusFilter") ?? "",
+  ).trim();
+
+  if (!orderNumber) {
+    return { ok: false, error: "Missing order number." };
+  }
+
+  const allowed = ORDER_ADMIN_STATUSES.some((s) => s.key === status);
+  if (!allowed) {
+    return { ok: false, error: "Choose a valid order status." };
+  }
+
+  try {
+    const result = await updateOrderStatus(orderNumber, status, note);
+
+    if (!result.unchanged) {
+      revalidateAfterOrderChange(result.orderNumber);
+    }
+
+    const leftFilter = Boolean(
+      activeStatusFilter &&
+        !result.unchanged &&
+        result.status !== activeStatusFilter,
+    );
+
+    return {
+      ok: true,
+      orderNumber: result.orderNumber,
+      statusLabel: orderStatusLabel(result.status),
+      unchanged: result.unchanged,
+      leftFilter,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Could not update the order.";
+    const safe =
+      message.includes("stock") ||
+      message.includes("Order not found") ||
+      message.includes("available")
+        ? message
+        : "Could not update the order. Try again.";
+    return { ok: false, error: safe };
+  }
+}
+
+export type UpdateOrderDeliveryFeeState =
+  | { ok: true; deliveryCedis: number; unchanged?: boolean }
+  | { ok: false; error: string };
+
+export async function updateOrderDeliveryFeeAction(
+  _prev: UpdateOrderDeliveryFeeState | null,
+  formData: FormData,
+): Promise<UpdateOrderDeliveryFeeState> {
+  await requireAdmin();
+
+  const orderNumber = String(formData.get("orderNumber") ?? "").trim();
+  const deliveryFeeCedis = Number(formData.get("deliveryFeeCedis") ?? NaN);
+
+  if (!orderNumber) {
+    return { ok: false, error: "Missing order number." };
+  }
+
+  if (!Number.isFinite(deliveryFeeCedis)) {
+    return { ok: false, error: "Enter a valid delivery fee." };
+  }
+
+  try {
+    const result = await updateOrderDeliveryFee(orderNumber, deliveryFeeCedis);
+
+    if (!result.unchanged) {
+      revalidateAfterOrderChange(result.orderNumber);
+    }
+
+    return {
+      ok: true,
+      deliveryCedis: result.deliveryCedis,
+      unchanged: result.unchanged,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Could not save the delivery fee.";
+    return {
+      ok: false,
+      error: message.includes("valid") ? message : "Could not save the delivery fee.",
+    };
+  }
 }
 
 export type CreateManualOrderState =
@@ -112,32 +211,52 @@ export async function createManualOrderAction(
   }
 }
 
-export async function updateOrderDeliveryFeeAction(formData: FormData) {
+export type UpdateBookingStatusState =
+  | { ok: true; statusLabel: string; unchanged?: boolean }
+  | { ok: false; error: string };
+
+export async function updateBookingStatusAction(
+  _prev: UpdateBookingStatusState | null,
+  formData: FormData,
+): Promise<UpdateBookingStatusState> {
   await requireAdmin();
-  const orderNumber = String(formData.get("orderNumber") ?? "").trim();
-  const deliveryFeeCedis = Number(formData.get("deliveryFeeCedis") ?? NaN);
 
-  if (!orderNumber || !Number.isFinite(deliveryFeeCedis)) return;
-
-  await updateOrderDeliveryFee(orderNumber, deliveryFeeCedis);
-  revalidatePath("/admin");
-  revalidatePath("/admin/orders");
-  revalidatePath(`/admin/orders/${orderNumber.toUpperCase()}`);
-  revalidatePath(`/admin/orders/${orderNumber.toUpperCase()}/print`);
-  revalidatePath("/track-order");
-}
-
-export async function updateBookingStatusAction(formData: FormData) {
-  await requireAdmin();
-  const bookingId = String(formData.get("bookingId") ?? "");
-  const status = String(formData.get("status") ?? "");
+  const bookingId = String(formData.get("bookingId") ?? "").trim();
+  const status = String(formData.get("status") ?? "").trim();
   const allowed = BOOKING_PIPELINE.some((s) => s.key === status);
-  if (!bookingId || !allowed) return;
 
-  await updateBookingStatus(bookingId, status);
-  revalidatePath("/admin");
-  revalidatePath("/admin/bookings");
-  revalidatePath("/admin/customers");
+  if (!bookingId) {
+    return { ok: false, error: "Missing booking." };
+  }
+
+  if (!allowed) {
+    return { ok: false, error: "Choose a valid booking status." };
+  }
+
+  try {
+    const result = await updateBookingStatus(bookingId, status);
+
+    if (!result.unchanged) {
+      revalidatePath("/admin");
+      revalidatePath("/admin/bookings");
+      revalidatePath("/admin/customers");
+    }
+
+    return {
+      ok: true,
+      statusLabel: bookingStatusLabel(result.status),
+      unchanged: result.unchanged,
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Could not update the booking.";
+    return {
+      ok: false,
+      error: message.includes("not found")
+        ? message
+        : "Could not update the booking. Try again.",
+    };
+  }
 }
 
 export async function saveBusinessSettingsAction(formData: FormData) {

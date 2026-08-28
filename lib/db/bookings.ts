@@ -157,8 +157,23 @@ export async function listBookingsForCustomer(
 }
 
 export async function updateBookingStatus(bookingId: string, status: string) {
+  const existing = await db.query.bookings.findFirst({
+    where: eq(bookings.id, bookingId),
+    columns: { id: true, status: true },
+  });
+
+  if (!existing) {
+    throw new Error("Booking not found.");
+  }
+
+  if (existing.status === status) {
+    return { status, unchanged: true as const };
+  }
+
   await db
     .update(bookings)
     .set({ status, updatedAt: new Date() })
     .where(eq(bookings.id, bookingId));
+
+  return { status };
 }

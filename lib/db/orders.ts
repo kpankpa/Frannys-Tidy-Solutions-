@@ -601,12 +601,18 @@ async function adjustStockForOrderStatusChange(
   }
 }
 
+export type UpdateOrderStatusResult = {
+  orderNumber: string;
+  status: string;
+  unchanged?: boolean;
+};
+
 export async function updateOrderStatus(
   orderNumber: string,
   status: string,
   note = "",
-) {
-  const normalized = status.trim().toLowerCase().replace(/[\s-]+/g, "_");
+): Promise<UpdateOrderStatusResult> {
+  const normalized = normalizeOrderStatus(status);
   const order = await db.query.orders.findFirst({
     where: eq(orders.orderNumber, orderNumber.trim().toUpperCase()),
   });
@@ -614,23 +620,31 @@ export async function updateOrderStatus(
     throw new Error("Order not found.");
   }
 
+  const previousStatus = normalizeOrderStatus(order.status);
+  if (previousStatus === normalized && !note.trim()) {
+    return {
+      orderNumber: order.orderNumber,
+      status: normalized,
+      unchanged: true,
+    };
+  }
+
   await db.transaction(async (tx) => {
     await adjustStockForOrderStatusChange(
       tx,
       order.id,
-      order.status,
+      previousStatus,
       normalized,
     );
-
     await tx
       .update(orders)
       .set({ status: normalized, updatedAt: new Date() })
       .where(eq(orders.id, order.id));
 
     const stockNote =
-      !isOrderCancelled(order.status) && isOrderCancelled(normalized)
+      !isOrderCancelled(previousStatus) && isOrderCancelled(normalized)
         ? " Stock returned to inventory."
-        : isOrderCancelled(order.status) && !isOrderCancelled(normalized)
+        : isOrderCancelled(previousStatus) && !isOrderCancelled(normalized)
           ? " Stock reserved again for this order."
           : "";
 
@@ -646,10 +660,16 @@ export async function updateOrderStatus(
   return { orderNumber: order.orderNumber, status: normalized };
 }
 
+export type UpdateOrderDeliveryFeeResult = {
+  orderNumber: string;
+  deliveryCedis: number;
+  unchanged?: boolean;
+};
+
 export async function updateOrderDeliveryFee(
   orderNumber: string,
   deliveryFeeCedis: number,
-) {
+): Promise<UpdateOrderDeliveryFeeResult> {
   if (!Number.isFinite(deliveryFeeCedis) || deliveryFeeCedis < 0) {
     throw new Error("Enter a valid delivery fee.");
   }
@@ -662,6 +682,14 @@ export async function updateOrderDeliveryFee(
   });
   if (!order) {
     throw new Error("Order not found.");
+  }
+
+  if (order.deliveryPesewas === deliveryPesewas) {
+    return {
+      orderNumber: order.orderNumber,
+      deliveryCedis: rounded,
+      unchanged: true,
+    };
   }
 
   const totalPesewas = order.subtotalPesewas + deliveryPesewas;
@@ -678,6 +706,5 @@ export async function updateOrderDeliveryFee(
   return {
     orderNumber: order.orderNumber,
     deliveryCedis: pesewasToCedis(deliveryPesewas),
-    totalCedis: pesewasToCedis(totalPesewas),
   };
 }

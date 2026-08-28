@@ -1,11 +1,10 @@
 import { AdminWhatsAppTemplates } from "@/components/admin/AdminWhatsAppTemplates";
-import { PendingSaveButton } from "@/components/admin/PendingSaveButton";
+import { UpdateBookingStatusForm } from "@/components/admin/UpdateBookingStatusForm";
 import { ensureAdminPage } from "@/lib/auth/admin-page";
-import { BOOKING_PIPELINE, bookingStatusLabel } from "@/lib/booking-status";
+import { bookingStatusLabel } from "@/lib/booking-status";
 import { listBookings } from "@/lib/db/bookings";
 import { getSiteConfig } from "@/lib/db/settings";
 import { customerBookingWaTemplates } from "@/lib/wa-templates";
-import { updateBookingStatusAction } from "@/server/admin";
 
 function formatWhen(date: Date) {
   return new Intl.DateTimeFormat("en-GB", {
@@ -83,24 +82,10 @@ export default async function AdminBookingsPage() {
               ) : null}
 
               <div className="mt-4 flex flex-wrap items-end justify-between gap-4 border-t border-border/70 pt-4">
-                <form
-                  action={updateBookingStatusAction}
-                  className="flex flex-wrap gap-2"
-                >
-                  <input type="hidden" name="bookingId" value={b.id} />
-                  <select
-                    name="status"
-                    defaultValue={b.status}
-                    className="rounded-[8px] border border-border px-2 py-1.5 text-xs"
-                  >
-                    {BOOKING_PIPELINE.map((step) => (
-                      <option key={step.key} value={step.key}>
-                        {step.label}
-                      </option>
-                    ))}
-                  </select>
-                  <PendingSaveButton />
-                </form>
+                <UpdateBookingStatusForm
+                  bookingId={b.id}
+                  currentStatus={b.status}
+                />
                 <AdminWhatsAppTemplates
                   title="WhatsApp templates"
                   templates={waTemplates}
