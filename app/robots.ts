@@ -1,11 +1,5 @@
 import type { MetadataRoute } from "next";
-
-function siteOrigin() {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    "http://localhost:3000"
-  );
-}
+import { siteOrigin } from "@/lib/seo";
 
 export default function robots(): MetadataRoute.Robots {
   const origin = siteOrigin();
@@ -13,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/admin/", "/api/"],
+      disallow: ["/admin/", "/api/", "/cart", "/checkout", "/track-order"],
     },
     sitemap: `${origin}/sitemap.xml`,
   };

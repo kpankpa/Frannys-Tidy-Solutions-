@@ -19,11 +19,14 @@ import {
   PAGE_HERO_SECTION_CLASS,
 } from "@/lib/hero-layout";
 
-export const metadata = {
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
   title: "Cleaning Services",
   description:
     "Book professional residential and commercial cleaning with Frannys Tidy Solutions across Accra and Ghana.",
-};
+  path: "/services",
+});
 
 export default async function ServicesPage() {
   const site = await getCachedSiteConfig();

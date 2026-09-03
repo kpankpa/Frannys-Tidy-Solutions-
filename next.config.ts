@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { buildLegacyRedirects } from "./lib/legacy-redirects";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
@@ -32,6 +33,9 @@ const nextConfig: NextConfig = {
     ],
   },
   poweredByHeader: false,
+  async redirects() {
+    return buildLegacyRedirects();
+  },
   async headers() {
     const staticAssetCache = [
       {

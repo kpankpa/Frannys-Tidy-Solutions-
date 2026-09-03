@@ -1,8 +1,7 @@
-export const metadata = {
-  title: "Track Order",
-  description:
-    "Track your Frannys order status with your order number and phone.",
-};
+import type { Metadata } from "next";
+import { NOINDEX_METADATA } from "@/lib/seo";
+
+export const metadata: Metadata = NOINDEX_METADATA;
 
 export default function TrackOrderLayout({
   children,

@@ -11,12 +11,14 @@ import {
   PAGE_HERO_INNER_CLASS,
   PAGE_HERO_SECTION_CLASS,
 } from "@/lib/hero-layout";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = {
-  title: "Shop",
+export const metadata = pageMetadata({
+  title: "Shop Cleaning Products",
   description:
-    "Browse Frannys detergents and cleaning solutions for homes and businesses in Ghana.",
-};
+    "Browse Frannys detergents, bleach, toilet cleaner, glass cleaner, and cleaning solutions for homes and businesses in Ghana.",
+  path: "/shop",
+});
 
 export default async function ShopPage() {
   const [products, categoryRows, site] = await Promise.all([

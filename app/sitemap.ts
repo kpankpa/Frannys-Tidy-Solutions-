@@ -1,12 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listProducts } from "@/lib/db/products";
-
-function siteOrigin() {
-  return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-    "http://localhost:3000"
-  );
-}
+import { siteOrigin } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = siteOrigin();
@@ -18,14 +12,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/services",
     "/about",
     "/contact",
-    "/cart",
-    "/checkout",
-    "/track-order",
   ].map((path) => ({
     url: `${origin}${path || "/"}`,
     lastModified: now,
     changeFrequency: path === "" || path === "/shop" ? "daily" : "weekly",
-    priority: path === "" ? 1 : path === "/shop" || path === "/services" ? 0.9 : 0.7,
+    priority:
+      path === ""
+        ? 1
+        : path === "/shop" || path === "/services"
+          ? 0.9
+          : 0.8,
   }));
 
   let productRoutes: MetadataRoute.Sitemap = [];
@@ -35,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${origin}/shop/${p.id}`,
       lastModified: now,
       changeFrequency: "weekly" as const,
-      priority: 0.8,
+      priority: 0.7,
     }));
   } catch {
     // DB may be unavailable during build without env; keep static routes.

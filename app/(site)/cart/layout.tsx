@@ -3,10 +3,6 @@ import { NOINDEX_METADATA } from "@/lib/seo";
 
 export const metadata: Metadata = NOINDEX_METADATA;
 
-export default function CheckoutLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function CartLayout({ children }: { children: React.ReactNode }) {
   return children;
 }

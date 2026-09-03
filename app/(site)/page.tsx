@@ -10,6 +10,11 @@ import { HomeHero } from "@/components/home/HomeHero";
 import { PromoSpotlight } from "@/components/promo/PromoSpotlight";
 import { getCachedProducts, getCachedSiteConfig } from "@/lib/db/cached-public";
 import { resolveCleaningServices } from "@/lib/services";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function HomePage() {
   const [products, site] = await Promise.all([

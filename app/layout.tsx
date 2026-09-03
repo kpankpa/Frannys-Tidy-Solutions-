@@ -3,15 +3,8 @@ import { CartProvider } from "@/lib/cart";
 import { getCachedSiteConfig } from "@/lib/db/cached-public";
 import { getDefaultSiteConfig } from "@/lib/db/settings";
 import { SITE_BRAND_ICON } from "@/lib/constants";
+import { siteOrigin } from "@/lib/seo";
 import "./globals.css";
-
-function siteOrigin() {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (raw) {
-    return raw.replace(/\/$/, "");
-  }
-  return "http://localhost:3000";
-}
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getCachedSiteConfig().catch(() => getDefaultSiteConfig());

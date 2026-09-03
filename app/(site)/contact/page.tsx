@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Suspense } from "react";
 import { Clock, Mail, MapPin, Phone } from "lucide-react";
+import type { Metadata } from "next";
 import { FadeIn } from "@/components/ui/FadeIn";
 import { Button } from "@/components/ui/Button";
 import { PageHeroTitle } from "@/components/ui/PageHeroTitle";
@@ -18,11 +19,19 @@ import {
   PAGE_HERO_SECTION_CLASS,
 } from "@/lib/hero-layout";
 
-export const metadata = {
-  title: "Contact",
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Contact Frannys Tidy Solutions",
   description:
-    "Email Frannys Tidy Solutions for cleaning products, bookings, and support in Accra.",
-};
+    "Contact Frannys Tidy Solutions in East Legon Hills, Accra for cleaning products, bookings, and support. Call, WhatsApp, or email our team in Ghana.",
+  path: "/contact",
+  openGraph: {
+    title: "Contact Frannys Tidy Solutions | Accra, Ghana",
+    description:
+      "Reach Frannys for cleaning products, home cleaning, and office cleaning services across Accra and Ghana.",
+  },
+});
 
 export default async function ContactPage() {
   const site = await getCachedSiteConfig();
