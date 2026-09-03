@@ -6,7 +6,14 @@ import { canonicalSiteHostname } from "@/lib/seo";
 
 const { auth } = NextAuth(authConfig);
 
+/** Crawlers must read these without a host redirect (GSC rejects 308 on sitemap). */
+const SEO_PATHS = new Set(["/sitemap.xml", "/robots.txt"]);
+
 function redirectToCanonicalHost(request: NextRequest) {
+  if (SEO_PATHS.has(request.nextUrl.pathname)) {
+    return null;
+  }
+
   const canonicalHost = canonicalSiteHostname();
   if (!canonicalHost) return null;
 
@@ -50,6 +57,6 @@ export default auth((request) => {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|html)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|html)$).*)",
   ],
 };
