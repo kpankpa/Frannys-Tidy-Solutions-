@@ -66,9 +66,9 @@ function productStatValue(count: number) {
 /** Scale the stat numeral up as the product count grows. */
 function productStatSizeClass(count: number) {
   const n = Math.max(count, 1);
-  if (n >= 100) return "text-5xl sm:text-6xl lg:text-7xl";
-  if (n >= 10) return "text-4xl sm:text-5xl lg:text-6xl";
-  return "text-4xl sm:text-5xl lg:text-6xl";
+  if (n >= 100) return "text-3xl sm:text-5xl lg:text-6xl";
+  if (n >= 10) return "text-2xl sm:text-4xl lg:text-5xl";
+  return "text-2xl sm:text-4xl lg:text-5xl";
 }
 
 export function AboutSections({
@@ -375,7 +375,7 @@ export function AboutSections({
             />
           </Reveal>
 
-          <Stagger className="mt-12 grid gap-8 sm:grid-cols-3">
+          <Stagger className="mt-12 grid grid-cols-3 gap-4 sm:gap-8">
             {(
               [
                 {
@@ -393,12 +393,14 @@ export function AboutSections({
               <StaggerItem key={stat.label}>
                 <p
                   className={`font-extrabold tracking-tight text-primary ${
-                    "valueClass" in stat ? stat.valueClass : "text-4xl sm:text-5xl"
+                    "valueClass" in stat ? stat.valueClass : "text-2xl sm:text-4xl lg:text-5xl"
                   }`}
                 >
                   {stat.value}
                 </p>
-                <p className="mt-2 text-sm text-muted">{stat.label}</p>
+                <p className="mt-1 text-xs leading-snug text-muted sm:mt-2 sm:text-sm">
+                  {stat.label}
+                </p>
               </StaggerItem>
             ))}
           </Stagger>
